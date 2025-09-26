@@ -1,6 +1,6 @@
 import React, { use, useState, useEffect } from "react";
 import LandingPage from "./LandingPage";
-import HomeScreen from "./HomeScreen";
+import HomeScreen from "./student/HomeScreen";
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 

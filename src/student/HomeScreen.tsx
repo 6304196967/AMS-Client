@@ -14,7 +14,9 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const amsLogo = require("../assets/images/rgukt_w.png"); // your college logo
+//we have alias set for AMSRKV/assets folder in metro.config.js and tsconfig.json
+// So we can import assets like this
+const amsLogo = require("assets/images/rgukt_w.png"); // your college logo
 
 // Define the type for a single schedule item
 type ScheduleItem = {

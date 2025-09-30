@@ -15,98 +15,18 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
+const API_BASE_URL = 'http://10.182.66.80:5000';
+const batch = {'1': 'E1', '2': 'E2', '3': 'E3', '4': 'E4'};
+
 // Mock data for CRs (this would come from your database)
 const mockCRData = [
-  { id: '1', name: 'John Doe', year: 'E2', branch: 'CSE', section: 'A', phone: '9876543210' },
-  { id: '2', name: 'Jane Smith', year: 'E2', branch: 'CSE', section: 'B', phone: '9876543211' },
-  { id: '3', name: 'Mike Johnson', year: 'E3', branch: 'ECE', section: 'A', phone: '9876543212' },
-  { id: '4', name: 'Sarah Wilson', year: 'E3', branch: 'ECE', section: 'D', phone: '9876543213' },
-  { id: '5', name: 'David Brown', year: 'E4', branch: 'ME', section: 'A', phone: '9876543214' },
-  { id: '6', name: 'Emily Davis', year: 'E4', branch: 'ME', section: 'D', phone: '9876543215' },
-  { id: '7', name: 'Robert Miller', year: 'E2', branch: 'CIVIL', section: 'A', phone: '9876543216' },
-  { id: '8', name: 'Lisa Garcia', year: 'E2', branch: 'CIVIL', section: 'B', phone: '9876543217' },
+  { id: '1', name: 'John Doe', year: 'E2', branch: 'CSE', section: 'A', phone: '0000000000' }
 ];
-
-// API function to add CR (replace with your actual API call)
-// const addCRToBackend = async (crData) => {
-//   try {
-//     // Simulate API call delay
-//     await new Promise(resolve => setTimeout(resolve, 1000));
-    
-//     // Replace this with your actual API endpoint
-//     // const response = await fetch('YOUR_BACKEND_API/cr/add', {
-//     //   method: 'POST',
-//     //   headers: {
-//     //     'Content-Type': 'application/json',
-//     //   },
-//     //   body: JSON.stringify({
-//     //     studentId: crData.id,
-//     //     phone: crData.phone
-//     //   }),
-//     // });
-
-//     // if (!response.ok) {
-//     //   throw new Error(`HTTP error! status: ${response.status}`);
-//     // }
-
-//     // const result = await response.json();
-//     // return result;
-    
-//     // Mock response
-//     return { success: true, cr: { ...crData, name: "New CR", year: "E2", branch: "CSE", section: "A" } };
-//   } catch (error) {
-//     console.error("Error adding CR:", error);
-//     throw error;
-//   }
-// };
-
-// // API function to fetch CR list (replace with your actual API call)
-// const fetchCRList = async () => {
-//   try {
-//     // Replace this with your actual API endpoint
-//     // const response = await fetch('YOUR_BACKEND_API/cr/list');
-    
-//     // if (!response.ok) {
-//     //   throw new Error(`HTTP error! status: ${response.status}`);
-//     // }
-
-//     // const result = await response.json();
-//     // return result;
-    
-//     // Mock response
-//     return mockCRData;
-//   } catch (error) {
-//     console.error("Error fetching CR list:", error);
-//     throw error;
-//   }
-// };
-
-// // API function to remove CR (replace with your actual API call)
-// const removeCRFromBackend = async (crId) => {
-//   try {
-//     // Replace this with your actual API endpoint
-//     // const response = await fetch(`YOUR_BACKEND_API/cr/remove/${crId}`, {
-//     //   method: 'DELETE',
-//     // });
-
-//     // if (!response.ok) {
-//     //   throw new Error(`HTTP error! status: ${response.status}`);
-//     // }
-
-//     // const result = await response.json();
-//     // return result;
-    
-//     // Mock response
-//     return { success: true };
-//   } catch (error) {
-//     console.error("Error removing CR:", error);
-//     throw error;
-//   }
-// };
 
 // Filter options
 const yearOptions = ['All', 'E1', 'E2', 'E3', 'E4'];
 const branchOptions = ['All', 'CSE', 'ECE', 'EEE', 'CIVIL', 'ME', 'MME', 'CHEM'];
+
 
 const CrManagement = () => {
   const [selectedYear, setSelectedYear] = useState('All');
@@ -123,23 +43,33 @@ const CrManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch CR list on component mount
-  React.useEffect(() => {
-    fetchCRListFromBackend();
-  }, []);
-
   // Auto-filter when selections or search query change
   React.useEffect(() => {
     filterCRs();
   }, [selectedYear, selectedBranch, searchQuery, crList]);
 
+  // Fetch CR list on component mount
+  React.useEffect(() => {
+    fetchCRListFromBackend();
+  }, []);
+
+  
+
   // Fetch CR list from backend
   const fetchCRListFromBackend = async () => {
     try {
       setIsLoading(true);
-      const data = await fetchCRList();
-      setCrList(data);
-      setFilteredCrList(data);
+      const response = await fetch(`${API_BASE_URL}/crs`, {
+        method: 'GET'
+      });
+      const data = (await response.json());
+      const crs = data['crs'];
+
+      for (let  cr of crs) {
+        cr.year = batch[cr.year as keyof typeof batch] || cr.year;
+      }
+      setCrList(crs);
+      setFilteredCrList(crs);
     } catch (error) {
       Alert.alert("Error", "Failed to fetch CR list");
       console.error("Error fetching CR list:", error);
@@ -187,15 +117,14 @@ const CrManagement = () => {
       "Remove CR",
       "Are you sure you want to remove this CR?",
       [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
+        {text: "Cancel", style: "cancel"},
         { 
           text: "Remove", 
           onPress: async () => {
             try {
-              await removeCRFromBackend(crId);
+              const response = await fetch(`${API_BASE_URL}/crs/remove/${crId}`, {
+                method: 'DELETE',
+              });
               const updatedList = crList.filter(cr => cr.id !== crId);
               setCrList(updatedList);
               Alert.alert("Success", "CR removed successfully!");
@@ -215,7 +144,11 @@ const CrManagement = () => {
 
   // Handle adding new CR
   const handleAddCR = async () => {
+
+    const formData = new FormData();
+
     // Validation
+    console.log(newCR);
     if (!newCR.id) {
       Alert.alert("Error", "Please enter a student ID");
       return;
@@ -235,14 +168,24 @@ const CrManagement = () => {
     
     try {
       // Send only ID and phone to backend
-      const result = await addCRToBackend({
-        id: newCR.id,
-        phone: newCR.phone
+      console.log(newCR);
+      formData.append('id', newCR.id);
+      formData.append('mobile', newCR.phone);
+
+      const response = await fetch(`${API_BASE_URL}/crs/add`, {
+        method  : 'POST',
+        body : formData,
       });
 
-      if (result.success) {
+      const data = await response.json();
+      const newcr = data['newcr'];
+
+      
+      newcr.year = batch[newcr.year as keyof typeof batch] || newcr.year;
+
+      if (response.ok) {
         // Add the new CR to the list with data returned from backend
-        const updatedList = [...crList, result.cr];
+        const updatedList = [...crList, newcr];
         setCrList(updatedList);
         
         // Reset form and close modal
@@ -254,7 +197,7 @@ const CrManagement = () => {
         
         Alert.alert("Success", "CR added successfully!");
       } else {
-        Alert.alert("Error", result.message || "Failed to add CR");
+        Alert.alert("Error", data.message || "Failed to add CR");
       }
     } catch (error) {
       Alert.alert("Error", "Failed to add CR. Please try again.");

@@ -44,7 +44,7 @@ const App: React.FC = () => {
 
     const email = user.email;
 
-    if (email === "r210387@rguktrkv.ac.in") {
+    if (email === "r210387@rguktrkv.ac.in" || email === "r210016@rguktrkv.ac.in") {
       return (
         <AdminNavigator 
           user={user}
@@ -59,7 +59,7 @@ const App: React.FC = () => {
 
   return (
     <NavigationContainer>
-      {isLoggedIn ? renderPortal() : <LandingPage setIsLoggedIn={setIsLoggedIn} setUser={setUser} />}
+      {isLoggedIn && user ? renderPortal() : <LandingPage setIsLoggedIn={setIsLoggedIn} setUser={setUser} />}
     </NavigationContainer>
   );
 };

@@ -14,32 +14,41 @@ import {
   ActivityIndicator
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import FilePickerManager from 'react-native-file-picker';
+import { pick, types} from '@react-native-documents/picker';
 
-// Mock data for Faculty (this would come from your database)
-const mockFacultyData = [
-  { id: 'F001', name: 'Dr. Rajesh Kumar', department: 'CSE', subject: 'Data Structures', year: 'E2', section: 'A' },
-  { id: 'F002', name: 'Dr. Priya Sharma', department: 'ECE', subject: 'Digital Electronics', year: 'E3', section: 'B' },
-  { id: 'F003', name: 'Dr. Amit Patel', department: 'ME', subject: 'Thermodynamics', year: 'E2', section: 'C' },
-  { id: 'F004', name: 'Dr. Sunita Reddy', department: 'CSE', subject: 'Algorithms', year: 'E4', section: 'A' },
-  { id: 'F005', name: 'Dr. Vikram Singh', department: 'EEE', subject: 'Power Systems', year: 'E3', section: 'D' },
-  { id: 'F006', name: 'Dr. Anjali Mehta', department: 'CIVIL', subject: 'Structural Analysis', year: 'E2', section: 'B' },
-  { id: 'F007', name: 'Dr. Sanjay Verma', department: 'CSE', subject: 'Database Systems', year: 'E3', section: 'A' },
-  { id: 'F008', name: 'Dr. Neha Gupta', department: 'ECE', subject: 'Communication Systems', year: 'E4', section: 'C' },
-];
+import { Faculty, InputFieldProps, FilterButtonsProps} from 'src/services/Interfaces';
+
 
 // Filter options
 const departmentOptions = ['All', 'CSE', 'ECE', 'EEE', 'CIVIL', 'ME', 'MME', 'CHEM'];
 const yearOptions = ['All', 'E1', 'E2', 'E3', 'E4'];
-const sectionOptions = ['All', 'A', 'B', 'C', 'D'];
+const sectionOptions = ['All', 'A', 'B', 'C', 'D', 'E'];
+const batch = {'1': 'E1', '2': 'E2', '3': 'E3', '4': 'E4'};
+const API_BASE_URL = 'http://10.182.66.80:5000';
 
 const FacultyManagement = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('All');
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedSection, setSelectedSection] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [facultyList, setFacultyList] = useState(mockFacultyData);
-  const [filteredFacultyList, setFilteredFacultyList] = useState(mockFacultyData);
+  const [facultyList, setFacultyList] = useState<Faculty[]>([{
+    id: "",
+    name: "",
+    department: "",
+    subject_code: "",
+    year: "",
+    section: "",
+    assignment_id: 0,
+  }]);
+  const [filteredFacultyList, setFilteredFacultyList] =  useState<Faculty[]>([{
+    id: "",
+    name: "",
+    department: "",
+    subject_code: "",
+    year: "",
+    section: "",
+    assignment_id: 0,
+  }]);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isUploadModalVisible, setIsUploadModalVisible] = useState(false);
@@ -48,16 +57,26 @@ const FacultyManagement = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
-  const [newFaculty, setNewFaculty] = useState({
-    id: '',
-    name: '',
-    department: 'CSE',
-    subject: '',
-    year: 'E2',
-    section: 'A'
+  const [newFaculty, setNewFaculty] = useState<Faculty>({
+    id: "",
+    name: "",
+    department: "",
+    subject_code: "",
+    year: "",
+    section: "",
+    assignment_id: 0,
   });
 
-  const [editingFaculty, setEditingFaculty] = useState(null);
+  const [editingFaculty, setEditingFaculty] = useState<Faculty>({
+    id: "",
+    name: "",
+    department: "",
+    subject_code: "",
+    year: "",
+    section: "",
+    assignment_id: 0,
+  });
+
   const [uploadProgress, setUploadProgress] = useState(0);
 
   // Fetch faculty list on component mount
@@ -74,9 +93,15 @@ const FacultyManagement = () => {
   const fetchFacultyListFromBackend = async () => {
     try {
       setIsLoading(true);
-      // const data = await fetchFacultyList();
-      // setFacultyList(data);
-      setFacultyList(mockFacultyData); // Using mock data for now
+      const data = await fetch(`${API_BASE_URL}/faculties`).then(res => res.json());
+      const facultyData = data['faculties']
+
+      for (let  faculty of facultyData) {
+        faculty.year = batch[faculty.year as keyof typeof batch] || faculty.year;
+      }
+
+      setFacultyList(facultyData);
+      console.log(facultyData);
     } catch (error) {
       Alert.alert("Error", "Failed to fetch faculty list");
       console.error("Error fetching faculty list:", error);
@@ -110,7 +135,7 @@ const FacultyManagement = () => {
       filtered = filtered.filter(faculty => 
         faculty.name.toLowerCase().includes(query) ||
         faculty.id.toLowerCase().includes(query) ||
-        faculty.subject.toLowerCase().includes(query)
+        faculty.subject_code.toLowerCase().includes(query)
       );
     }
     
@@ -141,7 +166,7 @@ const FacultyManagement = () => {
   };
 
   // Remove faculty
-  const removeFaculty = async (facultyId) => {
+  const removeFaculty = async (assigmentId : number) => {
     Alert.alert(
       "Remove Faculty",
       "Are you sure you want to remove this faculty member?",
@@ -154,8 +179,10 @@ const FacultyManagement = () => {
           text: "Remove", 
           onPress: async () => {
             try {
-              // await removeFacultyFromBackend(facultyId);
-              const updatedList = facultyList.filter(faculty => faculty.id !== facultyId);
+              const response = await fetch(`${API_BASE_URL}/faculties/remove/${assigmentId}`, {
+                method: 'DELETE',
+              });
+              const updatedList = facultyList.filter(faculty => faculty.assignment_id !== assigmentId);
               setFacultyList(updatedList);
               Alert.alert("Success", "Faculty removed successfully!");
             } catch (error) {
@@ -168,31 +195,38 @@ const FacultyManagement = () => {
   };
 
   // Edit faculty
-  const editFaculty = (faculty) => {
+  const editFaculty = (faculty : Faculty) => {
     setEditingFaculty({...faculty});
     setIsEditModalVisible(true);
   };
 
   // Handle adding new faculty
   const handleAddFaculty = async () => {
+    const formData = new FormData();
     // Validation
-    if (!newFaculty.id || !newFaculty.name || !newFaculty.subject) {
+    if (!newFaculty || !newFaculty.id || !newFaculty.name || !newFaculty.subject_code || !newFaculty.department || !newFaculty.year || !newFaculty.section ) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
 
+    formData.append('faculty', JSON.stringify(newFaculty));
+
     setIsSubmitting(true);
     
     try {
-      // const result = await addFacultyToBackend(newFaculty);
-      // if (result.success) {
+      const response = await fetch(`${API_BASE_URL}/faculties/add`, { method : 'POST', body : formData}).then(res => res.json());
+      const newFaculty = response['faculty'];
+      
+      newFaculty.year = batch[newFaculty.year as keyof typeof batch] || newFaculty.year;
+
+      if (response.success) {
         const updatedList = [...facultyList, newFaculty];
         setFacultyList(updatedList);
         resetAddForm();
         Alert.alert("Success", "Faculty added successfully!");
-      // } else {
-      //   Alert.alert("Error", result.message || "Failed to add faculty");
-      // }
+      } else {
+        Alert.alert("Error", response.message || "Failed to add faculty");
+      }
     } catch (error) {
       Alert.alert("Error", "Failed to add faculty. Please try again.");
     } finally {
@@ -204,8 +238,10 @@ const FacultyManagement = () => {
   const handleUpdateFaculty = async () => {
     if (!editingFaculty) return;
 
+    const formData = new FormData();
+
     // Validation
-    if (!editingFaculty.id || !editingFaculty.name || !editingFaculty.subject) {
+    if (!editingFaculty.assignment_id || !editingFaculty.id || !editingFaculty.name || !editingFaculty.subject_code || !editingFaculty.department || !editingFaculty.year || !editingFaculty.section) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
@@ -213,17 +249,19 @@ const FacultyManagement = () => {
     setIsSubmitting(true);
     
     try {
-      // const result = await updateFacultyInBackend(editingFaculty.id, editingFaculty);
-      // if (result.success) {
+      formData.append('faculty', JSON.stringify(editingFaculty));
+      const response = await fetch(`${API_BASE_URL}/faculties/update/${editingFaculty.assignment_id}`, {method : 'PUT', body : formData}).then(res => res.json());
+      const editedFaculty = response['faculty'];
+      if (response.success) {
         const updatedList = facultyList.map(faculty => 
-          faculty.id === editingFaculty.id ? editingFaculty : faculty
+          faculty.assignment_id === editingFaculty.assignment_id ? editedFaculty : faculty
         );
         setFacultyList(updatedList);
         resetEditForm();
         Alert.alert("Success", "Faculty updated successfully!");
-      // } else {
-      //   Alert.alert("Error", result.message || "Failed to update faculty");
-      // }
+      } else {
+        Alert.alert("Error", response.message || "Failed to update faculty");
+      }
     } catch (error) {
       Alert.alert("Error", "Failed to update faculty. Please try again.");
     } finally {
@@ -232,81 +270,79 @@ const FacultyManagement = () => {
   };
 
   // Handle Excel upload using File Picker
-  const handleExcelUpload = () => {
-    FilePickerManager.showFilePicker(null, (response) => {
-      console.log('Response = ', response);
-      
-      if (response.didCancel) {
-        console.log('User cancelled file picker');
-      } else if (response.error) {
-        Alert.alert('Error', response.error);
-      } else {
-        // File was selected, process the upload
-        processExcelUpload(response);
-      }
-    });
-  };
-
-  // Process the selected Excel file
-  const processExcelUpload = (fileResponse) => {
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    // Simulate upload progress
-    const progressInterval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90;
-        }
-        return prev + 10;
+  const handleExcelUpload = async () => {
+    try {
+      const pickerResult = await pick({
+        type: [types.xls, types.xlsx],
       });
-    }, 200);
 
-    // Simulate API call
-    setTimeout(() => {
-      clearInterval(progressInterval);
-      setUploadProgress(100);
+      // UPDATED: This is the new, correct way to check for cancellation.
+      if (!pickerResult) {
+        return; // Exit the function if the user cancels
+      }
+      
+      // Since pick returns an array, we take the first element.
+      const file = pickerResult[0];
 
-      // Simulate backend response
-      setTimeout(() => {
-        const result = { success: true, addedCount: 3 }; // Mock result
+      // Create FormData (this part remains the same)
+      const formData = new FormData();
+      formData.append('file', {
+        uri: file.uri,
+        name: file.name,
+        type: file.type,
+      });
 
-        if (result.success) {
-          // Refresh the faculty list
-          fetchFacultyListFromBackend();
-          setIsUploadModalVisible(false);
-          Alert.alert("Success", `Excel uploaded successfully! ${result.addedCount} faculty members added.`);
-        } else {
-          Alert.alert("Error", result.message || "Failed to upload Excel file");
-        }
-        
-        setIsUploading(false);
-        setUploadProgress(0);
-      }, 500);
-    }, 2000);
+      // Send the request to your backend
+      const response = await fetch(`${API_BASE_URL}/faculties/upload_faculty`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const responseJson = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Success', responseJson.message);
+        await fetchFacultyListFromBackend();
+      } else {
+        throw new Error(responseJson.message || 'Something went wrong');
+      }
+
+    } catch (error) {
+      // The catch block now only handles genuine errors (e.g., permissions, network issues)
+      console.error('An unexpected error occurred:', error);
+      Alert.alert('Error', 'An unexpected error occurred during the upload.');
+    }
   };
 
   // Reset forms
   const resetAddForm = () => {
     setNewFaculty({
-      id: '',
-      name: '',
-      department: 'CSE',
-      subject: '',
-      year: 'E2',
-      section: 'A'
+      id: "",
+      name: "",
+      department: "",
+      subject_code: "",
+      year: "",
+      section: "",
+      assignment_id: 0,
     });
     setIsAddModalVisible(false);
   };
 
   const resetEditForm = () => {
-    setEditingFaculty(null);
+    setNewFaculty({
+      id: "",
+      name: "",
+      department: "",
+      subject_code: "",
+      year: "",
+      section: "",
+      assignment_id: 0,
+    });
     setIsEditModalVisible(false);
   };
 
   // Render filter buttons for modal
-  const renderFilterButtons = (options, selected, setSelected, label) => (
+  const renderFilterButtons = (options: string[] , selected : string, setSelected : (option: string) => void, label : string) => (
     <View style={styles.filterSection}>
       <Text style={styles.filterLabel}>{label}:</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -334,7 +370,7 @@ const FacultyManagement = () => {
   );
 
   // Render faculty item
-  const renderFacultyItem = ({ item }) => (
+  const renderFacultyItem = ({ item }: { item: Faculty }) => (
     <View style={styles.facultyCard}>
       <View style={styles.facultyInfo}>
         <View style={styles.facultyHeader}>
@@ -354,7 +390,7 @@ const FacultyManagement = () => {
           </View>
           <View style={styles.detailRow}>
             <Icon name="menu-book" size={14} color="#600202" />
-            <Text style={styles.facultyDetails}>Subject: {item.subject}</Text>
+            <Text style={styles.facultyDetails}>Subject Code: {item.subject_code}</Text>
           </View>
           <View style={styles.detailRow}>
             <Icon name="school" size={14} color="#600202" />
@@ -371,7 +407,7 @@ const FacultyManagement = () => {
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.removeButton}
-          onPress={() => removeFaculty(item.id)}
+          onPress={() => removeFaculty(item.assignment_id)}
         >
           <Icon name="delete" size={16} color="#FFF" />
         </TouchableOpacity>
@@ -380,7 +416,7 @@ const FacultyManagement = () => {
   );
 
   // Render input field for forms
-  const renderInputField = (label, value, onChange, placeholder, keyboardType = 'default') => (
+  const renderInputField = (label : string, value : string, onChange : (text: string) => void, placeholder : string, keyboardType: 'default' | 'numeric' | 'email-address' | 'phone-pad' = 'default') => (
     <View style={styles.inputGroup}>
       <Text style={styles.label}>{label} *</Text>
       <TextInput
@@ -396,7 +432,7 @@ const FacultyManagement = () => {
   );
 
   // Render option buttons for forms
-  const renderOptionButtons = (label, options, selected, onSelect) => (
+  const renderOptionButtons = (label : string, options : string[], selected : string, onSelect : (option: string) => void) => (
     <View style={styles.inputGroup}>
       <Text style={styles.label}>{label}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -426,19 +462,21 @@ const FacultyManagement = () => {
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-        <Icon name="search" size={20} color="#600202" />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search by name, ID, or subject..."
-          placeholderTextColor="#999"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        {searchQuery !== '' && (
-          <TouchableOpacity onPress={() => setSearchQuery('')}>
-            <Icon name="close" size={20} color="#600206" />
-          </TouchableOpacity>
-        )}
+        <View style={styles.searchInputContainer}>
+          <Icon name="search" size={20} color="#600202" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by name, ID, or subject_code..."
+            placeholderTextColor="#999"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery !== '' && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Icon name="close" size={20} color="#600206" />
+            </TouchableOpacity>
+          )}
+        </View>
         <TouchableOpacity 
           style={[styles.filterButton1, countActiveFilters() > 0 && styles.filterButtonActive1]} 
           onPress={() => setIsFilterModalVisible(true)}
@@ -469,7 +507,7 @@ const FacultyManagement = () => {
       {/* Stats Bar */}
       <View style={styles.statsContainer}>
         <Text style={styles.statsText}>
-          Showing {filteredFacultyList.length} faculty member{filteredFacultyList.length !== 1 ? 's' : ''}
+          Showing {filteredFacultyList.length} faculty assignment{filteredFacultyList.length !== 1 ? 's' : ''}
           {(selectedDepartment !== 'All' || selectedYear !== 'All' || selectedSection !== 'All' || searchQuery !== '') && 
             ` • ${countActiveFilters()} filter${countActiveFilters() !== 1 ? 's' : ''} applied${searchQuery !== '' ? ' + search' : ''}`
           }
@@ -489,7 +527,8 @@ const FacultyManagement = () => {
         <FlatList
           data={filteredFacultyList}
           renderItem={renderFacultyItem}
-          keyExtractor={item => item.id}
+          //Here item => item.assignmnet_id must be string so i converted it to string
+          keyExtractor={item => String(item.assignment_id)}
           contentContainerStyle={styles.listContainer}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
@@ -550,8 +589,8 @@ const FacultyManagement = () => {
 
             <ScrollView style={styles.formContainer}>
               {renderInputField("Faculty ID", newFaculty.id, (text) => setNewFaculty({...newFaculty, id: text}), "Enter faculty ID")}
-              {renderInputField("Full Name", newFaculty.name, (text) => setNewFaculty({...newFaculty, name: text}), "Enter full name")}
-              {renderInputField("Subject", newFaculty.subject, (text) => setNewFaculty({...newFaculty, subject: text}), "Enter subject")}
+              {renderInputField("Full Name",  newFaculty.name,  (text) => setNewFaculty({...newFaculty, name: text}),  "Enter full name")}
+              {renderInputField("Subject Code",  newFaculty.subject_code,  (text) => setNewFaculty({...newFaculty, subject_code: text}),  "Enter subject code")}
               {renderOptionButtons("Department", departmentOptions, newFaculty.department, (dept) => setNewFaculty({...newFaculty, department: dept}))}
               {renderOptionButtons("Academic Year", yearOptions, newFaculty.year, (year) => setNewFaculty({...newFaculty, year: year}))}
               {renderOptionButtons("Section", sectionOptions, newFaculty.section, (section) => setNewFaculty({...newFaculty, section: section}))}
@@ -562,9 +601,9 @@ const FacultyManagement = () => {
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.submitButton, (!newFaculty.id || !newFaculty.name || !newFaculty.subject) && styles.submitButtonDisabled, isSubmitting && styles.buttonDisabled]}
+                style={[styles.submitButton, (!newFaculty.id || !newFaculty.name || !newFaculty.subject_code) && styles.submitButtonDisabled, isSubmitting && styles.buttonDisabled]}
                 onPress={handleAddFaculty}
-                disabled={!newFaculty.id || !newFaculty.name || !newFaculty.subject || isSubmitting}
+                disabled={!newFaculty.id || !newFaculty.name || !newFaculty.subject_code || isSubmitting}
               >
                 {isSubmitting ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={styles.submitButtonText}>Add Faculty</Text>}
               </TouchableOpacity>
@@ -591,7 +630,7 @@ const FacultyManagement = () => {
                 <>
                   {renderInputField("Faculty ID", editingFaculty.id, (text) => setEditingFaculty({...editingFaculty, id: text}), "Enter faculty ID")}
                   {renderInputField("Full Name", editingFaculty.name, (text) => setEditingFaculty({...editingFaculty, name: text}), "Enter full name")}
-                  {renderInputField("Subject", editingFaculty.subject, (text) => setEditingFaculty({...editingFaculty, subject: text}), "Enter subject")}
+                  {renderInputField("Subject_code", editingFaculty.subject_code, (text) => setEditingFaculty({...editingFaculty, subject_code: text}), "Enter subject_code")}
                   {renderOptionButtons("Department", departmentOptions, editingFaculty.department, (dept) => setEditingFaculty({...editingFaculty, department: dept}))}
                   {renderOptionButtons("Academic Year", yearOptions, editingFaculty.year, (year) => setEditingFaculty({...editingFaculty, year: year}))}
                   {renderOptionButtons("Section", sectionOptions, editingFaculty.section, (section) => setEditingFaculty({...editingFaculty, section: section}))}
@@ -604,9 +643,9 @@ const FacultyManagement = () => {
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.submitButton, (!editingFaculty?.id || !editingFaculty?.name || !editingFaculty?.subject) && styles.submitButtonDisabled, isSubmitting && styles.buttonDisabled]}
+                style={[styles.submitButton, (!editingFaculty?.id || !editingFaculty?.name || !editingFaculty?.subject_code) && styles.submitButtonDisabled, isSubmitting && styles.buttonDisabled]}
                 onPress={handleUpdateFaculty}
-                disabled={!editingFaculty?.id || !editingFaculty?.name || !editingFaculty?.subject || isSubmitting}
+                disabled={!editingFaculty?.id || !editingFaculty?.name || !editingFaculty?.subject_code || isSubmitting}
               >
                 {isSubmitting ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={styles.submitButtonText}>Update Faculty</Text>}
               </TouchableOpacity>
@@ -632,7 +671,7 @@ const FacultyManagement = () => {
               <Icon name="cloud-upload" size={60} color="#600202" />
               <Text style={styles.uploadTitle}>Upload Faculty Excel Sheet</Text>
               <Text style={styles.uploadDescription}>
-                Upload an Excel file with columns: Faculty ID, Name, Department, Subject, Year, Section
+                Upload an Excel file with columns: Faculty ID, Name, Department, Subject_code, Year, Section
               </Text>
               
               {isUploading && (
@@ -645,12 +684,12 @@ const FacultyManagement = () => {
               )}
 
               <TouchableOpacity 
-                style={[styles.uploadButton, isUploading && styles.buttonDisabled]} 
+                style={[styles.uploadModalButton, isUploading && styles.buttonDisabled]} 
                 onPress={handleExcelUpload}
                 disabled={isUploading}
               >
                 <Icon name="upload" size={20} color="#FFF" />
-                <Text style={styles.uploadButtonText}>
+                <Text style={styles.uploadModalButtonText}>
                   {isUploading ? 'Uploading...' : 'Choose Excel File'}
                 </Text>
               </TouchableOpacity>
@@ -670,17 +709,21 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    margin: 15,
-    marginBottom: 10,
-    paddingHorizontal: 12,
+    padding: 15,
+    paddingBottom: 5,
+  },
+  searchInputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
     borderRadius: 10,
-    height: 47,
-    maxWidth:300,
+    paddingHorizontal: 12,
+    marginRight: 10,
   },
   searchInput: {
     flex: 1,
-    marginLeft: 10,
+    paddingVertical: 12,
     fontSize: 16,
     color: '#600202',
   },
@@ -718,11 +761,9 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 10,
     width: 50,
-    height: 50,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    marginLeft: 60,
 
   },
   filterButtonActive1: {
@@ -1080,6 +1121,25 @@ const styles = StyleSheet.create({
   loadingText: {
     color: '#f5f5f5',
     marginTop: 10,
+  },
+    // Add new styles for the modal upload button
+  uploadModalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ff6b35',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginTop: 15,
+    gap: 8,
+    minWidth: 200,
+    justifyContent: 'center',
+  },
+  uploadModalButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    flexShrink: 1,
   },
 }); 
 

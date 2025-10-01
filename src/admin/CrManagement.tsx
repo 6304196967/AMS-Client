@@ -14,25 +14,22 @@ import {
   ActivityIndicator
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import {CR} from '../services/Interfaces';
 
 const API_BASE_URL = 'http://10.182.66.80:5000';
-const batch = {'1': 'E1', '2': 'E2', '3': 'E3', '4': 'E4'};
 
-// Mock data for CRs (this would come from your database)
-const mockCRData = [
-  { id: '1', name: 'John Doe', year: 'E2', branch: 'CSE', section: 'A', phone: '0000000000' }
-];
 
 // Filter options
 const yearOptions = ['All', 'E1', 'E2', 'E3', 'E4'];
 const branchOptions = ['All', 'CSE', 'ECE', 'EEE', 'CIVIL', 'ME', 'MME', 'CHEM'];
+const batch = {'1': 'E1', '2': 'E2', '3': 'E3', '4': 'E4'};
 
 
 const CrManagement = () => {
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedBranch, setSelectedBranch] = useState('All');
-  const [crList, setCrList] = useState(mockCRData);
-  const [filteredCrList, setFilteredCrList] = useState(mockCRData);
+  const [crList, setCrList] = useState<CR[]>([]);
+  const [filteredCrList, setFilteredCrList] = useState<CR[]>([]);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,15 +40,15 @@ const CrManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Auto-filter when selections or search query change
-  React.useEffect(() => {
-    filterCRs();
-  }, [selectedYear, selectedBranch, searchQuery, crList]);
-
   // Fetch CR list on component mount
   React.useEffect(() => {
     fetchCRListFromBackend();
   }, []);
+
+  // Auto-filter when selections or search query change
+  React.useEffect(() => {
+    filterCRs();
+  }, [selectedYear, selectedBranch, searchQuery, crList]);
 
   
 

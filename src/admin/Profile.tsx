@@ -109,13 +109,14 @@ const styles = StyleSheet.create({
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: 10,
     backgroundColor: '#f8f9fa',
     borderBottomWidth: 1,
     borderBottomColor: '#e9ecef',
   },
   usernameDropdown: {
     marginLeft: 8,
+    marginRight: 8,
     fontSize: 14,
     fontWeight: 'bold',
     color: '#333',

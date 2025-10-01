@@ -4,10 +4,10 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 
 // Admin Screens
 import HomeScreen from "../admin/HomeScreen";
-import StudentStackNavigator from "../admin/StudentStackNavigator";
 import FacultyManagement from "../admin/FacultyManagement";
 import CrManagement from "../admin/CrManagement";
 import ScheduleManagement from "../admin/ScheduleManagement";
+import StudentManagement from "../admin/StudentManagement";
 import Profile from "../admin/Profile";
 
 const Tab = createBottomTabNavigator();
@@ -52,7 +52,7 @@ const AdminNavigator: React.FC<AdminNavigatorProps> = ({ user, setIsLoggedIn, se
     })}
   >
     <Tab.Screen name="Home" component={HomeScreen} />
-    <Tab.Screen name="Student" component={StudentStackNavigator} options={{title: 'Student Management', tabBarLabel: 'Student'}}/>
+    <Tab.Screen name="Student" component={StudentManagement} options={{title: 'Student Management', tabBarLabel: 'Student'}}/>
     <Tab.Screen name="Faculty" component={FacultyManagement} options={{title: 'Faculty Management', tabBarLabel: 'Faculty'}}/>
     <Tab.Screen name="CR" component={CrManagement} options={{title: 'CR Management', tabBarLabel: 'CR\'s'}}/>
     <Tab.Screen name="Schedule" component={ScheduleManagement} options={{title: 'Schedule Management', tabBarLabel: 'Schedule'}} />

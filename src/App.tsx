@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LandingPage from "./LandingPage";
-import AdminNavigator from "./Navigators/AdminNavigator";
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import AdminNavigator from "./Navigators/AdminNavigator";
+import FacultyNavigator from "./Navigators/FacultyNavigator";
 
 // Type
 type UserInfo = { name: string; email: string };
@@ -44,13 +45,22 @@ const App: React.FC = () => {
 
     const email = user.email;
 
-    if (email === "r210387@rguktrkv.ac.in" || email === "r210016@rguktrkv.ac.in") {
+    if (email === "r210016@rguktrkv.ac.in") {
       return (
         <AdminNavigator 
           user={user}
           setIsLoggedIn={setIsLoggedIn}
           setUser={setUser}
         />
+      );
+    }
+    else if(email== "r210387@rguktrkv.ac.in"){
+      return(
+        <FacultyNavigator
+        user={user}
+        setIsLoggedIn={setIsLoggedIn}
+        setUser={setUser}
+      />
       );
     }
 

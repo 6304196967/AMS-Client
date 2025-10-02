@@ -193,38 +193,50 @@ const FacultyManagement = () => {
   };
 
   // Handle adding new faculty
-  const handleAddFaculty = async () => {
-    const formData = new FormData();
-    // Validation
-    if (!newFaculty || !newFaculty.id || !newFaculty.name || !newFaculty.subject_code || !newFaculty.department || !newFaculty.year || !newFaculty.section ) {
-      Alert.alert("Error", "Please fill in all required fields");
-      return;
-    }
+  // Handle adding new faculty - CORRECTED
+const handleAddFaculty = async () => {
+  // Validation
+  if (!newFaculty.id || !newFaculty.name || !newFaculty.subject_code || !newFaculty.department || !newFaculty.year || !newFaculty.section) {
+    Alert.alert("Error", "Please fill in all required fields");
+    return;
+  }
 
-    formData.append('faculty', JSON.stringify(newFaculty));
+  setIsSubmitting(true);
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/faculties/add`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newFaculty)
+    });
 
-    setIsSubmitting(true);
+    const responseData = await response.json();
     
-    try {
-      const response = await fetch(`${API_BASE_URL}/faculties/add`, { method : 'POST', body : formData}).then(res => res.json());
-      const newFaculty = response['faculty'];
+    if (response.ok && responseData.success) {
+      const addedFaculty = responseData.faculty;
+      // Convert year back to display format
+      addedFaculty.year = batch[addedFaculty.year as keyof typeof batch] || addedFaculty.year;
       
-      newFaculty.year = batch[newFaculty.year as keyof typeof batch] || newFaculty.year;
-
-      if (response.success) {
-        const updatedList = [...facultyList, newFaculty];
-        setFacultyList(updatedList);
-        resetAddForm();
-        Alert.alert("Success", "Faculty added successfully!");
-      } else {
-        Alert.alert("Error", response.message || "Failed to add faculty");
-      }
-    } catch (error) {
-      Alert.alert("Error", "Failed to add faculty. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+      const updatedList = [...facultyList, addedFaculty];
+      setFacultyList(updatedList);
+      resetAddForm();
+      setIsAddModalVisible(false);
+      Alert.alert("Success", "Faculty added successfully!");
+    } else {
+      Alert.alert("Error", responseData.message || "Failed to add faculty");
     }
-  };
+  } catch (error) {
+    console.error("Add faculty error:", error);
+    Alert.alert("Error", "Failed to add faculty. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+// Reset add form - CORRECTED
+// (Removed duplicate declaration)
 
   // Handle updating faculty
   const handleUpdateFaculty = async () => {

@@ -16,7 +16,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {CR} from '../services/Interfaces';
 
-const API_BASE_URL = 'http://10.182.66.80:5000';
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
 
 // Filter options

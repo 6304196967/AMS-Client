@@ -24,7 +24,7 @@ const departmentOptions = ['All', 'CSE', 'ECE', 'EEE', 'CIVIL', 'ME', 'MME', 'CH
 const yearOptions = ['All', 'E1', 'E2', 'E3', 'E4'];
 const sectionOptions = ['All', 'A', 'B', 'C', 'D', 'E'];
 const batch = {'1': 'E1', '2': 'E2', '3': 'E3', '4': 'E4'};
-const API_BASE_URL = 'http://10.182.66.80:5000';
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
 const FacultyManagement = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('All');

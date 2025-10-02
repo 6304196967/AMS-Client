@@ -5,7 +5,7 @@ const Analytics: React.FC = () => {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Analytics</Text>
-            <Text>This is a dummy page for Analytics.</Text>
+            <Text>This is a dummy page for schedule.</Text>
         </View>
     );
 };

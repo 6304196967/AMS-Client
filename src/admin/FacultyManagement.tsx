@@ -31,15 +31,7 @@ const FacultyManagement = () => {
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedSection, setSelectedSection] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [facultyList, setFacultyList] = useState<Faculty[]>([{
-    id: "",
-    name: "",
-    department: "",
-    subject_code: "",
-    year: "",
-    section: "",
-    assignment_id: 0,
-  }]);
+  const [facultyList, setFacultyList] = useState<Faculty[]>([]);
   const [filteredFacultyList, setFilteredFacultyList] =  useState<Faculty[]>([{
     id: "",
     name: "",
@@ -416,17 +408,17 @@ const FacultyManagement = () => {
   );
 
   // Render input field for forms
-  const renderInputField = (label : string, value : string, onChange : (text: string) => void, placeholder : string, keyboardType: 'default' | 'numeric' | 'email-address' | 'phone-pad' = 'default') => (
+  const renderInputField = (label : string, value : string, onChange : (text: string) => void, placeholder : string, isEditable: boolean = true, keyboardType: 'default' | 'numeric' | 'email-address' | 'phone-pad' = 'default' ) => (
     <View style={styles.inputGroup}>
       <Text style={styles.label}>{label} *</Text>
       <TextInput
-        style={styles.textInput}
+        style={[styles.textInput, !isEditable && styles.textInputDisabled]}
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
         placeholderTextColor="#999"
         keyboardType={keyboardType}
-        editable={!isSubmitting}
+        editable={!isSubmitting && isEditable}
       />
     </View>
   );
@@ -628,7 +620,7 @@ const FacultyManagement = () => {
             <ScrollView style={styles.formContainer}>
               {editingFaculty && (
                 <>
-                  {renderInputField("Faculty ID", editingFaculty.id, (text) => setEditingFaculty({...editingFaculty, id: text}), "Enter faculty ID")}
+                  {renderInputField("Faculty ID", editingFaculty.id, (text) => setEditingFaculty({...editingFaculty, id: text}), "Enter faculty ID", false)}
                   {renderInputField("Full Name", editingFaculty.name, (text) => setEditingFaculty({...editingFaculty, name: text}), "Enter full name")}
                   {renderInputField("Subject_code", editingFaculty.subject_code, (text) => setEditingFaculty({...editingFaculty, subject_code: text}), "Enter subject_code")}
                   {renderOptionButtons("Department", departmentOptions, editingFaculty.department, (dept) => setEditingFaculty({...editingFaculty, department: dept}))}
@@ -1017,6 +1009,11 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: '#f8f9fa',
+  },
+  textInputDisabled: {
+    backgroundColor: '#e9ecef', // Light gray background for disabled state
+    color: '#868e96',          // Faded text color
+    borderColor: '#ced4da',    // Slightly darker border for contrast
   },
   optionButtons: {
     flexDirection: 'row',

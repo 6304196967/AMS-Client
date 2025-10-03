@@ -7,6 +7,7 @@ import Analytics from "../faculty/Analytics";
 import HomeScreen from "../faculty/HomeScreen";
 import Attendance from "../faculty/Attendance";
 import Profile from "../admin/Profile";
+import AttendanceStackNavigator from "./AttendanceStackNavigator";
 
 const Tab = createBottomTabNavigator();
 

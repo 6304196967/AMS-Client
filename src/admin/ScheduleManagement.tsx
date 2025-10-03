@@ -31,7 +31,6 @@ const ScheduleManagement = () => {
     const [selectedScheduleBranch, setSelectedScheduleBranch] = useState('CSE');
 
     // --- API Configuration ---
-    // ❗ IMPORTANT: Replace with your computer's local IP address
     const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
     // --- Handlers ---

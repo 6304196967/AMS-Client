@@ -27,7 +27,6 @@ const StudentManagement = () => {
     const [selectedYear, setSelectedYear] = useState('E3');
     const [selectedBranch, setSelectedBranch] = useState('CSE');
 
-    // ❗ IMPORTANT: Replace with your computer's local IP address
     const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
     // --- Handlers ---

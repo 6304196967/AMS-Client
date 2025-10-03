@@ -36,3 +36,29 @@ export interface CR {
   section: string;
   phone: string;
 }
+
+// ClassAssignment Interface
+export interface ClassAssignment {
+  id: string;
+  subjectCode: string;
+  subjectName: string;
+  section: string;
+  totalClasses: number;
+  attendancePercentage: number;
+  lastClass: string;
+  department: string;
+  year: string; 
+}
+
+// Recent Activity Interface
+export interface RecentActivity {
+  id: string;
+  class: string; // Class identifier e.g., "OS2025 - E3 CSE Sec-D"
+  date: string; // Date string in format 'DD/MM/YYYY'
+  topic: string;
+  attended: number;
+  totalStudents?: number; // Optional: total number of students
+  period?: number; // Optional: if you have multiple periods
+  timeSlot?: string; // Optional: e.g., "8:30 - 9:30 AM"
+  classId?: string; // Optional: reference to the Class id
+}

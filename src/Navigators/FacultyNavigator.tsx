@@ -4,9 +4,10 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 
 // Admin Screens
 import HomeScreen from "../faculty/HomeScreen";
-import Analytics from "../faculty/Analytics";
+import FacultyAnalytics from "../faculty/Analytics";
 import Schedule from "../faculty/Schedule";
 import Profile from "../admin/Profile";
+import AttendanceStackNavigator from "./AttendanceStackNavigator";
 
 const Tab = createBottomTabNavigator();
 
@@ -49,7 +50,7 @@ const FacultyNavigator: React.FC<FacultyNavigatorProps> = ({ user, setIsLoggedIn
   >
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Schedule" component={Schedule} options={{title: 'Schedule Management', tabBarLabel: 'Schedule'}}/>
-    <Tab.Screen name="Analytics" component={Analytics} options={{title: 'Dashboard', tabBarLabel: 'Analytics'}} />
+    <Tab.Screen name="Analytics" component={AttendanceStackNavigator} options={{title: 'Dashboard', tabBarLabel: 'Analytics'}} />
   </Tab.Navigator>
 );
 

@@ -45,7 +45,7 @@ const App: React.FC = () => {
 
     const email = user.email;
 
-    if (email === "r210016@rguktrkv.ac.in") {
+    if (email === "r210016@rguktrkv.a.in") {
       return (
         <AdminNavigator 
           user={user}
@@ -54,7 +54,7 @@ const App: React.FC = () => {
         />
       );
     }
-    else if(email== "r210387@rguktrkv.ac.in"){
+    else if(email== "r210387@rguktrkv.ac.in" || "r210016@rguktrkv.ac.in"){
       return(
         <FacultyNavigator
         user={user}

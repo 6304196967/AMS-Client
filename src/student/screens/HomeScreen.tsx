@@ -307,10 +307,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
               style={styles.input}
             />
             <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: 10 }}>
-              <TouchableOpacity style={styles.modalButton} onPress={handleLogout}>
-                <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Confirm</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+            <TouchableOpacity
                 style={[styles.modalButton, { backgroundColor: 'red' }]}
                 onPress={() => {
                   setLogoutModalVisible(false);
@@ -319,6 +316,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
               >
                 <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Cancel</Text>
               </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton} onPress={handleLogout}>
+                <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Confirm</Text>
+              </TouchableOpacity>
+              
             </View>
           </View>
         </View>

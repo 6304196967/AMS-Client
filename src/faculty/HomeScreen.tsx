@@ -1396,6 +1396,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderLeftWidth: 4,
         borderLeftColor: '#28A745',
+        marginBottom: 30,
     },
     otpTitle: {
         fontSize: 16,

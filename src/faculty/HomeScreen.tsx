@@ -76,6 +76,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
     const [isGeneratingOTP, setIsGeneratingOTP] = useState<boolean>(false);
     const [serverTime, setServerTime] = useState<Date>(new Date());
     const [timeLoading, setTimeLoading] = useState<boolean>(true);
+    const [attendanceReason, setAttendanceReason] = useState<string>(''); // New state for attendance reason
     
     // Filter options
     const yearOptions = ['E1', 'E2', 'E3', 'E4'];
@@ -92,11 +93,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
         subject_code: ''
     });
 
-    const API_BASE_URL = 'http://10.182.66.80:5000';
+    const API_BASE_URL = 'http://10.173.174.102:5000';
 
     useEffect(() => {
         if (user?.email) {
-            // setActualFacultyId(user.email.split('@')[0]|| "F002");
             setActualFacultyId("F005");
         }
     }, [user]);
@@ -236,24 +236,43 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
     const getCurrentTimeStatus = (startTime: string, endTime: string): string => {
     if (timeLoading) return 'Loading...';
     
-    const currentTime = serverTime.getHours() * 60 + serverTime.getMinutes();
+    // Get the date parts for comparison
+    const currentDate = new Date(serverTime);
+    const scheduleDate = new Date(selectedDate);
     
-    const [startHour, startMinute] = startTime.split(':').map(Number);
-    const [endHour, endMinute] = endTime.split(':').map(Number);
+    // Reset time parts for date comparison only
+    const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+    const scheduleDateOnly = new Date(scheduleDate.getFullYear(), scheduleDate.getMonth(), scheduleDate.getDate());
     
-    const startTimeInMinutes = startHour * 60 + startMinute;
-    const endTimeInMinutes = endHour * 60 + endMinute;
-    
-    const gracePeriod = 30; // We can change the time limit for marking attendance after the completion of class...
-    
-    if (currentTime < startTimeInMinutes) {
-        return 'Upcoming';
-    } else if (currentTime >= startTimeInMinutes && currentTime <= endTimeInMinutes + gracePeriod) {
-        return 'Ongoing';
-    } else {
+    // Compare dates
+    if (scheduleDateOnly < currentDateOnly) {
+        // This is for past dates (yesterday or earlier)
         return 'Expired';
+    } else if (scheduleDateOnly > currentDateOnly) {
+        // This is for future dates (tomorrow or later)
+        return 'Upcoming';
+    } else {
+        // This is for today - check the time
+        const currentTime = currentDate.getHours() * 60 + currentDate.getMinutes();
+        
+        const [startHour, startMinute] = startTime.split(':').map(Number);
+        const [endHour, endMinute] = endTime.split(':').map(Number);
+        
+        const startTimeInMinutes = startHour * 60 + startMinute;
+        const endTimeInMinutes = endHour * 60 + endMinute;
+        
+        const gracePeriod = 30; // Grace period for marking attendance after class
+        
+        if (currentTime < startTimeInMinutes) {
+            return 'Upcoming';
+        } else if (currentTime >= startTimeInMinutes && currentTime <= endTimeInMinutes + gracePeriod) {
+            return 'Ongoing';
+        } else {
+            return 'Expired';
+        }
     }
 };
+
     const handleCancelSchedule = (schedule: ScheduleItem) => {
         Alert.alert(
             'Cancel Class',
@@ -292,10 +311,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
         setSelectedSchedule(schedule);
         setShowAttendanceModal(true);
         setGeneratedOTP('');
+        setAttendanceReason(''); // Reset reason when opening modal
     };
 
     const generateOTP = async () => {
         if (!selectedSchedule) return;
+
+        // Validate attendance reason
+        if (!attendanceReason.trim()) {
+            Alert.alert('Error', 'Please provide a reason for marking attendance');
+            return;
+        }
 
         try {
             setIsGeneratingOTP(true);
@@ -318,7 +344,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
             // Shuffle the OTP
             const shuffledOTP = otp.split('').sort(() => 0.5 - Math.random()).join('');
             
-            // Call backend to store OTP
+            // Call backend to store OTP with attendance reason
             const response = await fetch(`${API_BASE_URL}/generate-otp`, {
                 method: 'POST',
                 headers: {
@@ -327,7 +353,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                 body: JSON.stringify({
                     schedule_id: selectedSchedule.id,
                     faculty_id: actualFacultyId,
-                    otp: shuffledOTP
+                    otp: shuffledOTP,
+                    topic_discussed: attendanceReason.trim() // Send the reason to backend
                 })
             });
 
@@ -591,25 +618,34 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                     {getGreeting()}, {user?.name || scheduleData?.faculty_name || 'Faculty'}!
                 </Text>    
                 {/* Calendar Navigation */}
-                <View style={styles.calendarNav}>
-                    <TouchableOpacity 
-                        style={styles.navButton}
-                        onPress={() => navigateDate(-1)}
-                    >
-                        <Icon name="chevron-left" size={24} color="#FFFFFF" />
-                    </TouchableOpacity>
-                    
-                    <View style={styles.dateDisplay}>
-                        <Text style={styles.dateTitle}>{getDateDisplayText()}</Text>
-                    </View>
-                    
-                    <TouchableOpacity 
-                        style={styles.navButton}
-                        onPress={() => navigateDate(1)}
-                    >
-                        <Icon name="chevron-right" size={24} color="#FFFFFF" />
-                    </TouchableOpacity>
-                </View>
+                {/* Calendar Navigation */}
+<View style={styles.calendarNav}>
+    <TouchableOpacity 
+        style={styles.navButton}
+        onPress={() => navigateDate(-1)}
+    >
+        <Icon name="chevron-left" size={24} color="#FFFFFF" />
+    </TouchableOpacity>
+    
+    <View style={styles.dateDisplay}>
+        <Text style={styles.dateTitle}>{getDateDisplayText()}</Text>
+        <Text style={styles.dateSubText}>
+            {selectedDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            })}
+        </Text>
+    </View>
+    
+    <TouchableOpacity 
+        style={styles.navButton}
+        onPress={() => navigateDate(1)}
+    >
+        <Icon name="chevron-right" size={24} color="#FFFFFF" />
+    </TouchableOpacity>
+</View>
             </View>
 
             {/* Stats Bar */}
@@ -823,6 +859,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                     setShowAttendanceModal(false);
                     setSelectedSchedule(null);
                     setGeneratedOTP('');
+                    setAttendanceReason('');
                 }}
             >
                 <KeyboardAvoidingView 
@@ -836,6 +873,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                                 setShowAttendanceModal(false);
                                 setSelectedSchedule(null);
                                 setGeneratedOTP('');
+                                setAttendanceReason('');
                             }}>
                                 <Icon name="close" size={24} color="#600202" />
                             </TouchableOpacity>
@@ -880,6 +918,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                                     </View>
                                 </View>
                             )}
+
+                            {/* Attendance Reason Input */}
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>Topic Discussed:</Text>
+                                <TextInput
+                                    style={styles.textArea}
+                                    placeholder="Enter the topics you have discussed today(e.g.,Discussed about Large Language Models, etc.)"
+                                    value={attendanceReason}
+                                    onChangeText={setAttendanceReason}
+                                    placeholderTextColor="#999"
+                                    multiline={true}
+                                    numberOfLines={4}
+                                    textAlignVertical="top"
+                                />
+                            </View>
 
                             {/* OTP Generation Section */}
                             <View style={styles.otpSection}>
@@ -1010,7 +1063,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         flex: 1,
     },
-    
+    dateSubText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    opacity: 0.9,
+    textAlign: 'center',
+    marginTop: 2,
+},
    
     scheduleDetailsContainer: {},
     detailRow: {
@@ -1185,6 +1244,17 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#6C757D',
         marginTop: 2,
+    },
+    // Text Area Styles
+    textArea: {
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 8,
+        padding: 12,
+        fontSize: 16,
+        backgroundColor: '#f8f9fa',
+        minHeight: 100,
+        textAlignVertical: 'top',
     },
     fetchSlotsButton: {
         flexDirection: 'row',

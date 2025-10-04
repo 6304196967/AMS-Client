@@ -7,7 +7,6 @@ import LandingPage from "./LandingPage";
 import AdminNavigator from "./Navigators/AdminNavigator";
 import StudentNavigator from "./student/Navigators/StudentNavigator";
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import AdminNavigator from "./Navigators/AdminNavigator";
 import FacultyNavigator from "./Navigators/FacultyNavigator";
 
 // Type
@@ -66,7 +65,7 @@ const App: React.FC = () => {
       );
     }
 
-    if (email.endsWith("rkv.ac.in")) {
+    if (email.endsWith("rkv.ac.inm")) {
       return (
         <StudentNavigator
           user={user}

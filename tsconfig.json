@@ -6,6 +6,7 @@
     "baseUrl": ".",
     "paths": {
       "assets/*": ["assets/*"]
-    }
+    },
+    "jsx": "react-jsx"
   }
 }

@@ -34,7 +34,16 @@ const Tabs: React.FC<Props> = ({ user, setIsLoggedIn, setUser }) => (
     <Tab.Screen name="Home">{({ navigation }) => <HomeScreen user={user} setIsLoggedIn={setIsLoggedIn} setUser={setUser} navigation={navigation} />}</Tab.Screen>
     <Tab.Screen name="Analytics" component={AnalyticsScreen} />
     <Tab.Screen name="History" component={HistoryScreen} />
-    <Tab.Screen name="Profile" component={ProfileScreen} />
+    <Tab.Screen name="Profile">
+      {() => (
+        <ProfileScreen
+          user={user}
+          setIsLoggedIn={setIsLoggedIn}
+          setUser={setUser}
+        />
+      )}
+</Tab.Screen>
+
   </Tab.Navigator>
 );
 

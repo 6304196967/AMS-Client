@@ -1,6 +1,7 @@
 // student/screens/BlockedScreen.tsx
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, BackHandler } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type BlockedScreenProps = {
   navigation: any;
@@ -11,19 +12,25 @@ const BlockedScreen: React.FC<BlockedScreenProps> = ({ navigation, route }) => {
   const { classEndTime } = route.params;
   const [remaining, setRemaining] = useState(classEndTime - Date.now());
 
-  // Block hardware back button
+  // Prevent hardware back button
   useEffect(() => {
     const backHandler = BackHandler.addEventListener("hardwareBackPress", () => true);
     return () => backHandler.remove();
   }, []);
 
+  // Save classEndTime persistently (so even if app restarts, it still knows when to unblock)
+  useEffect(() => {
+    AsyncStorage.setItem("classEndTime", classEndTime.toString());
+  }, [classEndTime]);
+
   // Countdown timer
   useEffect(() => {
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       const timeLeft = classEndTime - Date.now();
       if (timeLeft <= 0) {
         clearInterval(interval);
-        navigation.replace("Home"); // unlock app after class end
+        await AsyncStorage.removeItem("classEndTime"); // clear block state
+        navigation.replace("Home"); // unlock app
       } else {
         setRemaining(timeLeft);
       }
@@ -32,8 +39,9 @@ const BlockedScreen: React.FC<BlockedScreenProps> = ({ navigation, route }) => {
     return () => clearInterval(interval);
   }, [classEndTime]);
 
-  // Format time in mm:ss
+  // Format time as mm:ss
   const formatTime = (ms: number) => {
+    if (ms <= 0) return "00:00";
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
@@ -59,9 +67,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
-  title: { fontSize: 28, fontWeight: "bold", color: "#FFF", marginBottom: 15, textAlign: "center" },
-  subtitle: { fontSize: 16, color: "#FFF", marginBottom: 20, textAlign: "center" },
-  timer: { fontSize: 24, color: "#FFF", fontWeight: "bold" },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#FFF",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#FFF",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  timer: {
+    fontSize: 24,
+    color: "#FFF",
+    fontWeight: "bold",
+  },
 });
 
 export default BlockedScreen;

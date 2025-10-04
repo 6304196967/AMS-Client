@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, FlatList, Button, Platform, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Button,
+  Platform,
+  ActivityIndicator,
+} from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 const HistoryScreen = () => {
@@ -7,28 +15,83 @@ const HistoryScreen = () => {
   const [showPicker, setShowPicker] = useState(false);
   const [attendanceHistory, setAttendanceHistory] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false); // Backend error state
 
+  // Format date as YYYY-MM-DD
+  const formatDate = (d) => d.toISOString().split("T")[0];
+  const selectedDate = formatDate(date);
+
+  // ------------------------------
+  // Safe handling for backend data
+  // ------------------------------
+  const safeAttendanceHistory =
+    attendanceHistory && typeof attendanceHistory === "object"
+      ? attendanceHistory
+      : {};
+
+  const dataForDate = Array.isArray(safeAttendanceHistory[selectedDate])
+    ? safeAttendanceHistory[selectedDate]
+    : [];
+  // ------------------------------
+
+  // ------------------------------
+  // Backend fetch
+  // ------------------------------
   useEffect(() => {
-    fetch("http://your-backend-url/api/history")
+    setLoading(true);
+    setError(false);
+
+    fetch("http://your-backend-url/api/history") // <-- Replace with your backend URL
       .then((res) => res.json())
       .then((data) => {
-        setAttendanceHistory(data);
+        if (data && typeof data === "object") {
+          setAttendanceHistory(data);
+        } else {
+          setError(true);
+        }
         setLoading(false);
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Backend fetch error:", err);
+        setError(true);
         setLoading(false);
       });
   }, []);
-
-  const formatDate = (d) => d.toISOString().split("T")[0];
-  const selectedDate = formatDate(date);
-  const dataForDate = attendanceHistory[selectedDate] || [];
+  // ------------------------------
 
   if (loading) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="blue" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ color: "red", fontSize: 16, textAlign: "center" }}>
+          Unable to fetch attendance data. Please check your backend connection.
+        </Text>
+        <Button title="Retry" onPress={() => {
+          setLoading(true);
+          setError(false);
+          fetch("http://your-backend-url/api/history")
+            .then(res => res.json())
+            .then(data => {
+              if (data && typeof data === "object") {
+                setAttendanceHistory(data);
+              } else {
+                setError(true);
+              }
+              setLoading(false);
+            })
+            .catch(err => {
+              console.error("Backend fetch error:", err);
+              setError(true);
+              setLoading(false);
+            });
+        }} />
       </View>
     );
   }
@@ -52,7 +115,7 @@ const HistoryScreen = () => {
         />
       )}
 
-      {/* Classes */}
+      {/* Attendance List */}
       <Text style={styles.heading}>Attendance on {selectedDate}</Text>
       {dataForDate.length > 0 ? (
         <FlatList
@@ -62,7 +125,10 @@ const HistoryScreen = () => {
             <View
               style={[
                 styles.classCard,
-                { backgroundColor: item.status === "Present" ? "#e8fbe8" : "#fde8e8" },
+                {
+                  backgroundColor:
+                    item.status === "Present" ? "#e8fbe8" : "#fde8e8",
+                },
               ]}
             >
               <Text style={styles.subject}>{item.subject}</Text>

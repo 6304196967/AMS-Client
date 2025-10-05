@@ -7,6 +7,8 @@ import LandingPage from "./LandingPage";
 import AdminNavigator from "./Navigators/AdminNavigator";
 import StudentNavigator from "./student/Navigators/StudentNavigator";
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import AdminNavigator from "./Navigators/AdminNavigator";
+import FacultyNavigator from "./Navigators/FacultyNavigator";
 
 // Type
 type UserInfo = { name: string; email: string };
@@ -54,7 +56,7 @@ const App: React.FC = () => {
 
     const email = user.email;
 
-    if (email === "r210387@rguktrkv.ac.in") {
+    if (email === "r210016@rguktrkv.a.in") {
       return (
         <AdminNavigator
           user={user}
@@ -71,6 +73,15 @@ const App: React.FC = () => {
           setIsLoggedIn={setIsLoggedIn}
           setUser={setUser}
         />
+      );
+    }
+    else if(email== "r210387@rguktrkv.ac.in" || "r210016@rguktrkv.ac.in"){
+      return(
+        <FacultyNavigator
+        user={user}
+        setIsLoggedIn={setIsLoggedIn}
+        setUser={setUser}
+      />
       );
     }
 

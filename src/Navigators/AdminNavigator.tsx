@@ -4,10 +4,10 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 
 // Admin Screens
 import HomeScreen from "../admin/HomeScreen";
-import StudentManagement from "../admin/StudentManagement";
 import FacultyManagement from "../admin/FacultyManagement";
 import CrManagement from "../admin/CrManagement";
 import ScheduleManagement from "../admin/ScheduleManagement";
+import StudentManagement from "../admin/StudentManagement";
 import Profile from "../admin/Profile";
 
 const Tab = createBottomTabNavigator();

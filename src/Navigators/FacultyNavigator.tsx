@@ -72,9 +72,6 @@ const FacultyNavigator: React.FC<FacultyNavigatorProps> = ({ user, setIsLoggedIn
         />
       )}
     </Tab.Screen>
-   
-
-    <Tab.Screen name="Analytics" component={Analytics} options={{title: 'Dashboard', tabBarLabel: 'Analytics'}} />
   </Tab.Navigator>
 );
 

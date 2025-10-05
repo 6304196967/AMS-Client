@@ -12,6 +12,7 @@ import {
   StatusBar,
   Alert,
   RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -49,9 +50,9 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [classes, setClasses] = useState<ClassAssignment[]>([]);
 
-
-  console.log(userEmail,user)
+  console.log(userEmail, user);
   const facultyId = "F005";
+
   // Fetch dashboard data function
   const fetchDashboardData = async () => {
     try {
@@ -123,7 +124,6 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
     fetchDashboardData();
   }, []);
 
-
   const renderClassCard = ({ item }: { item: any }) => (
     <TouchableOpacity 
       style={styles.classCard}
@@ -165,17 +165,20 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
     </TouchableOpacity>
   );
 
-  const renderActivityItem = ({ item }: { item: any }) => (
-    <View style={styles.activityItem}>
-      <View style={styles.activityHeader}>
-        <Text style={styles.activityClass}>{item.class}</Text>
-        <Text style={styles.activityDate}>{item.date}</Text>
-      </View>
-      <Text style={styles.activityTopic}>Topic: {item.topic}</Text>
-      <View style={styles.activityStats}>
-        <Icon name="people" size={14} color="#600202" />
-        <Text style={styles.attendedText}>Students Attended: {item.attended}</Text>
-      </View>
+  // Loading Component
+  const renderLoading = () => (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#600202" />
+      <Text style={styles.loadingText}>Loading your classes...</Text>
+    </View>
+  );
+
+  // Empty State Component
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <Icon name="class" size={64} color="#ccc" />
+      <Text style={styles.emptyText}>No classes found</Text>
+      <Text style={styles.emptySubtext}>You don't have any classes assigned yet.</Text>
     </View>
   );
 
@@ -188,6 +191,8 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
         <Text style={styles.headerTitle}>Analytics</Text>
         <Text style={styles.headerSubtitle}>Attendance Management System</Text>
       </View>
+
+      {/* Stats Overview */}
       <View style={styles.statsOverview}>
         <View style={styles.statCard}>
           <Icon name="class" size={24} color="#600202" />
@@ -206,17 +211,37 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
         </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-
-        {/* Classes Section */}
-        <Text style={styles.sectionTitle}>Your Classes</Text>
-        <FlatList
-          data={classes}
-          renderItem={renderClassCard}
-          keyExtractor={item => item.id}
-          scrollEnabled={false}
-        />
-      </ScrollView>
+      {/* Show loading indicator */}
+      {isLoading ? (
+        renderLoading()
+      ) : (
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              colors={['#600202']}
+              tintColor="#600202"
+            />
+          }
+        >
+          {/* Classes Section */}
+          <Text style={styles.sectionTitle}>Your Classes</Text>
+          
+          {classes.length === 0 ? (
+            renderEmptyState()
+          ) : (
+            <FlatList
+              data={classes}
+              renderItem={renderClassCard}
+              keyExtractor={item => item.id}
+              scrollEnabled={false}
+            />
+          )}
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -280,20 +305,39 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  addButton: {
-    flexDirection: 'row',
+  // Loading Styles
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 50,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#600202',
+    textAlign: 'center',
+  },
+  // Empty State Styles
+  emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#600202',
-    padding: 16,
+    padding: 40,
+    backgroundColor: '#FFF',
     borderRadius: 12,
-    marginBottom: 20,
+    marginTop: 20,
   },
-  addButtonText: {
-    color: '#FFF',
-    fontSize: 16,
+  emptyText: {
+    fontSize: 18,
+    color: '#666',
+    marginTop: 16,
     fontWeight: '600',
-    marginLeft: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#999',
+    marginTop: 8,
+    textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 18,

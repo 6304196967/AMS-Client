@@ -43,8 +43,15 @@ const ClassDetailsScreen = () => {
   const [editingStudent, setEditingStudent] = useState<{id: string, currentStatus: boolean} | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingStudents, setLoadingStudents] = useState<Set<number>>(new Set());
 
-  // Dummy data
+    // Derived data
+  const currentDatePeriods = selectedDate ? attendanceData[selectedDate] || [] : [];
+  const currentPeriod = currentDatePeriods[selectedPeriod];
+
+    // Dummy data
 const dummyAttendanceData: AttendanceData = {
   '18/09/2025': [
     {
@@ -439,58 +446,123 @@ const dummyAttendanceData: AttendanceData = {
     }
   ]
 };
+  
+  const filteredStudents = currentPeriod?.students?.filter(student => 
+    student.student_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.student_name.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
-  // Fetch attendance data from backend
-  const fetchAttendanceData = async () => {
+  // Main fetch function
+  const fetchAttendanceSummary = async (page: number = 1, isRefresh: boolean = false) => {
     try {
-      setIsLoading(true);
+      if (isRefresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
       
       const response = await fetch(
-        `${API_BASE_URL}/class-attendance/${classData.id}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
+        `${API_BASE_URL}/faculty/class-attendance/${classData.id}?page=${page}&limit=10&include_students=false`
       );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
       const data = await response.json();
       
       if (data.success) {
-        setAttendanceData(data.attendanceData);
-        
-        // Set initial selected date to the most recent date with data
-        const dates = Object.keys(data.attendanceData);
-        if (dates.length > 0) {
-          setSelectedDate(dates[0]);
+        if (page === 1 || isRefresh) {
+          setAttendanceData(data.attendanceData);
+        } else {
+          setAttendanceData(prev => ({
+            ...prev,
+            ...data.attendanceData
+          }));
         }
-      } else {
-        throw new Error(data.message || 'Failed to fetch attendance data');
+        
+        setHasMore(data.pagination.has_more);
+        setCurrentPage(page);
+        
+        const dates = Object.keys(data.attendanceData);
+        if ((page === 1 || isRefresh) && dates.length > 0) {
+          setSelectedDate(dates[0]);
+          setSelectedPeriod(0);
+        }
       }
-      
     } catch (error) {
-      console.error('Error fetching attendance data:', error);
-      Alert.alert(
-        'Error',
-        'Failed to load attendance data. Please check your connection and try again.',
-        [{ text: 'OK' }]
-      );
+      console.error('Error fetching attendance:', error);
+      Alert.alert('Error', 'Failed to load attendance data');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
   };
 
+  // Only pull-to-refresh handler
+  const onRefresh = () => {
+    if (!isRefreshing) {
+      fetchAttendanceSummary(1, true);
+    }
+  };
+
+  // Load student details
+  const loadStudentDetails = async (sessionId: number) => {
+    if (loadingStudents.has(sessionId)) return;
+    
+    setLoadingStudents(prev => new Set(prev).add(sessionId));
+    
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/attendance/session/${sessionId}/students`
+      );
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setAttendanceData(prev => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach(date => {
+            updated[date] = updated[date].map(session => 
+              session.session_id === sessionId 
+                ? { ...session, students: data.students }
+                : session
+            );
+          });
+          return updated;
+        });
+      }
+    } catch (error) {
+      console.error('Error loading student details:', error);
+    } finally {
+      setLoadingStudents(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(sessionId);
+        return newSet;
+      });
+    }
+  };
+
+  // Load more sessions
+  const loadMoreSessions = () => {
+    if (hasMore && !isLoading && !isRefreshing) {
+      fetchAttendanceSummary(currentPage + 1, false);
+    }
+  };
+
+  // Auto-load student details when period is selected
+  useEffect(() => {
+    if (currentPeriod && (!currentPeriod.students || currentPeriod.students.length === 0)) {
+      loadStudentDetails(currentPeriod.session_id);
+    }
+  }, [currentPeriod]);
+
+  // Initial load
+  useEffect(() => {
+    fetchAttendanceSummary(1, false);
+  }, [classData.id]);
+
   // Update student attendance status
   const updateStudentAttendance = async (sessionId: number, studentId: string, newStatus: boolean) => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/faculty/update-attendance`,
+        `${API_BASE_URL}/faculty/update-attendance`,
         {
           method: 'POST',
           headers: {
@@ -549,29 +621,6 @@ const dummyAttendanceData: AttendanceData = {
       Alert.alert('Error', 'Failed to update attendance. Please try again.');
     }
   };
-
-  // Pull to refresh
-  const onRefresh = () => {
-    setIsRefreshing(true);
-    fetchAttendanceData();
-  };
-
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchAttendanceData();
-  }, [classData.id]);
-
-  // Get current date's attendance periods
-  const currentDatePeriods = selectedDate ? attendanceData[selectedDate] || [] : [];
-  
-  // Get selected period data
-  const currentPeriod = currentDatePeriods[selectedPeriod];
-  
-  // Filter students based on search query
-  const filteredStudents = currentPeriod?.students?.filter(student => 
-    student.student_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.student_name.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
 
   // Generate dates for the calendar for current month
   const generateCalendarDates = () => {
@@ -752,7 +801,7 @@ const dummyAttendanceData: AttendanceData = {
       <View style={styles.classHeader}>
         <View>
           <Text style={styles.subjectCode}>{classData.subjectCode}</Text>
-          <Text style={styles.section}>{classData.section}</Text>
+          <Text style={styles.section}>{classData.year} {classData.department} - {classData.section}</Text>
           <Text style={styles.subjectName}>{classData.subjectName}</Text>
         </View>
         <View style={styles.attendanceOverview}>

@@ -80,7 +80,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
     
     // Filter options
     const yearOptions = ['E1', 'E2', 'E3', 'E4'];
-    const departmentOptions = ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL'];
+    const departmentOptions = ['CSE', 'ECE', 'EEE', "CHEM",'MECH', 'CIVIL',"MME"];
     const sectionOptions = ['A', 'B', 'C', 'D', 'E'];
     
     const [newSchedule, setNewSchedule] = useState({

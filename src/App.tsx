@@ -1,7 +1,11 @@
+// App.tsx
+
 import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import LandingPage from "./LandingPage";
+import AdminNavigator from "./Navigators/AdminNavigator";
+import StudentNavigator from "./student/Navigators/StudentNavigator";
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import AdminNavigator from "./Navigators/AdminNavigator";
 import FacultyNavigator from "./Navigators/FacultyNavigator";
@@ -41,13 +45,30 @@ const App: React.FC = () => {
   if (loading) return null;
 
   const renderPortal = () => {
-    if (!user) return <LandingPage setIsLoggedIn={setIsLoggedIn} setUser={setUser} />;
+    if (!user) {
+      return (
+        <LandingPage
+          setIsLoggedIn={setIsLoggedIn}
+          setUser={setUser}
+        />
+      );
+    }
 
     const email = user.email;
 
     if (email === "r210016@rguktrkv.a.in") {
       return (
-        <AdminNavigator 
+        <AdminNavigator
+          user={user}
+          setIsLoggedIn={setIsLoggedIn}
+          setUser={setUser}
+        />
+      );
+    }
+
+    if (email.endsWith("rkv.ac.in")) {
+      return (
+        <StudentNavigator
           user={user}
           setIsLoggedIn={setIsLoggedIn}
           setUser={setUser}
@@ -64,12 +85,22 @@ const App: React.FC = () => {
       );
     }
 
-    return <LandingPage setIsLoggedIn={setIsLoggedIn} setUser={setUser} />;
+    return (
+      <LandingPage
+        setIsLoggedIn={setIsLoggedIn}
+        setUser={setUser}
+      />
+    );
   };
 
   return (
     <NavigationContainer>
-      {isLoggedIn && user ? renderPortal() : <LandingPage setIsLoggedIn={setIsLoggedIn} setUser={setUser} />}
+      {isLoggedIn ? renderPortal() : (
+        <LandingPage
+          setIsLoggedIn={setIsLoggedIn}
+          setUser={setUser}
+        />
+      )}
     </NavigationContainer>
   );
 };

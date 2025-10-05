@@ -5,7 +5,6 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 // Admin Screens
 import Analytics from "../faculty/Analytics";
 import HomeScreen from "../faculty/HomeScreen";
-import Attendance from "../faculty/Attendance";
 import Profile from "../admin/Profile";
 import AttendanceStackNavigator from "./AttendanceStackNavigator";
 
@@ -73,6 +72,9 @@ const FacultyNavigator: React.FC<FacultyNavigatorProps> = ({ user, setIsLoggedIn
         />
       )}
     </Tab.Screen>
+   
+
+    <Tab.Screen name="Analytics" component={Analytics} options={{title: 'Dashboard', tabBarLabel: 'Analytics'}} />
   </Tab.Navigator>
 );
 

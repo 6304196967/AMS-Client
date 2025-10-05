@@ -56,8 +56,23 @@ const FacultyNavigator: React.FC<FacultyNavigatorProps> = ({ user, setIsLoggedIn
         />
       )}
     </Tab.Screen>
-    <Tab.Screen name="Attendance" component={Attendance} options={{title: 'Attendance', tabBarLabel: 'Attendance'}} />
-    <Tab.Screen name="Analytics" component={Analytics} options={{title: 'Dashboard', tabBarLabel: 'Analytics'}} />
+    
+    <Tab.Screen 
+      name="Analytics" 
+      options={{
+        title: 'Dashboard', 
+        tabBarLabel: 'Analytics'
+      }}
+    >
+      {() => (
+        <AttendanceStackNavigator 
+          userEmail={user.email}
+          user={user}
+          setIsLoggedIn={setIsLoggedIn}
+          setUser={setUser}
+        />
+      )}
+    </Tab.Screen>
   </Tab.Navigator>
 );
 

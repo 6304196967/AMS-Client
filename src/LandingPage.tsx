@@ -11,6 +11,8 @@ import {
 import LinearGradient from "react-native-linear-gradient";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform, Dimensions } from 'react-native';
+import { getUniqueId, getManufacturer } from 'react-native-device-info';
 
 const amsLogo = require("../assets/images/rgukt_w.png");
 const googleLogo = require("../assets/images/google.png");
@@ -21,6 +23,42 @@ type LandingPageProps = {
 };
 
 const LandingPage: React.FC<LandingPageProps> = ({ setIsLoggedIn, setUser }) => {
+
+  const generateDeviceFingerprint = async (email: string): Promise<string> => {
+    try {
+      // Get device-specific information
+      const deviceId = await getUniqueId();
+      const manufacturer = await getManufacturer();
+      
+      const deviceInfo = {
+        platform: Platform.OS,
+        platformVersion: Platform.Version,
+        deviceId: deviceId,
+        manufacturer: manufacturer,
+        screenSize: Dimensions.get('screen'),
+        model: Platform.OS === 'ios' ? 'iOS' : 'Android', // You can get more specific if needed
+        email: email.toLowerCase().trim()
+      };
+
+      // Create a hash of the device info
+      const deviceString = JSON.stringify(deviceInfo);
+      
+      // Simple hash function (you might want to use a more secure one)
+      let hash = 0;
+      for (let i = 0; i < deviceString.length; i++) {
+        const char = deviceString.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32-bit integer
+      }
+      
+      return `bind_${Math.abs(hash).toString(16)}_${Date.now()}`;
+    } catch (error) {
+      console.error('Error generating device fingerprint:', error);
+      // Fallback to a simpler fingerprint
+      return `bind_fallback_${Platform.OS}_${email.toLowerCase().trim()}_${Date.now()}`;
+    }
+  };
+
   const handleGoogleLogin = async () => {
     try {
       await GoogleSignin.hasPlayServices();

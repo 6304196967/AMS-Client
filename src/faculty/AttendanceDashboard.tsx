@@ -10,6 +10,8 @@ import {
   TextInput,
   FlatList,
   StatusBar,
+  Alert,
+  RefreshControl,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -25,45 +27,101 @@ type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 const API_BASE_URL = 'http://10.182.66.80:5000';
 
-const AttendanceDashboard = () => {
+// Define props interface for the component
+interface AttendanceDashboardProps {
+  userEmail: string;
+  user: {
+    name: string;
+    email: string;
+  } | null;
+  setIsLoggedIn: (value: boolean) => void;
+  setUser: (user: { name: string; email: string } | null) => void;
+}
+
+const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({ 
+  userEmail, 
+  user, 
+  setIsLoggedIn, 
+  setUser 
+})  => {
   const navigation = useNavigation<NavigationProp>();
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [classes, setClasses] = useState<ClassAssignment[]>([]);
 
-  // Fetch data from backend on component mount
-//   useEffect(() => {
-//     fetchDashboardData();
-//   }, []);
 
-    // Initialize data once when component mounts
+  console.log(userEmail,user)
+  const facultyId = "F005";
+  // Fetch dashboard data function
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      // Replace with your actual API endpoint
+      const response = await fetch(`${API_BASE_URL}/faculty/dashboard/${facultyId}`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Assuming the API returns an array of classes
+      setClasses(data.classes || data || []);
+      
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      
+      // Show error message to user
+      Alert.alert(
+        'Error',
+        'Failed to load dashboard data. Please check your connection and try again.',
+        [{ text: 'OK' }]
+      );
+      
+      // Fallback to sample data if API fails
+      const sampleClasses: ClassAssignment[] = [
+        {
+          id: '1',
+          subjectCode: 'OS2025',
+          subjectName: 'Operating Systems',
+          section: 'D',
+          totalClasses: 20,
+          attendancePercentage: 80,
+          lastClass: '18/09/2025',
+          department: 'CSE',
+          year: 'E3'
+        },
+        {
+          id: '2',
+          subjectCode: 'OSLAB2025',
+          subjectName: 'Operating Systems Lab',
+          section: 'D',
+          totalClasses: 20,
+          attendancePercentage: 85,
+          lastClass: '20/09/2025',
+          department: 'CSE',
+          year: 'E3'
+        },
+      ];
+      setClasses(sampleClasses);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  // Pull to refresh function
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchDashboardData();
+  };
+
+  // Fetch data on component mount
   useEffect(() => {
-    const sampleClasses: ClassAssignment[] = [
-      {
-        id: '1',
-        subjectCode: 'OS2025',
-        subjectName: 'Operating Systems',
-        section: 'D',
-        totalClasses: 20,
-        attendancePercentage: 80,
-        lastClass: '18/09/2025',
-        department: 'CSE',
-        year: 'E3'
-      },
-      {
-        id: '2',
-        subjectCode: 'OSLAB2025',
-        subjectName: 'Operating Systems Lab',
-        section: 'D',
-        totalClasses: 20,
-        attendancePercentage: 85,
-        lastClass: '20/09/2025',
-        department: 'CSE',
-        year: 'E3'
-      },
-    ];
-    setClasses(sampleClasses);
-  }, []); // Empty dependency array means this runs only once
+    fetchDashboardData();
+  }, []);
 
 
   const renderClassCard = ({ item }: { item: any }) => (
@@ -130,8 +188,6 @@ const AttendanceDashboard = () => {
         <Text style={styles.headerTitle}>Analytics</Text>
         <Text style={styles.headerSubtitle}>Attendance Management System</Text>
       </View>
-
-      Stats Overview
       <View style={styles.statsOverview}>
         <View style={styles.statCard}>
           <Icon name="class" size={24} color="#600202" />

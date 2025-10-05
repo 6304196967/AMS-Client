@@ -62,3 +62,28 @@ export interface RecentActivity {
   timeSlot?: string; // Optional: e.g., "8:30 - 9:30 AM"
   classId?: string; // Optional: reference to the Class id
 }
+
+// Interface for attendance data from backend
+export interface AttendanceSession {
+  session_id: number;
+  date: string;
+  start_time: string;
+  end_time: string;
+  topic: string;
+  venue: string;
+  status: boolean;
+  present_count: number;
+  absent_count: number;
+  total_students: number;
+  students: StudentAttendance[];
+}
+
+export interface StudentAttendance {
+  student_id: string;
+  student_name: string;
+  status: boolean; // true for present, false for absent
+}
+
+export interface AttendanceData {
+  [date: string]: AttendanceSession[];
+}

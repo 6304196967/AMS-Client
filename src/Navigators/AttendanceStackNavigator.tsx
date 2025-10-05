@@ -1,4 +1,3 @@
-// src/navigation/AttendanceStackNavigator.tsx
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Animated, Easing } from 'react-native';
@@ -10,9 +9,19 @@ import ClassDetailsScreen from '../faculty/ClassDetailsScreen';
 import AttendanceReportScreen from '../faculty/AttendanceReportScreen';
 
 export type AttendanceStackParamList = {
-  AttendanceDashboard: undefined;
+  Dashboard: undefined; // Changed from AttendanceDashboard to Dashboard
   ClassDetails: { classData: any };
   AttendanceReport: { classData: any };
+};
+
+type AttendanceStackNavigatorProps = {
+  userEmail: string;
+  user: {
+    name: string;
+    email: string;
+  } | null;
+  setIsLoggedIn: (value: boolean) => void;
+  setUser: (user: { name: string; email: string } | null) => void;
 };
 
 // Define custom transition first
@@ -66,7 +75,12 @@ const customSlideFromRight = {
 
 const Stack = createStackNavigator<AttendanceStackParamList>();
 
-const AttendanceStackNavigator: React.FC = () => {
+const AttendanceStackNavigator: React.FC<AttendanceStackNavigatorProps> = ({ 
+  userEmail, 
+  user, 
+  setIsLoggedIn, 
+  setUser 
+}) => {
   return (
     <Stack.Navigator
       screenOptions={{
@@ -75,9 +89,19 @@ const AttendanceStackNavigator: React.FC = () => {
       }}
     >
       <Stack.Screen 
-        name="AttendanceDashboard" 
-        component={AttendanceDashboard} 
-      />
+        name="Dashboard" 
+      >
+        {(props) => (
+          <AttendanceDashboard 
+            {...props}
+            userEmail={userEmail}
+            user={user}
+            setIsLoggedIn={setIsLoggedIn}
+            setUser={setUser}
+          />
+        )}
+      </Stack.Screen>
+
       <Stack.Screen 
         name="ClassDetails" 
         component={ClassDetailsScreen} 

@@ -70,13 +70,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
         end_time: ''
     });
 
-    const API_BASE_URL = 'http://10.173.174.102:5000';
+    const API_BASE_URL = 'http://10.182.66.80:5000';
 
     useEffect(() => {
         // Set faculty ID from user email when component mounts
         if (user?.email) {
             // setActualFacultyId(user.email.split('@')[0]|| "F002");
-            setActualFacultyId("F002");
+            setActualFacultyId("F005");
         }
     }, [user]);
 

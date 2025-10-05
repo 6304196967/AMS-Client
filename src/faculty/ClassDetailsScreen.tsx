@@ -10,10 +10,13 @@ import {
   FlatList,
   TextInput,
   Alert,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { AttendanceData, AttendanceSession, StudentAttendance } from 'src/services/Interfaces';
 
 type RootStackParamList = {
   ClassDetails: { classData: any };
@@ -23,100 +26,7 @@ type RootStackParamList = {
 type ClassDetailsRouteProp = RouteProp<RootStackParamList, 'ClassDetails'>;
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
-// Enhanced sample data with multiple periods for the same date
-const initialAttendanceData = {
-  '18/09/2025': [
-    {
-      period: 1,
-      time: '8:30 - 9:30 AM',
-      topic: 'Kernel Discussion',
-      present: 67,
-      absent: 3,
-      total: 70,
-      students: [
-        { id: 'R210001', name: 'John Doe', status: 'present' },
-        { id: 'R210002', name: 'Jane Smith', status: 'present' },
-        { id: 'R210003', name: 'Mike Johnson', status: 'absent' },
-        { id: 'R210004', name: 'Sarah Wilson', status: 'present' },
-        { id: 'R210005', name: 'David Brown', status: 'absent' },
-        { id: 'R210006', name: 'Emily Davis', status: 'present' },
-        { id: 'R210007', name: 'Michael Wilson', status: 'present' },
-      ]
-    },
-    {
-      period: 2,
-      time: '10:00 - 11:00 AM',
-      topic: 'Process Scheduling',
-      present: 65,
-      absent: 5,
-      total: 70,
-      students: [
-        { id: 'R210001', name: 'John Doe', status: 'present' },
-        { id: 'R210002', name: 'Jane Smith', status: 'absent' },
-        { id: 'R210003', name: 'Mike Johnson', status: 'present' },
-        { id: 'R210004', name: 'Sarah Wilson', status: 'present' },
-        { id: 'R210005', name: 'David Brown', status: 'absent' },
-        { id: 'R210006', name: 'Emily Davis', status: 'present' },
-        { id: 'R210007', name: 'Michael Wilson', status: 'present' },
-      ]
-    }
-  ],
-  '16/09/2025': [
-    {
-      period: 1,
-      time: '9:00 - 10:00 AM',
-      topic: 'Process Management',
-      present: 68,
-      absent: 2,
-      total: 70,
-      students: [
-        { id: 'R210001', name: 'John Doe', status: 'present' },
-        { id: 'R210002', name: 'Jane Smith', status: 'present' },
-        { id: 'R210003', name: 'Mike Johnson', status: 'present' },
-        { id: 'R210004', name: 'Sarah Wilson', status: 'present' },
-        { id: 'R210005', name: 'David Brown', status: 'absent' },
-        { id: 'R210006', name: 'Emily Davis', status: 'present' },
-        { id: 'R210007', name: 'Michael Wilson', status: 'present' },
-      ]
-    }
-  ],
-  '14/09/2025': [
-    {
-      period: 1,
-      time: '8:30 - 9:30 AM',
-      topic: 'Memory Management',
-      present: 66,
-      absent: 4,
-      total: 70,
-      students: [
-        { id: 'R210001', name: 'John Doe', status: 'present' },
-        { id: 'R210002', name: 'Jane Smith', status: 'present' },
-        { id: 'R210003', name: 'Mike Johnson', status: 'present' },
-        { id: 'R210004', name: 'Sarah Wilson', status: 'present' },
-        { id: 'R210005', name: 'David Brown', status: 'absent' },
-        { id: 'R210006', name: 'Emily Davis', status: 'present' },
-        { id: 'R210007', name: 'Michael Wilson', status: 'present' },
-      ]
-    },
-    {
-      period: 3,
-      time: '11:30 - 12:30 PM',
-      topic: 'Virtual Memory',
-      present: 64,
-      absent: 6,
-      total: 70,
-      students: [
-        { id: 'R210001', name: 'John Doe', status: 'present' },
-        { id: 'R210002', name: 'Jane Smith', status: 'absent' },
-        { id: 'R210003', name: 'Mike Johnson', status: 'present' },
-        { id: 'R210004', name: 'Sarah Wilson', status: 'present' },
-        { id: 'R210005', name: 'David Brown', status: 'absent' },
-        { id: 'R210006', name: 'Emily Davis', status: 'present' },
-        { id: 'R210007', name: 'Michael Wilson', status: 'present' },
-      ]
-    }
-  ],
-};
+const API_BASE_URL = 'http://10.182.66.80:5000';
 
 const ClassDetailsScreen = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -125,23 +35,542 @@ const ClassDetailsScreen = () => {
   
   const [isCalendarModalVisible, setIsCalendarModalVisible] = useState(false);
   const [isPeriodModalVisible, setIsPeriodModalVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState('18/09/2025');
-  const [selectedPeriod, setSelectedPeriod] = useState(0); // Index of selected period
-  const [attendanceData, setAttendanceData] = useState(initialAttendanceData);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedPeriod, setSelectedPeriod] = useState(0);
+  const [attendanceData, setAttendanceData] = useState<AttendanceData>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [editingStudent, setEditingStudent] = useState<{id: string, currentStatus: string} | null>(null);
+  const [editingStudent, setEditingStudent] = useState<{id: string, currentStatus: boolean} | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Dummy data
+const dummyAttendanceData: AttendanceData = {
+  '18/09/2025': [
+    {
+      session_id: 1,
+      date: '18/09/2025',
+      start_time: '08:30',
+      end_time: '09:30',
+      topic: 'Introduction to Operating Systems',
+      venue: 'Lab-101',
+      status: true,
+      present_count: 45,
+      absent_count: 5,
+      total_students: 50,
+      students: [
+        { student_id: 'R210001', student_name: 'Aarav Sharma', status: true },
+        { student_id: 'R210002', student_name: 'Aditi Patel', status: true },
+        { student_id: 'R210003', student_name: 'Amit Kumar', status: true },
+        { student_id: 'R210004', student_name: 'Ananya Singh', status: true },
+        { student_id: 'R210005', student_name: 'Arjun Reddy', status: true },
+        { student_id: 'R210006', student_name: 'Bhavya Gupta', status: true },
+        { student_id: 'R210007', student_name: 'Chetan Mehta', status: true },
+        { student_id: 'R210008', student_name: 'Deepika Joshi', status: true },
+        { student_id: 'R210009', student_name: 'Divya Nair', status: true },
+        { student_id: 'R210010', student_name: 'Gaurav Malhotra', status: true },
+        { student_id: 'R210011', student_name: 'Ishita Chatterjee', status: true },
+        { student_id: 'R210012', student_name: 'Karan Singh', status: true },
+        { student_id: 'R210013', student_name: 'Kriti Sharma', status: true },
+        { student_id: 'R210014', student_name: 'Manish Kumar', status: true },
+        { student_id: 'R210015', student_name: 'Neha Verma', status: true },
+        { student_id: 'R210016', student_name: 'Nikhil Agarwal', status: true },
+        { student_id: 'R210017', student_name: 'Pooja Reddy', status: true },
+        { student_id: 'R210018', student_name: 'Priya Singh', status: true },
+        { student_id: 'R210019', student_name: 'Rahul Mehta', status: true },
+        { student_id: 'R210020', student_name: 'Riya Patel', status: true },
+        { student_id: 'R210021', student_name: 'Rohan Kumar', status: true },
+        { student_id: 'R210022', student_name: 'Sanya Gupta', status: true },
+        { student_id: 'R210023', student_name: 'Shreya Nair', status: true },
+        { student_id: 'R210024', student_name: 'Siddharth Joshi', status: true },
+        { student_id: 'R210025', student_name: 'Simran Kaur', status: true },
+        { student_id: 'R210026', student_name: 'Sneha Sharma', status: true },
+        { student_id: 'R210027', student_name: 'Sohan Malhotra', status: true },
+        { student_id: 'R210028', student_name: 'Tanvi Reddy', status: true },
+        { student_id: 'R210029', student_name: 'Uday Singh', status: true },
+        { student_id: 'R210030', student_name: 'Varun Kumar', status: true },
+        { student_id: 'R210031', student_name: 'Vikas Agarwal', status: true },
+        { student_id: 'R210032', student_name: 'Vishal Mehta', status: true },
+        { student_id: 'R210033', student_name: 'Yash Patel', status: true },
+        { student_id: 'R210034', student_name: 'Yuvika Singh', status: true },
+        { student_id: 'R210035', student_name: 'Zoya Khan', status: true },
+        { student_id: 'R210036', student_name: 'Abhishek Sharma', status: true },
+        { student_id: 'R210037', student_name: 'Anjali Gupta', status: true },
+        { student_id: 'R210038', student_name: 'Bhaskar Nair', status: true },
+        { student_id: 'R210039', student_name: 'Chandan Kumar', status: true },
+        { student_id: 'R210040', student_name: 'Dipika Joshi', status: true },
+        { student_id: 'R210041', student_name: 'Esha Reddy', status: true },
+        { student_id: 'R210042', student_name: 'Farhan Khan', status: true },
+        { student_id: 'R210043', student_name: 'Gauri Singh', status: true },
+        { student_id: 'R210044', student_name: 'Harsh Mehta', status: true },
+        { student_id: 'R210045', student_name: 'Ishan Patel', status: true },
+        { student_id: 'R210046', student_name: 'Jhanvi Sharma', status: false },
+        { student_id: 'R210047', student_name: 'Kavya Gupta', status: false },
+        { student_id: 'R210048', student_name: 'Lakshya Nair', status: false },
+        { student_id: 'R210049', student_name: 'Mohan Kumar', status: false },
+        { student_id: 'R210050', student_name: 'Nandini Joshi', status: false },
+      ]
+    },
+    {
+      session_id: 2,
+      date: '18/09/2025',
+      start_time: '10:00',
+      end_time: '11:00',
+      topic: 'Process Management and Scheduling',
+      venue: 'Lab-101',
+      status: true,
+      present_count: 48,
+      absent_count: 2,
+      total_students: 50,
+      students: [
+        { student_id: 'R210001', student_name: 'Aarav Sharma', status: true },
+        { student_id: 'R210002', student_name: 'Aditi Patel', status: true },
+        { student_id: 'R210003', student_name: 'Amit Kumar', status: true },
+        { student_id: 'R210004', student_name: 'Ananya Singh', status: true },
+        { student_id: 'R210005', student_name: 'Arjun Reddy', status: true },
+        { student_id: 'R210006', student_name: 'Bhavya Gupta', status: true },
+        { student_id: 'R210007', student_name: 'Chetan Mehta', status: true },
+        { student_id: 'R210008', student_name: 'Deepika Joshi', status: true },
+        { student_id: 'R210009', student_name: 'Divya Nair', status: true },
+        { student_id: 'R210010', student_name: 'Gaurav Malhotra', status: true },
+        { student_id: 'R210011', student_name: 'Ishita Chatterjee', status: true },
+        { student_id: 'R210012', student_name: 'Karan Singh', status: true },
+        { student_id: 'R210013', student_name: 'Kriti Sharma', status: true },
+        { student_id: 'R210014', student_name: 'Manish Kumar', status: true },
+        { student_id: 'R210015', student_name: 'Neha Verma', status: true },
+        { student_id: 'R210016', student_name: 'Nikhil Agarwal', status: true },
+        { student_id: 'R210017', student_name: 'Pooja Reddy', status: true },
+        { student_id: 'R210018', student_name: 'Priya Singh', status: true },
+        { student_id: 'R210019', student_name: 'Rahul Mehta', status: true },
+        { student_id: 'R210020', student_name: 'Riya Patel', status: true },
+        { student_id: 'R210021', student_name: 'Rohan Kumar', status: true },
+        { student_id: 'R210022', student_name: 'Sanya Gupta', status: true },
+        { student_id: 'R210023', student_name: 'Shreya Nair', status: true },
+        { student_id: 'R210024', student_name: 'Siddharth Joshi', status: true },
+        { student_id: 'R210025', student_name: 'Simran Kaur', status: true },
+        { student_id: 'R210026', student_name: 'Sneha Sharma', status: true },
+        { student_id: 'R210027', student_name: 'Sohan Malhotra', status: true },
+        { student_id: 'R210028', student_name: 'Tanvi Reddy', status: true },
+        { student_id: 'R210029', student_name: 'Uday Singh', status: true },
+        { student_id: 'R210030', student_name: 'Varun Kumar', status: true },
+        { student_id: 'R210031', student_name: 'Vikas Agarwal', status: true },
+        { student_id: 'R210032', student_name: 'Vishal Mehta', status: true },
+        { student_id: 'R210033', student_name: 'Yash Patel', status: true },
+        { student_id: 'R210034', student_name: 'Yuvika Singh', status: true },
+        { student_id: 'R210035', student_name: 'Zoya Khan', status: true },
+        { student_id: 'R210036', student_name: 'Abhishek Sharma', status: true },
+        { student_id: 'R210037', student_name: 'Anjali Gupta', status: true },
+        { student_id: 'R210038', student_name: 'Bhaskar Nair', status: true },
+        { student_id: 'R210039', student_name: 'Chandan Kumar', status: true },
+        { student_id: 'R210040', student_name: 'Dipika Joshi', status: true },
+        { student_id: 'R210041', student_name: 'Esha Reddy', status: true },
+        { student_id: 'R210042', student_name: 'Farhan Khan', status: true },
+        { student_id: 'R210043', student_name: 'Gauri Singh', status: true },
+        { student_id: 'R210044', student_name: 'Harsh Mehta', status: true },
+        { student_id: 'R210045', student_name: 'Ishan Patel', status: true },
+        { student_id: 'R210046', student_name: 'Jhanvi Sharma', status: true },
+        { student_id: 'R210047', student_name: 'Kavya Gupta', status: true },
+        { student_id: 'R210048', student_name: 'Lakshya Nair', status: true },
+        { student_id: 'R210049', student_name: 'Mohan Kumar', status: false },
+        { student_id: 'R210050', student_name: 'Nandini Joshi', status: false },
+      ]
+    }
+  ],
+  '16/09/2025': [
+    {
+      session_id: 3,
+      date: '16/09/2025',
+      start_time: '09:00',
+      end_time: '10:00',
+      topic: 'Memory Management Techniques',
+      venue: 'Lab-102',
+      status: true,
+      present_count: 47,
+      absent_count: 3,
+      total_students: 50,
+      students: [
+        { student_id: 'R210001', student_name: 'Aarav Sharma', status: true },
+        { student_id: 'R210002', student_name: 'Aditi Patel', status: true },
+        { student_id: 'R210003', student_name: 'Amit Kumar', status: true },
+        { student_id: 'R210004', student_name: 'Ananya Singh', status: true },
+        { student_id: 'R210005', student_name: 'Arjun Reddy', status: true },
+        { student_id: 'R210006', student_name: 'Bhavya Gupta', status: true },
+        { student_id: 'R210007', student_name: 'Chetan Mehta', status: true },
+        { student_id: 'R210008', student_name: 'Deepika Joshi', status: true },
+        { student_id: 'R210009', student_name: 'Divya Nair', status: true },
+        { student_id: 'R210010', student_name: 'Gaurav Malhotra', status: true },
+        { student_id: 'R210011', student_name: 'Ishita Chatterjee', status: true },
+        { student_id: 'R210012', student_name: 'Karan Singh', status: true },
+        { student_id: 'R210013', student_name: 'Kriti Sharma', status: true },
+        { student_id: 'R210014', student_name: 'Manish Kumar', status: true },
+        { student_id: 'R210015', student_name: 'Neha Verma', status: true },
+        { student_id: 'R210016', student_name: 'Nikhil Agarwal', status: true },
+        { student_id: 'R210017', student_name: 'Pooja Reddy', status: true },
+        { student_id: 'R210018', student_name: 'Priya Singh', status: true },
+        { student_id: 'R210019', student_name: 'Rahul Mehta', status: true },
+        { student_id: 'R210020', student_name: 'Riya Patel', status: true },
+        { student_id: 'R210021', student_name: 'Rohan Kumar', status: true },
+        { student_id: 'R210022', student_name: 'Sanya Gupta', status: true },
+        { student_id: 'R210023', student_name: 'Shreya Nair', status: true },
+        { student_id: 'R210024', student_name: 'Siddharth Joshi', status: true },
+        { student_id: 'R210025', student_name: 'Simran Kaur', status: true },
+        { student_id: 'R210026', student_name: 'Sneha Sharma', status: true },
+        { student_id: 'R210027', student_name: 'Sohan Malhotra', status: true },
+        { student_id: 'R210028', student_name: 'Tanvi Reddy', status: true },
+        { student_id: 'R210029', student_name: 'Uday Singh', status: true },
+        { student_id: 'R210030', student_name: 'Varun Kumar', status: true },
+        { student_id: 'R210031', student_name: 'Vikas Agarwal', status: true },
+        { student_id: 'R210032', student_name: 'Vishal Mehta', status: true },
+        { student_id: 'R210033', student_name: 'Yash Patel', status: true },
+        { student_id: 'R210034', student_name: 'Yuvika Singh', status: true },
+        { student_id: 'R210035', student_name: 'Zoya Khan', status: true },
+        { student_id: 'R210036', student_name: 'Abhishek Sharma', status: true },
+        { student_id: 'R210037', student_name: 'Anjali Gupta', status: true },
+        { student_id: 'R210038', student_name: 'Bhaskar Nair', status: true },
+        { student_id: 'R210039', student_name: 'Chandan Kumar', status: true },
+        { student_id: 'R210040', student_name: 'Dipika Joshi', status: true },
+        { student_id: 'R210041', student_name: 'Esha Reddy', status: true },
+        { student_id: 'R210042', student_name: 'Farhan Khan', status: true },
+        { student_id: 'R210043', student_name: 'Gauri Singh', status: true },
+        { student_id: 'R210044', student_name: 'Harsh Mehta', status: true },
+        { student_id: 'R210045', student_name: 'Ishan Patel', status: true },
+        { student_id: 'R210046', student_name: 'Jhanvi Sharma', status: false },
+        { student_id: 'R210047', student_name: 'Kavya Gupta', status: false },
+        { student_id: 'R210048', student_name: 'Lakshya Nair', status: false },
+        { student_id: 'R210049', student_name: 'Mohan Kumar', status: true },
+        { student_id: 'R210050', student_name: 'Nandini Joshi', status: true },
+      ]
+    }
+  ],
+  '14/09/2025': [
+    {
+      session_id: 4,
+      date: '14/09/2025',
+      start_time: '08:30',
+      end_time: '09:30',
+      topic: 'File Systems and I/O Management',
+      venue: 'Lab-101',
+      status: true,
+      present_count: 46,
+      absent_count: 4,
+      total_students: 50,
+      students: [
+        { student_id: 'R210001', student_name: 'Aarav Sharma', status: true },
+        { student_id: 'R210002', student_name: 'Aditi Patel', status: true },
+        { student_id: 'R210003', student_name: 'Amit Kumar', status: true },
+        { student_id: 'R210004', student_name: 'Ananya Singh', status: true },
+        { student_id: 'R210005', student_name: 'Arjun Reddy', status: true },
+        { student_id: 'R210006', student_name: 'Bhavya Gupta', status: true },
+        { student_id: 'R210007', student_name: 'Chetan Mehta', status: true },
+        { student_id: 'R210008', student_name: 'Deepika Joshi', status: true },
+        { student_id: 'R210009', student_name: 'Divya Nair', status: true },
+        { student_id: 'R210010', student_name: 'Gaurav Malhotra', status: true },
+        { student_id: 'R210011', student_name: 'Ishita Chatterjee', status: true },
+        { student_id: 'R210012', student_name: 'Karan Singh', status: true },
+        { student_id: 'R210013', student_name: 'Kriti Sharma', status: true },
+        { student_id: 'R210014', student_name: 'Manish Kumar', status: true },
+        { student_id: 'R210015', student_name: 'Neha Verma', status: true },
+        { student_id: 'R210016', student_name: 'Nikhil Agarwal', status: true },
+        { student_id: 'R210017', student_name: 'Pooja Reddy', status: true },
+        { student_id: 'R210018', student_name: 'Priya Singh', status: true },
+        { student_id: 'R210019', student_name: 'Rahul Mehta', status: true },
+        { student_id: 'R210020', student_name: 'Riya Patel', status: true },
+        { student_id: 'R210021', student_name: 'Rohan Kumar', status: true },
+        { student_id: 'R210022', student_name: 'Sanya Gupta', status: true },
+        { student_id: 'R210023', student_name: 'Shreya Nair', status: true },
+        { student_id: 'R210024', student_name: 'Siddharth Joshi', status: true },
+        { student_id: 'R210025', student_name: 'Simran Kaur', status: true },
+        { student_id: 'R210026', student_name: 'Sneha Sharma', status: true },
+        { student_id: 'R210027', student_name: 'Sohan Malhotra', status: true },
+        { student_id: 'R210028', student_name: 'Tanvi Reddy', status: true },
+        { student_id: 'R210029', student_name: 'Uday Singh', status: true },
+        { student_id: 'R210030', student_name: 'Varun Kumar', status: true },
+        { student_id: 'R210031', student_name: 'Vikas Agarwal', status: true },
+        { student_id: 'R210032', student_name: 'Vishal Mehta', status: true },
+        { student_id: 'R210033', student_name: 'Yash Patel', status: true },
+        { student_id: 'R210034', student_name: 'Yuvika Singh', status: true },
+        { student_id: 'R210035', student_name: 'Zoya Khan', status: true },
+        { student_id: 'R210036', student_name: 'Abhishek Sharma', status: true },
+        { student_id: 'R210037', student_name: 'Anjali Gupta', status: true },
+        { student_id: 'R210038', student_name: 'Bhaskar Nair', status: true },
+        { student_id: 'R210039', student_name: 'Chandan Kumar', status: true },
+        { student_id: 'R210040', student_name: 'Dipika Joshi', status: true },
+        { student_id: 'R210041', student_name: 'Esha Reddy', status: true },
+        { student_id: 'R210042', student_name: 'Farhan Khan', status: true },
+        { student_id: 'R210043', student_name: 'Gauri Singh', status: true },
+        { student_id: 'R210044', student_name: 'Harsh Mehta', status: true },
+        { student_id: 'R210045', student_name: 'Ishan Patel', status: true },
+        { student_id: 'R210046', student_name: 'Jhanvi Sharma', status: false },
+        { student_id: 'R210047', student_name: 'Kavya Gupta', status: false },
+        { student_id: 'R210048', student_name: 'Lakshya Nair', status: false },
+        { student_id: 'R210049', student_name: 'Mohan Kumar', status: false },
+        { student_id: 'R210050', student_name: 'Nandini Joshi', status: true },
+      ]
+    },
+    {
+      session_id: 5,
+      date: '14/09/2025',
+      start_time: '11:30',
+      end_time: '12:30',
+      topic: 'Virtual Memory and Paging',
+      venue: 'Lab-102',
+      status: true,
+      present_count: 44,
+      absent_count: 6,
+      total_students: 50,
+      students: [
+        { student_id: 'R210001', student_name: 'Aarav Sharma', status: true },
+        { student_id: 'R210002', student_name: 'Aditi Patel', status: true },
+        { student_id: 'R210003', student_name: 'Amit Kumar', status: true },
+        { student_id: 'R210004', student_name: 'Ananya Singh', status: true },
+        { student_id: 'R210005', student_name: 'Arjun Reddy', status: true },
+        { student_id: 'R210006', student_name: 'Bhavya Gupta', status: true },
+        { student_id: 'R210007', student_name: 'Chetan Mehta', status: true },
+        { student_id: 'R210008', student_name: 'Deepika Joshi', status: true },
+        { student_id: 'R210009', student_name: 'Divya Nair', status: true },
+        { student_id: 'R210010', student_name: 'Gaurav Malhotra', status: true },
+        { student_id: 'R210011', student_name: 'Ishita Chatterjee', status: true },
+        { student_id: 'R210012', student_name: 'Karan Singh', status: true },
+        { student_id: 'R210013', student_name: 'Kriti Sharma', status: true },
+        { student_id: 'R210014', student_name: 'Manish Kumar', status: true },
+        { student_id: 'R210015', student_name: 'Neha Verma', status: true },
+        { student_id: 'R210016', student_name: 'Nikhil Agarwal', status: true },
+        { student_id: 'R210017', student_name: 'Pooja Reddy', status: true },
+        { student_id: 'R210018', student_name: 'Priya Singh', status: true },
+        { student_id: 'R210019', student_name: 'Rahul Mehta', status: true },
+        { student_id: 'R210020', student_name: 'Riya Patel', status: true },
+        { student_id: 'R210021', student_name: 'Rohan Kumar', status: true },
+        { student_id: 'R210022', student_name: 'Sanya Gupta', status: true },
+        { student_id: 'R210023', student_name: 'Shreya Nair', status: true },
+        { student_id: 'R210024', student_name: 'Siddharth Joshi', status: true },
+        { student_id: 'R210025', student_name: 'Simran Kaur', status: true },
+        { student_id: 'R210026', student_name: 'Sneha Sharma', status: true },
+        { student_id: 'R210027', student_name: 'Sohan Malhotra', status: true },
+        { student_id: 'R210028', student_name: 'Tanvi Reddy', status: true },
+        { student_id: 'R210029', student_name: 'Uday Singh', status: true },
+        { student_id: 'R210030', student_name: 'Varun Kumar', status: true },
+        { student_id: 'R210031', student_name: 'Vikas Agarwal', status: true },
+        { student_id: 'R210032', student_name: 'Vishal Mehta', status: true },
+        { student_id: 'R210033', student_name: 'Yash Patel', status: true },
+        { student_id: 'R210034', student_name: 'Yuvika Singh', status: true },
+        { student_id: 'R210035', student_name: 'Zoya Khan', status: true },
+        { student_id: 'R210036', student_name: 'Abhishek Sharma', status: true },
+        { student_id: 'R210037', student_name: 'Anjali Gupta', status: true },
+        { student_id: 'R210038', student_name: 'Bhaskar Nair', status: true },
+        { student_id: 'R210039', student_name: 'Chandan Kumar', status: true },
+        { student_id: 'R210040', student_name: 'Dipika Joshi', status: true },
+        { student_id: 'R210041', student_name: 'Esha Reddy', status: true },
+        { student_id: 'R210042', student_name: 'Farhan Khan', status: false },
+        { student_id: 'R210043', student_name: 'Gauri Singh', status: false },
+        { student_id: 'R210044', student_name: 'Harsh Mehta', status: false },
+        { student_id: 'R210045', student_name: 'Ishan Patel', status: false },
+        { student_id: 'R210046', student_name: 'Jhanvi Sharma', status: false },
+        { student_id: 'R210047', student_name: 'Kavya Gupta', status: false },
+        { student_id: 'R210048', student_name: 'Lakshya Nair', status: true },
+        { student_id: 'R210049', student_name: 'Mohan Kumar', status: true },
+        { student_id: 'R210050', student_name: 'Nandini Joshi', status: true },
+      ]
+    }
+  ],
+  '11/09/2025': [
+    {
+      session_id: 6,
+      date: '11/09/2025',
+      start_time: '10:00',
+      end_time: '11:00',
+      topic: 'Deadlock Detection and Prevention',
+      venue: 'Lab-101',
+      status: true,
+      present_count: 49,
+      absent_count: 1,
+      total_students: 50,
+      students: [
+        { student_id: 'R210001', student_name: 'Aarav Sharma', status: true },
+        { student_id: 'R210002', student_name: 'Aditi Patel', status: true },
+        { student_id: 'R210003', student_name: 'Amit Kumar', status: true },
+        { student_id: 'R210004', student_name: 'Ananya Singh', status: true },
+        { student_id: 'R210005', student_name: 'Arjun Reddy', status: true },
+        { student_id: 'R210006', student_name: 'Bhavya Gupta', status: true },
+        { student_id: 'R210007', student_name: 'Chetan Mehta', status: true },
+        { student_id: 'R210008', student_name: 'Deepika Joshi', status: true },
+        { student_id: 'R210009', student_name: 'Divya Nair', status: true },
+        { student_id: 'R210010', student_name: 'Gaurav Malhotra', status: true },
+        { student_id: 'R210011', student_name: 'Ishita Chatterjee', status: true },
+        { student_id: 'R210012', student_name: 'Karan Singh', status: true },
+        { student_id: 'R210013', student_name: 'Kriti Sharma', status: true },
+        { student_id: 'R210014', student_name: 'Manish Kumar', status: true },
+        { student_id: 'R210015', student_name: 'Neha Verma', status: true },
+        { student_id: 'R210016', student_name: 'Nikhil Agarwal', status: true },
+        { student_id: 'R210017', student_name: 'Pooja Reddy', status: true },
+        { student_id: 'R210018', student_name: 'Priya Singh', status: true },
+        { student_id: 'R210019', student_name: 'Rahul Mehta', status: true },
+        { student_id: 'R210020', student_name: 'Riya Patel', status: true },
+        { student_id: 'R210021', student_name: 'Rohan Kumar', status: true },
+        { student_id: 'R210022', student_name: 'Sanya Gupta', status: true },
+        { student_id: 'R210023', student_name: 'Shreya Nair', status: true },
+        { student_id: 'R210024', student_name: 'Siddharth Joshi', status: true },
+        { student_id: 'R210025', student_name: 'Simran Kaur', status: true },
+        { student_id: 'R210026', student_name: 'Sneha Sharma', status: true },
+        { student_id: 'R210027', student_name: 'Sohan Malhotra', status: true },
+        { student_id: 'R210028', student_name: 'Tanvi Reddy', status: true },
+        { student_id: 'R210029', student_name: 'Uday Singh', status: true },
+        { student_id: 'R210030', student_name: 'Varun Kumar', status: true },
+        { student_id: 'R210031', student_name: 'Vikas Agarwal', status: true },
+        { student_id: 'R210032', student_name: 'Vishal Mehta', status: true },
+        { student_id: 'R210033', student_name: 'Yash Patel', status: true },
+        { student_id: 'R210034', student_name: 'Yuvika Singh', status: true },
+        { student_id: 'R210035', student_name: 'Zoya Khan', status: true },
+        { student_id: 'R210036', student_name: 'Abhishek Sharma', status: true },
+        { student_id: 'R210037', student_name: 'Anjali Gupta', status: true },
+        { student_id: 'R210038', student_name: 'Bhaskar Nair', status: true },
+        { student_id: 'R210039', student_name: 'Chandan Kumar', status: true },
+        { student_id: 'R210040', student_name: 'Dipika Joshi', status: true },
+        { student_id: 'R210041', student_name: 'Esha Reddy', status: true },
+        { student_id: 'R210042', student_name: 'Farhan Khan', status: true },
+        { student_id: 'R210043', student_name: 'Gauri Singh', status: true },
+        { student_id: 'R210044', student_name: 'Harsh Mehta', status: true },
+        { student_id: 'R210045', student_name: 'Ishan Patel', status: true },
+        { student_id: 'R210046', student_name: 'Jhanvi Sharma', status: true },
+        { student_id: 'R210047', student_name: 'Kavya Gupta', status: true },
+        { student_id: 'R210048', student_name: 'Lakshya Nair', status: true },
+        { student_id: 'R210049', student_name: 'Mohan Kumar', status: true },
+        { student_id: 'R210050', student_name: 'Nandini Joshi', status: false },
+      ]
+    }
+  ]
+};
+
+  // Fetch attendance data from backend
+  const fetchAttendanceData = async () => {
+    try {
+      setIsLoading(true);
+      
+      const response = await fetch(
+        `${API_BASE_URL}/class-attendance/${classData.id}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setAttendanceData(data.attendanceData);
+        
+        // Set initial selected date to the most recent date with data
+        const dates = Object.keys(data.attendanceData);
+        if (dates.length > 0) {
+          setSelectedDate(dates[0]);
+        }
+      } else {
+        throw new Error(data.message || 'Failed to fetch attendance data');
+      }
+      
+    } catch (error) {
+      console.error('Error fetching attendance data:', error);
+      Alert.alert(
+        'Error',
+        'Failed to load attendance data. Please check your connection and try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  // Update student attendance status
+  const updateStudentAttendance = async (sessionId: number, studentId: string, newStatus: boolean) => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/faculty/update-attendance`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            session_id: sessionId,
+            student_id: studentId,
+            status: newStatus,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        // Update local state
+        setAttendanceData(prev => {
+          const updatedData = { ...prev };
+          Object.keys(updatedData).forEach(date => {
+            updatedData[date] = updatedData[date].map(session => {
+              if (session.session_id === sessionId) {
+                const updatedStudents = session.students.map(student => 
+                  student.student_id === studentId 
+                    ? { ...student, status: newStatus }
+                    : student
+                );
+                
+                const present_count = updatedStudents.filter(s => s.status).length;
+                const absent_count = updatedStudents.filter(s => !s.status).length;
+                
+                return {
+                  ...session,
+                  students: updatedStudents,
+                  present_count,
+                  absent_count
+                };
+              }
+              return session;
+            });
+          });
+          return updatedData;
+        });
+        
+        Alert.alert('Success', 'Attendance status updated successfully!');
+      } else {
+        throw new Error(data.message || 'Failed to update attendance');
+      }
+      
+    } catch (error) {
+      console.error('Error updating attendance:', error);
+      Alert.alert('Error', 'Failed to update attendance. Please try again.');
+    }
+  };
+
+  // Pull to refresh
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchAttendanceData();
+  };
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchAttendanceData();
+  }, [classData.id]);
 
   // Get current date's attendance periods
-  const currentDatePeriods = attendanceData[selectedDate as keyof typeof attendanceData] || [];
+  const currentDatePeriods = selectedDate ? attendanceData[selectedDate] || [] : [];
   
   // Get selected period data
   const currentPeriod = currentDatePeriods[selectedPeriod];
   
   // Filter students based on search query
   const filteredStudents = currentPeriod?.students?.filter(student => 
-    student.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.name.toLowerCase().includes(searchQuery.toLowerCase())
+    student.student_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.student_name.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
   // Generate dates for the calendar for current month
@@ -157,8 +586,8 @@ const ClassDetailsScreen = () => {
     // Add padding for days before the first day of the month
     for (let i = 0; i < firstDayOfWeek; i++) {
       const date = new Date(year, month, -i);
-      const dateString = date.toLocaleDateString('en-GB');
-      const hasAttendance = attendanceData[dateString as keyof typeof attendanceData];
+      const dateString = formatDate(date);
+      const hasAttendance = attendanceData[dateString];
       
       dates.unshift({
         date: dateString,
@@ -173,8 +602,8 @@ const ClassDetailsScreen = () => {
     // Add all days of the current month
     for (let day = 1; day <= lastDay.getDate(); day++) {
       const date = new Date(year, month, day);
-      const dateString = date.toLocaleDateString('en-GB');
-      const hasAttendance = attendanceData[dateString as keyof typeof attendanceData];
+      const dateString = formatDate(date);
+      const hasAttendance = attendanceData[dateString];
       
       dates.push({
         date: dateString,
@@ -189,63 +618,50 @@ const ClassDetailsScreen = () => {
     return dates;
   };
 
+  // Format date to match backend format (DD/MM/YYYY)
+  const formatDate = (date: Date): string => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   const calendarDates = generateCalendarDates();
 
   // Toggle student attendance status
-  const toggleStudentStatus = (studentId: string) => {
+  const toggleStudentStatus = (studentId: string, currentStatus: boolean) => {
     if (!currentPeriod) return;
-
-    const updatedStudents = currentPeriod.students.map(student => {
-      if (student.id === studentId) {
-        const newStatus = student.status === 'present' ? 'absent' : 'present';
-        return { ...student, status: newStatus };
-      }
-      return student;
-    });
-
-    // Calculate new counts
-    const presentCount = updatedStudents.filter(s => s.status === 'present').length;
-    const absentCount = updatedStudents.filter(s => s.status === 'absent').length;
-
-    // Update attendance data
-    setAttendanceData(prev => ({
-      ...prev,
-      [selectedDate]: prev[selectedDate as keyof typeof attendanceData].map((period, index) => 
-        index === selectedPeriod 
-          ? { ...period, students: updatedStudents, present: presentCount, absent: absentCount }
-          : period
-      )
-    }));
-
+    
+    const newStatus = !currentStatus;
+    updateStudentAttendance(currentPeriod.session_id, studentId, newStatus);
     setEditingStudent(null);
-    Alert.alert('Success', 'Attendance status updated successfully!');
   };
 
-  const renderStudentItem = ({ item }: { item: any }) => (
+  const renderStudentItem = ({ item }: { item: StudentAttendance }) => (
     <View style={styles.studentItem}>
       <View style={styles.studentInfo}>
-        <Text style={styles.studentId}>{item.id}</Text>
-        <Text style={styles.studentName}>{item.name}</Text>
+        <Text style={styles.studentId}>{item.student_id}</Text>
+        <Text style={styles.studentName}>{item.student_name}</Text>
       </View>
       
       <View style={styles.studentActions}>
         <View style={[
           styles.statusBadge,
-          { backgroundColor: item.status === 'present' ? '#28a745' : '#dc3545' }
+          { backgroundColor: item.status ? '#28a745' : '#dc3545' }
         ]}>
           <Icon 
-            name={item.status === 'present' ? 'check' : 'close'} 
+            name={item.status ? 'check' : 'close'} 
             size={14} 
             color="#FFF" 
           />
           <Text style={styles.statusText}>
-            {item.status === 'present' ? 'Present' : 'Absent'}
+            {item.status ? 'Present' : 'Absent'}
           </Text>
         </View>
         
         <TouchableOpacity 
           style={styles.editButton}
-          onPress={() => setEditingStudent({ id: item.id, currentStatus: item.status })}
+          onPress={() => setEditingStudent({ id: item.student_id, currentStatus: item.status })}
         >
           <Icon name="edit" size={16} color="#600202" />
         </TouchableOpacity>
@@ -264,7 +680,7 @@ const ClassDetailsScreen = () => {
       onPress={() => {
         if (item.hasAttendance && item.isCurrentMonth) {
           setSelectedDate(item.date);
-          setSelectedPeriod(0); // Reset to first period when date changes
+          setSelectedPeriod(0);
           setIsCalendarModalVisible(false);
         }
       }}
@@ -283,7 +699,7 @@ const ClassDetailsScreen = () => {
     </TouchableOpacity>
   );
 
-  const renderPeriodItem = ({ item, index }: { item: any, index: number }) => (
+  const renderPeriodItem = ({ item, index }: { item: AttendanceSession, index: number }) => (
     <TouchableOpacity
       style={[
         styles.periodItem,
@@ -295,14 +711,14 @@ const ClassDetailsScreen = () => {
       }}
     >
       <View style={styles.periodInfo}>
-        <Text style={styles.periodTitle}>Period {item.period}</Text>
-        <Text style={styles.periodTime}>{item.time}</Text>
-        <Text style={styles.periodTopic}>{item.topic}</Text>
+        <Text style={styles.periodTime}>{item.start_time} - {item.end_time}</Text>
+        <Text style={styles.periodTopic}>{item.topic || 'No topic specified'}</Text>
+        <Text style={styles.periodVenue}>Venue: {item.venue || 'Not specified'}</Text>
       </View>
       <View style={styles.periodStats}>
-        <Text style={styles.periodAttendance}>{item.present}/{item.total}</Text>
+        <Text style={styles.periodAttendance}>{item.present_count}/{item.total_students}</Text>
         <Text style={styles.periodPercentage}>
-          {Math.round((item.present / item.total) * 100)}%
+          {Math.round((item.present_count / item.total_students) * 100)}%
         </Text>
       </View>
     </TouchableOpacity>
@@ -321,6 +737,15 @@ const ClassDetailsScreen = () => {
     });
   };
 
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#600202" />
+        <Text style={styles.loadingText}>Loading attendance data...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Class Header */}
@@ -336,7 +761,18 @@ const ClassDetailsScreen = () => {
         </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={['#600202']}
+            tintColor={'#600202'}
+          />
+        }
+      >
         {/* Date and Period Picker */}
         <View style={styles.headerActions}>
           <TouchableOpacity 
@@ -344,7 +780,9 @@ const ClassDetailsScreen = () => {
             onPress={() => setIsCalendarModalVisible(true)}
           >
             <Icon name="calendar-today" size={20} color="#600202" />
-            <Text style={styles.dateText}>{selectedDate}</Text>
+            <Text style={styles.dateText}>
+              {selectedDate || 'Select Date'}
+            </Text>
             <Icon name="arrow-drop-down" size={20} color="#600202" />
           </TouchableOpacity>
           
@@ -355,7 +793,7 @@ const ClassDetailsScreen = () => {
           >
             <Icon name="access-time" size={20} color="#600202" />
             <Text style={styles.periodText}>
-              {currentPeriod ? `Period ${currentPeriod.period}` : 'No Periods'}
+              {currentPeriod ? `${currentPeriod.start_time} - ${currentPeriod.end_time}` : 'No Sessions'}
             </Text>
             <Icon name="arrow-drop-down" size={20} color="#600202" />
           </TouchableOpacity>
@@ -370,33 +808,34 @@ const ClassDetailsScreen = () => {
           <Text style={styles.reportButtonText}>Generate Report</Text>
         </TouchableOpacity>
 
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Icon name="search" size={20} color="#600202" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search by ID or Name..."
-            placeholderTextColor="#999"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery !== '' && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Icon name="close" size={20} color="#600202" />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Period Details */}
-        {currentPeriod ? (
+        {selectedDate && currentPeriod ? (
           <>
+            {/* Search Bar */}
+            <View style={styles.searchContainer}>
+              <Icon name="search" size={20} color="#600202" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search by ID or Name..."
+                placeholderTextColor="#999"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery !== '' && (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <Icon name="close" size={20} color="#600202" />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Period Details */}
             <View style={styles.periodDetails}>
               <View style={styles.periodHeader}>
-                <Text style={styles.periodDetailTitle}>Period {currentPeriod.period}</Text>
-                <Text style={styles.periodDetailTime}>{currentPeriod.time}</Text>
+                <Text style={styles.periodDetailTitle}>{currentPeriod.start_time} - {currentPeriod.end_time}</Text>
               </View>
               <Text style={styles.topicLabel}>Topic Discussed</Text>
-              <Text style={styles.topicText}>{currentPeriod.topic}</Text>
+              <Text style={styles.topicText}>{currentPeriod.topic || 'No topic specified'}</Text>
+              <Text style={styles.venueLabel}>Venue</Text>
+              <Text style={styles.venueText}>{currentPeriod.venue || 'Not specified'}</Text>
             </View>
 
             {/* Attendance Stats */}
@@ -405,7 +844,7 @@ const ClassDetailsScreen = () => {
                 <View style={[styles.statIcon, { backgroundColor: '#28a745' }]}>
                   <Icon name="check" size={16} color="#FFF" />
                 </View>
-                <Text style={styles.statNumber}>{currentPeriod.present}</Text>
+                <Text style={styles.statNumber}>{currentPeriod.present_count}</Text>
                 <Text style={styles.statLabel}>Present</Text>
               </View>
               
@@ -413,7 +852,7 @@ const ClassDetailsScreen = () => {
                 <View style={[styles.statIcon, { backgroundColor: '#dc3545' }]}>
                   <Icon name="close" size={16} color="#FFF" />
                 </View>
-                <Text style={styles.statNumber}>{currentPeriod.absent}</Text>
+                <Text style={styles.statNumber}>{currentPeriod.absent_count}</Text>
                 <Text style={styles.statLabel}>Absent</Text>
               </View>
               
@@ -421,7 +860,7 @@ const ClassDetailsScreen = () => {
                 <View style={[styles.statIcon, { backgroundColor: '#600202' }]}>
                   <Icon name="people" size={16} color="#FFF" />
                 </View>
-                <Text style={styles.statNumber}>{currentPeriod.total}</Text>
+                <Text style={styles.statNumber}>{currentPeriod.total_students}</Text>
                 <Text style={styles.statLabel}>Total</Text>
               </View>
             </View>
@@ -438,7 +877,7 @@ const ClassDetailsScreen = () => {
               <FlatList
                 data={filteredStudents}
                 renderItem={renderStudentItem}
-                keyExtractor={item => item.id}
+                keyExtractor={item => item.student_id}
                 scrollEnabled={false}
                 style={styles.studentsList}
               />
@@ -456,9 +895,9 @@ const ClassDetailsScreen = () => {
             <Icon name="event-busy" size={48} color="#ccc" />
             <Text style={styles.noDataText}>No attendance data available</Text>
             <Text style={styles.noDataSubText}>
-              {currentDatePeriods.length === 0 
-                ? `No periods found for ${selectedDate}`
-                : 'Select a period to view attendance'
+              {Object.keys(attendanceData).length === 0 
+                ? 'No attendance records found for this class'
+                : 'Select a date to view attendance sessions'
               }
             </Text>
           </View>
@@ -493,16 +932,16 @@ const ClassDetailsScreen = () => {
               </TouchableOpacity>
               
               <TouchableOpacity 
-                style={editingStudent?.currentStatus === 'present' ? styles.confirmEditButtonAbsent : styles.confirmEditButtonPresent}
-                onPress={() => editingStudent && toggleStudentStatus(editingStudent.id)}
+                style={editingStudent?.currentStatus ? styles.confirmEditButtonAbsent : styles.confirmEditButtonPresent}
+                onPress={() => editingStudent && toggleStudentStatus(editingStudent.id, editingStudent.currentStatus)}
               >
                 <Icon 
-                  name={editingStudent?.currentStatus === 'present' ? 'close' : 'check'} 
+                  name={editingStudent?.currentStatus ? 'close' : 'check'} 
                   size={16} 
                   color="#FFF" 
                 />
                 <Text style={styles.confirmEditButtonText}>
-                  {editingStudent?.currentStatus === 'present' ? 'Absent' : 'Present'}
+                  {editingStudent?.currentStatus ? 'Mark Absent' : 'Mark Present'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -594,20 +1033,20 @@ const ClassDetailsScreen = () => {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Period - {selectedDate}</Text>
+              <Text style={styles.modalTitle}>Select Session - {selectedDate}</Text>
               <TouchableOpacity onPress={() => setIsPeriodModalVisible(false)}>
                 <Icon name="close" size={24} color="#600202" />
               </TouchableOpacity>
             </View>
             
             <Text style={styles.modalSubtitle}>
-              {currentDatePeriods.length} period(s) available
+              {currentDatePeriods.length} session(s) available
             </Text>
 
             <FlatList
               data={currentDatePeriods}
               renderItem={renderPeriodItem}
-              keyExtractor={(item, index) => index.toString()}
+              keyExtractor={(item) => item.session_id.toString()}
               showsVerticalScrollIndicator={false}
               style={styles.periodsList}
             />
@@ -627,7 +1066,31 @@ const ClassDetailsScreen = () => {
   );
 };
 
+// Add these new styles to your existing styles
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#600202',
+  },
+  venueLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#600202',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  venueText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  // ... keep all your existing styles from the previous code
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
@@ -1142,6 +1605,11 @@ const styles = StyleSheet.create({
   periodTopic: {
     fontSize: 12,
     color: '#999',
+  },
+  periodVenue: {
+    fontSize: 11,
+    color: '#666',
+    marginTop: 4,
   },
   periodStats: {
     alignItems: 'flex-end',

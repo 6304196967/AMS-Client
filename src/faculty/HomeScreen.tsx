@@ -63,7 +63,6 @@ type ServerTimeData = {
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn, setUser }) => {
     const [actualFacultyId, setActualFacultyId] = useState<string>('');
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -76,8 +75,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
     const [isGeneratingOTP, setIsGeneratingOTP] = useState<boolean>(false);
     const [serverTime, setServerTime] = useState<Date>(new Date());
     const [timeLoading, setTimeLoading] = useState<boolean>(true);
-    const [attendanceReason, setAttendanceReason] = useState<string>(''); // New state for attendance reason
+    const [attendanceReason, setAttendanceReason] = useState<string>('');
     
+    // Initialize with local time (will be synced with server time)
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
     // Filter options
     const yearOptions = ['E1', 'E2', 'E3', 'E4'];
     const departmentOptions = ['CSE', 'ECE', 'EEE', "CHEM",'MECH', 'CIVIL',"MME"];
@@ -97,7 +99,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
 
     useEffect(() => {
         if (user?.email) {
-            setActualFacultyId("F005");
+            setActualFacultyId("F001");
         }
     }, [user]);
 
@@ -105,11 +107,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
         fetchServerTime();
     }, []);
 
+    // 🔥 ADD THIS: Sync selectedDate with server time when it loads
+    useEffect(() => {
+        if (!timeLoading && serverTime) {
+            console.log('🔄 Syncing selectedDate with server time:', serverTime.toDateString());
+            setSelectedDate(new Date(serverTime));
+        }
+    }, [timeLoading, serverTime]);
+
     useEffect(() => {
         if (actualFacultyId && !timeLoading) {
             fetchScheduleForDate(selectedDate);
         }
     }, [selectedDate, actualFacultyId, timeLoading]);
+
+    // ... rest of your functions remain the same
 
     const fetchServerTime = async () => {
         try {
@@ -135,30 +147,43 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
     };
 
     const fetchScheduleForDate = async (date: Date) => {
-        if (!actualFacultyId || timeLoading) return;
+    if (!actualFacultyId || timeLoading) return;
 
-        try {
-            setLoading(true);
-            const dateStr = date.toISOString().split('T')[0];
-            
-            const response = await fetch(
-                `${API_BASE_URL}/faculty/${actualFacultyId}/schedule?date=${dateStr}`
-            );
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to fetch schedule');
-            }
-            
-            const data: ScheduleData = await response.json();
-            setScheduleData(data);
-        } catch (err) {
-            console.error('Fetch schedule error:', err);
-            Alert.alert('Error', (err as Error).message);
-        } finally {
-            setLoading(false);
+    try {
+        setLoading(true);
+        // Use server timezone for consistent date formatting
+        const dateStr = date.toISOString().split('T')[0];
+        
+        console.log('📅 Fetching schedule for:', {
+            facultyId: actualFacultyId,
+            date: dateStr,
+            selectedDate: date.toDateString(),
+            serverDate: serverTime.toDateString(),
+            url: `${API_BASE_URL}/faculty/${actualFacultyId}/schedule?date=${dateStr}`
+        });
+        
+        const response = await fetch(
+            `${API_BASE_URL}/faculty/${actualFacultyId}/schedule?date=${dateStr}`
+        );
+        
+        console.log('📊 Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('❌ API Error:', errorData);
+            throw new Error(errorData.error || 'Failed to fetch schedule');
         }
-    };
+        
+        const data: ScheduleData = await response.json();
+        console.log('✅ Schedule data received:', data);
+        setScheduleData(data);
+    } catch (err) {
+        console.error('❌ Fetch schedule error:', err);
+        Alert.alert('Error', (err as Error).message);
+    } finally {
+        setLoading(false);
+    }
+};
 
     const fetchFacultySubjects = async () => {
         try {
@@ -175,54 +200,54 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
     };
 
     const navigateDate = (days: number) => {
-        const newDate = new Date(selectedDate);
-        newDate.setDate(selectedDate.getDate() + days);
-        
-        // Only allow yesterday, today, and tomorrow based on server time
-        const today = new Date(serverTime);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 1);
-        
-        const allowedDates = [today, tomorrow, yesterday];
-        const isAllowed = allowedDates.some(date => 
-            date.toDateString() === newDate.toDateString()
-        );
-        
-        if (isAllowed) {
-            setSelectedDate(newDate);
-        }
-    };
-
+  // Create new date based on the CURRENT selectedDate
+  const newDate = new Date(selectedDate);
+  newDate.setDate(selectedDate.getDate() + days);
+  
+  // Optional: Still restrict navigation based on server time if needed
+  const today = new Date(serverTime);
+  const tomorrow = new Date(serverTime);
+  tomorrow.setDate(serverTime.getDate() + 1);
+  const yesterday = new Date(serverTime);
+  yesterday.setDate(serverTime.getDate() - 1);
+  
+  const allowedDates = [today, yesterday, tomorrow];
+  const isAllowed = allowedDates.some(date => 
+      date.toDateString() === newDate.toDateString()
+  );
+  
+  if (isAllowed) {
+      setSelectedDate(newDate);
+  }
+};
     const getDateDisplayText = (): string => {
-        if (timeLoading) return 'Loading...';
-        
-        const today = new Date(serverTime);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 1);
+    if (timeLoading) return 'Loading...';
+    
+    const today = new Date(serverTime);
+    const tomorrow = new Date(serverTime);
+    tomorrow.setDate(serverTime.getDate() + 1);
+    const yesterday = new Date(serverTime);
+    yesterday.setDate(serverTime.getDate() - 1);
 
-        if (selectedDate.toDateString() === today.toDateString()) {
-            return "Today's Schedule";
-        } else if (selectedDate.toDateString() === tomorrow.toDateString()) {
-            return "Tomorrow's Schedule";
-        } else if (selectedDate.toDateString() === yesterday.toDateString()) {
-            return "Yesterday's Schedule";
-        } else {
-            return "Invalid Date";
-        }
-    };
-
+    if (selectedDate.toDateString() === today.toDateString()) {
+        return "Today's Schedule";
+    } else if (selectedDate.toDateString() === tomorrow.toDateString()) {
+        return "Tomorrow's Schedule";
+    } else if (selectedDate.toDateString() === yesterday.toDateString()) {
+        return "Yesterday's Schedule";
+    } else {
+        return "Invalid Date";
+    }
+};
     const getGreeting = (): string => {
-        if (timeLoading) return 'Loading...';
-        
-        const hour = serverTime.getHours();
-        if (hour < 12) return 'Good Morning';
-        if (hour < 15) return 'Good Afternoon';
-        return 'Good Evening';
-    };
+    if (timeLoading) return 'Loading...';
+    
+    // Use SERVER time hour
+    const hour = serverTime.getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 15) return 'Good Afternoon';
+    return 'Good Evening';
+};
 
     const formatTime = (timeStr: string): string => {
         if (!timeStr) return '';
@@ -236,23 +261,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
     const getCurrentTimeStatus = (startTime: string, endTime: string): string => {
     if (timeLoading) return 'Loading...';
     
-    // Get the date parts for comparison
+    // Use SERVER time for all comparisons
     const currentDate = new Date(serverTime);
     const scheduleDate = new Date(selectedDate);
     
-    // Reset time parts for date comparison only
+    // Reset time parts for date comparison only (using server time)
     const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
     const scheduleDateOnly = new Date(scheduleDate.getFullYear(), scheduleDate.getMonth(), scheduleDate.getDate());
     
-    // Compare dates
+    // Compare dates using SERVER time
     if (scheduleDateOnly < currentDateOnly) {
-        // This is for past dates (yesterday or earlier)
         return 'Expired';
     } else if (scheduleDateOnly > currentDateOnly) {
-        // This is for future dates (tomorrow or later)
         return 'Upcoming';
     } else {
-        // This is for today - check the time
+        // This is for today - check the time using SERVER time
         const currentTime = currentDate.getHours() * 60 + currentDate.getMinutes();
         
         const [startHour, startMinute] = startTime.split(':').map(Number);

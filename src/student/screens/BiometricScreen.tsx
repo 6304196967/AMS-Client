@@ -5,35 +5,78 @@ import ReactNativeBiometrics from "react-native-biometrics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StackParamList } from "../Navigators/StudentNavigator";
 
+const API_BASE_URL = 'http://10.173.174.102:5000';
+
 type Props = NativeStackScreenProps<StackParamList, "Biometric">;
 
 const BiometricScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { classEndTime } = route.params;
+  const { classEndTime, scheduleId, userEmail } = route.params; // Add userEmail here
+
+  const markAttendanceOnServer = async (studentEmail: string, sessionId: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/attendance/mark`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: studentEmail,
+          session_id: scheduleId
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        return { success: true, data };
+      } else {
+        return { success: false, error: data.error };
+      }
+    } catch (error) {
+      return { success: false, error: 'Network error' };
+    }
+  };
 
   useEffect(() => {
-    const rnBiometrics = new ReactNativeBiometrics();
+    const authenticateAndMarkAttendance = async () => {
+      const rnBiometrics = new ReactNativeBiometrics();
 
-    rnBiometrics
-      .simplePrompt({ promptMessage: "Confirm fingerprint to mark attendance" })
-      .then(result => {
+      try {
+        const result = await rnBiometrics.simplePrompt({ 
+          promptMessage: "Confirm fingerprint to mark attendance" 
+        });
+
         if (result.success) {
-          Alert.alert("Success", "Fingerprint verified! Attendance will be marked shortly.");
+          Alert.alert("Success", "Fingerprint verified! Marking attendance...");
 
-          setTimeout(() => {
-            // Simulate backend call
-            Alert.alert("Attendance Marked!", "You have successfully marked attendance.");
-            navigation.popToTop();
-          }, 15000);
+          // Call backend to mark attendance
+          const attendanceResult = await markAttendanceOnServer(userEmail, scheduleId);
+          
+          if (attendanceResult.success) {
+            Alert.alert(
+              "Attendance Marked!", 
+              "You have successfully marked attendance.",
+              [{ text: "OK", onPress: () => navigation.popToTop() }]
+            );
+          } else {
+            Alert.alert(
+              "Error", 
+              `Failed to mark attendance: ${attendanceResult.error}`,
+              [{ text: "OK", onPress: () => navigation.popToTop() }]
+            );
+          }
         } else {
           Alert.alert("Failed", "Fingerprint not recognized");
           navigation.replace("Blocked", { classEndTime });
         }
-      })
-      .catch(() => {
+      } catch (error) {
         Alert.alert("Error", "Biometric authentication failed");
         navigation.replace("Blocked", { classEndTime });
-      });
-  }, [classEndTime]);
+      }
+    };
+
+    authenticateAndMarkAttendance();
+  }, [classEndTime, scheduleId, userEmail]);
 
   return (
     <View style={styles.container}>

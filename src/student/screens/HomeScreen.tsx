@@ -19,6 +19,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StackParamList } from "../Navigators/StudentNavigator";
 import LinearGradient from "react-native-linear-gradient";
 import SendNotificationModal from './SendNotificationModal';
+import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 
 const API_BASE_URL = 'http://10.182.66.80:5000';
 
@@ -223,7 +224,7 @@ const ClassScheduleCard = ({
           </Text>
         </View>
         
-        <View style={{ flex: 1, marginLeft: 14, paddingRight: isCR && isUpcoming ? 0 : 90 }}>
+        <View style={{ flex: 1, marginLeft: spacing(14), paddingRight: isCR && isUpcoming ? 0 : 90 }}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <Text style={[styles.subjectText, { flex: 1, paddingRight: isCR && isUpcoming ? 8 : 0 }]} numberOfLines={2}>
               {item.subject}
@@ -231,12 +232,12 @@ const ClassScheduleCard = ({
             
             {/* Edit/Delete buttons next to subject name for CR users with upcoming classes */}
             {isCR && isUpcoming && (
-              <View style={{ flexDirection: 'row', gap: 8, flexShrink: 0, marginTop: 15 }}>
+              <View style={{ flexDirection: 'row', gap: 8, flexShrink: 0, marginTop: spacing(15) }}>
                 <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => onEdit && onEdit(item)}
                 >
-                  <Icon name="pencil-outline" size={16} color="#FFF" />
+                  <Icon name="pencil-outline" size={fontSize(16)} color="#FFF" />
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.deleteButton}
@@ -247,7 +248,7 @@ const ClassScheduleCard = ({
                     ])
                   }
                 >
-                  <Icon name="delete-outline" size={16} color="#FFF" />
+                  <Icon name="delete-outline" size={fontSize(16)} color="#FFF" />
                 </TouchableOpacity>
               </View>
             )}
@@ -258,16 +259,16 @@ const ClassScheduleCard = ({
       {/* Class Details */}
       <View style={styles.cardDetails}>
         {/* Timing and Venue side-by-side */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING.md }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-            <Icon name="clock-outline" size={20} color="#1976D2" />
-            <Text style={[styles.detailText, { marginLeft: 8, fontSize: 16, fontWeight: '600' }]}>
+            <Icon name="clock-outline" size={fontSize(20)} color="#1976D2" />
+            <Text style={[styles.detailText, { marginLeft: SPACING.sm, fontSize: FONT_SIZES.lg, fontWeight: '600' }]}>
               {item.time}
             </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-            <Icon name="map-marker" size={20} color="#E65100" />
-            <Text style={[styles.detailText, { marginLeft: 8, fontSize: 16, fontWeight: '600' }]}>
+            <Icon name="map-marker" size={fontSize(20)} color="#E65100" />
+            <Text style={[styles.detailText, { marginLeft: SPACING.sm, fontSize: FONT_SIZES.lg, fontWeight: '600' }]}>
               {item.location}
             </Text>
           </View>
@@ -276,7 +277,7 @@ const ClassScheduleCard = ({
         {/* Contextual Status Messages */}
         {isUpcoming && !item.attendance_marked && (
           <View style={styles.infoContainer}>
-            <Icon name="calendar-clock" size={16} color="#1976D2" />
+            <Icon name="calendar-clock" size={fontSize(16)} color="#1976D2" />
             <Text style={styles.infoText}>
               Class is scheduled - Not started yet
             </Text>
@@ -286,7 +287,7 @@ const ClassScheduleCard = ({
         {/* Show waiting for OTP message */}
         {waitingForOTP && !item.otp && (
           <View style={styles.waitingOTPContainer}>
-            <Icon name="clock-alert-outline" size={16} color="#F57C00" />
+            <Icon name="clock-alert-outline" size={fontSize(16)} color="#F57C00" />
             <Text style={styles.waitingOTPText}>
               Class in progress - Waiting for faculty to generate OTP
             </Text>
@@ -296,29 +297,29 @@ const ClassScheduleCard = ({
         {/* Show attendance status */}
         {item.attendance_marked ? (
           <View style={styles.attendanceStatusContainer}>
-            <Icon name="check-circle" size={16} color="#00796B" />
+            <Icon name="check-circle" size={fontSize(16)} color="#00796B" />
             <Text style={styles.attendanceMarkedText}>
               ✓ Attendance marked successfully
             </Text>
           </View>
         ) : isCompleted && item.otp ? (
-          <View style={{ backgroundColor: '#FFF8E1', padding: 10, borderRadius: 8, marginTop: 8, flexDirection: 'row', alignItems: 'center' }}>
-            <Icon name="alert-circle-outline" size={16} color="#F57F17" />
-            <Text style={[styles.pendingAttendanceText, { marginTop: 0, marginLeft: 8, fontSize: 13 }]}>
+          <View style={{ backgroundColor: '#FFF8E1', padding: spacing(10), borderRadius: 8, marginTop: SPACING.sm, flexDirection: 'row', alignItems: 'center' }}>
+            <Icon name="alert-circle-outline" size={fontSize(16)} color="#F57F17" />
+            <Text style={[styles.pendingAttendanceText, { marginTop: spacing(0), marginLeft: SPACING.sm, fontSize: fontSize(13) }]}>
               Class completed - Attendance available to mark
             </Text>
           </View>
         ) : isCompleted && !item.otp && !item.attendance_marked ? (
-          <View style={{ backgroundColor: '#FFF3E0', padding: 10, borderRadius: 8, marginTop: 8, flexDirection: 'row', alignItems: 'center' }}>
-            <Icon name="information-outline" size={16} color="#F57C00" />
-            <Text style={[styles.pendingAttendanceText, { marginTop: 0, marginLeft: 8, fontSize: 13 }]}>
+          <View style={{ backgroundColor: '#FFF3E0', padding: spacing(10), borderRadius: 8, marginTop: SPACING.sm, flexDirection: 'row', alignItems: 'center' }}>
+            <Icon name="information-outline" size={fontSize(16)} color="#F57C00" />
+            <Text style={[styles.pendingAttendanceText, { marginTop: spacing(0), marginLeft: SPACING.sm, fontSize: fontSize(13) }]}>
               Class completed - Waiting for faculty to generate OTP
             </Text>
           </View>
         ) : isExpired && !item.attendance_marked ? (
           <View style={styles.expiredContainer}>
-            <Icon name="close-circle-outline" size={16} color="#D32F2F" />
-            <Text style={[styles.expiredText, { marginTop: 0, marginLeft: 8 }]}>
+            <Icon name="close-circle-outline" size={fontSize(16)} color="#D32F2F" />
+            <Text style={[styles.expiredText, { marginTop: spacing(0), marginLeft: SPACING.sm }]}>
               Class time passed - Attendance not marked
             </Text>
           </View>
@@ -336,15 +337,15 @@ const ClassScheduleCard = ({
               onMarkAttendance(classEndTime, item);
             }}
           >
-            <Icon name="check-circle-outline" size={20} color="#FFF" />
-            <Text style={[styles.buttonText, { marginLeft: 8 }]}>Mark Attendance</Text>
+            <Icon name="check-circle-outline" size={fontSize(20)} color="#FFF" />
+            <Text style={[styles.buttonText, { marginLeft: SPACING.sm }]}>Mark Attendance</Text>
           </TouchableOpacity>
         )}
 
         {/* Show waiting status when class is in OTP waiting period */}
         {waitingForOTP && !item.otp && !isCR && !canMarkAttendance && !item.attendance_marked && (
           <TouchableOpacity style={styles.waitingButton} disabled>
-            <Icon name="clock-outline" size={18} color="#FFF" />
+            <Icon name="clock-outline" size={fontSize(18)} color="#FFF" />
             <Text style={styles.waitingButtonText}>Waiting for OTP</Text>
           </TouchableOpacity>
         )}
@@ -352,15 +353,15 @@ const ClassScheduleCard = ({
         {/* If attendance is already marked, show a disabled state */}
         {item.attendance_marked && !isCR && (
           <TouchableOpacity style={styles.attendanceButtonDisabled} disabled>
-            <Icon name="check-all" size={18} color="#757575" />
-            <Text style={[styles.buttonTextDisabled, { marginLeft: 6 }]}>Already Marked</Text>
+            <Icon name="check-all" size={fontSize(18)} color="#757575" />
+            <Text style={[styles.buttonTextDisabled, { marginLeft: spacing(6) }]}>Already Marked</Text>
           </TouchableOpacity>
         )}
 
         {/* Show placeholder for upcoming classes (non-CR students) */}
         {!isCR && isUpcoming && !canMarkAttendance && !item.attendance_marked && (
           <View style={styles.upcomingPlaceholder}>
-            <Icon name="calendar-clock" size={16} color="#9E9E9E" />
+            <Icon name="calendar-clock" size={fontSize(16)} color="#9E9E9E" />
             <Text style={styles.upcomingPlaceholderText}>
               Class scheduled
             </Text>
@@ -766,7 +767,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
     return (
       <LinearGradient colors={["#900a02", "#600202"]} style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
         <ActivityIndicator size="large" color="#FFF" />
-        <Text style={{ color: "#FFF", marginTop: 10 }}>Loading today's schedule...</Text>
+        <Text style={{ color: "#FFF", marginTop: spacing(10) }}>Loading today's schedule...</Text>
       </LinearGradient>
     );
   }
@@ -819,28 +820,28 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
         </TouchableOpacity>
       </View>
 
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 14 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: spacing(14) }}>
         <Text style={styles.scheduleTitle}>{getScheduleTitle()}</Text>
 
         {isCR && (
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <TouchableOpacity style={{ marginRight: 15 }} onPress={openSchedulingModal}>
-              <Icon name="plus-circle" size={32} color="#FFF" />
+            <TouchableOpacity style={{ marginRight: spacing(15) }} onPress={openSchedulingModal}>
+              <Icon name="plus-circle" size={fontSize(32)} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setNotificationModalVisible(true)}>
-              <Icon name="bell" size={32} color="#FFF" />
+              <Icon name="bell" size={fontSize(32)} color="#FFF" />
             </TouchableOpacity>
           </View>
         )}
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#FFF" style={{ marginTop: 20 }} />
+        <ActivityIndicator size="large" color="#FFF" style={{ marginTop: SPACING.xl }} />
       ) : currentSchedule.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>No classes scheduled.</Text>
           <TouchableOpacity onPress={onRefresh} style={styles.refreshButton}>
-            <Icon name="refresh" size={20} color="#600202" />
+            <Icon name="refresh" size={fontSize(20)} color="#600202" />
             <Text style={styles.refreshText}>Pull down to refresh</Text>
           </TouchableOpacity>
         </View>
@@ -889,7 +890,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
               {/* Scrollable Content */}
               <ScrollView 
                 style={{ flex: 1 }}
-                contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 20 }}
+                contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingTop: SPACING.lg, paddingBottom: SPACING.xl }}
                 showsVerticalScrollIndicator={true}
                 nestedScrollEnabled={true}
               >
@@ -912,7 +913,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
                       ? `${subjects.find(s => s.subject_code === selectedSubject)?.subject_name} (${subjects.find(s => s.subject_code === selectedSubject)?.subject_type})`
                       : 'Select a subject'}
                   </Text>
-                  <Icon name={showSubjectDropdown ? "chevron-up" : "chevron-down"} size={20} color="#757575" />
+                  <Icon name={showSubjectDropdown ? "chevron-up" : "chevron-down"} size={fontSize(20)} color="#757575" />
                 </TouchableOpacity>
                 
                 {showSubjectDropdown && (
@@ -956,7 +957,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
                   <Text style={selectedTimeSlot ? styles.dropdownButtonTextSelected : styles.dropdownButtonTextPlaceholder}>
                     {selectedTimeSlot || 'Select a time slot'}
                   </Text>
-                  <Icon name={showTimeSlotDropdown ? "chevron-up" : "chevron-down"} size={20} color="#757575" />
+                  <Icon name={showTimeSlotDropdown ? "chevron-up" : "chevron-down"} size={fontSize(20)} color="#757575" />
                 </TouchableOpacity>
                 
                 {showTimeSlotDropdown && selectedSubject && (
@@ -1013,7 +1014,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
                   {schedulingLoading ? (
                     <ActivityIndicator size="small" color="#FFF" />
                   ) : (
-                    <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 15 }}>Schedule Class</Text>
+                    <Text style={{ color: '#FFF', fontWeight: '600', fontSize: fontSize(15) }}>Schedule Class</Text>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity 
@@ -1049,7 +1050,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
                 showsVerticalScrollIndicator={true}
                 nestedScrollEnabled={true}
               >
-                <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 20 }}>
+                <View style={{ paddingHorizontal: SPACING.xl, paddingTop: SPACING.lg, paddingBottom: SPACING.xl }}>
                   {editingSchedule && (
                     <View style={styles.crInfoContainer}>
                       <Text style={styles.crInfoText}>
@@ -1087,7 +1088,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
                   {editLoading ? (
                     <ActivityIndicator size="small" color="#FFF" />
                   ) : (
-                    <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 15 }}>Update Venue</Text>
+                    <Text style={{ color: '#FFF', fontWeight: '600', fontSize: fontSize(15) }}>Update Venue</Text>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity 
@@ -1122,34 +1123,34 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: "#600202", 
-    paddingHorizontal: 16, 
-    paddingTop: 6 
+    paddingHorizontal: SPACING.lg, 
+    paddingTop: spacing(6) 
   },
   greetingContainer: { 
-    marginTop: 16,
-    marginBottom: 12,
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.md,
   },
   greetingHello: { 
     color: "rgba(255, 255, 255, 0.85)", 
-    fontSize: 15,
+    fontSize: fontSize(15),
     fontWeight: '500',
   },
   greetingName: { 
     color: "#FFF", 
-    fontSize: 24, 
+    fontSize: FONT_SIZES.xxxl, 
     fontWeight: "700",
-    marginTop: 2,
+    marginTop: spacing(2),
   },
   
   calendarNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
     gap: 10,
   },
   dateButton: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: SPACING.md,
     alignItems: 'center',
     borderRadius: 14,
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
@@ -1166,15 +1167,15 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   slotInfo: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#666',
-    marginBottom: 10,
+    marginBottom: spacing(10),
     textAlign: 'center',
     fontStyle: 'italic',
   },
   dateButtonText: {
     color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 15,
+    fontSize: fontSize(15),
     fontWeight: '600',
     letterSpacing: 0.3,
   },
@@ -1185,16 +1186,16 @@ const styles = StyleSheet.create({
   
   scheduleTitle: { 
     color: "#FFF", 
-    fontSize: 18, 
+    fontSize: FONT_SIZES.xl, 
     fontWeight: "700", 
-    marginBottom: 12,
+    marginBottom: SPACING.md,
     letterSpacing: 0.5,
   },
   listContainer: { 
-    paddingBottom: 20 
+    paddingBottom: SPACING.xl 
   },
   card: { 
-    marginBottom: 12, 
+    marginBottom: SPACING.md, 
     backgroundColor: "#FFF", 
     borderRadius: 10,
     elevation: 2,
@@ -1210,12 +1211,12 @@ const styles = StyleSheet.create({
   borderWidth: 1,
   borderColor: "#CCC",
   borderRadius: 8,
-  marginBottom: 10,
+  marginBottom: spacing(10),
 },
 expiredButton: {
   backgroundColor: '#E0E0E0',
-  paddingVertical: 10,
-  paddingHorizontal: 20,
+  paddingVertical: spacing(10),
+  paddingHorizontal: SPACING.xl,
   borderRadius: 8,
   flexDirection: 'row',
   alignItems: 'center',
@@ -1224,15 +1225,15 @@ expiredButton: {
 },
 expiredText: {
   color: '#D32F2F',
-  fontSize: 13,
+  fontSize: fontSize(13),
   fontWeight: '500',
   flex: 1,
 },
   subjectCircle: { 
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 14,
+    paddingVertical: spacing(14),
+    paddingHorizontal: spacing(14),
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
     backgroundColor: '#FAFAFA',
@@ -1252,31 +1253,31 @@ expiredText: {
     shadowRadius: 2,
   },
   subjectInitial: {
-    fontSize: 22,
+    fontSize: fontSize(22),
     fontWeight: '700',
     textAlign: 'center',
     letterSpacing: 0.5,
   },
   subjectType: {
-    fontSize: 11,
+    fontSize: fontSize(11),
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: 3,
+    marginTop: spacing(3),
   },
   subjectText: { 
     color: "#212121", 
     fontWeight: "700", 
-    fontSize: 17,
+    fontSize: fontSize(17),
   },
   subjectMeta: {
     color: "#757575",
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     fontWeight: '500',
   },
   statusBadge: {
     backgroundColor: '#E8F5E9',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
     borderRadius: 12,
   },
   statusBadgeTopRight: {
@@ -1284,8 +1285,8 @@ expiredText: {
     top: 8,
     right: 10,
     backgroundColor: '#E8F5E9',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: spacing(10),
+    paddingVertical: spacing(5),
     borderRadius: 12,
     elevation: 3,
     shadowColor: '#000',
@@ -1296,28 +1297,28 @@ expiredText: {
   },
   statusBadgeText: {
     color: '#2E7D32',
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontWeight: '600',
   },
   waitingOTPContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF3E0',
-    padding: 10,
+    padding: spacing(10),
     borderRadius: 8,
-    marginTop: 8,
+    marginTop: SPACING.sm,
   },
   waitingOTPText: {
     color: '#E65100',
-    fontSize: 13,
-    marginLeft: 8,
+    fontSize: fontSize(13),
+    marginLeft: SPACING.sm,
     fontWeight: '500',
     flex: 1,
   },
   waitingButton: {
     backgroundColor: '#FF9800',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: spacing(10),
+    paddingHorizontal: SPACING.xl,
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
@@ -1328,34 +1329,34 @@ expiredText: {
   waitingButtonText: {
     color: "#FFF",
     fontWeight: "600",
-    fontSize: 13,
-    marginLeft: 8,
+    fontSize: fontSize(13),
+    marginLeft: SPACING.sm,
   },
   attendanceStatusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#E0F2F1',
-    padding: 10,
+    padding: spacing(10),
     borderRadius: 8,
-    marginTop: 8,
+    marginTop: SPACING.sm,
   },
   attendanceMarkedText: {
     color: '#00796B',
-    fontSize: 13,
-    marginLeft: 8,
+    fontSize: fontSize(13),
+    marginLeft: SPACING.sm,
     fontWeight: '600',
     flex: 1,
   },
   pendingAttendanceText: {
     color: '#F57F17',
-    fontSize: 13,
+    fontSize: fontSize(13),
     fontWeight: '500',
     flex: 1,
   },
   attendanceButtonDisabled: {
     backgroundColor: '#E0E0E0',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: spacing(10),
+    paddingHorizontal: SPACING.xl,
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
@@ -1365,24 +1366,24 @@ expiredText: {
   buttonTextDisabled: {
     color: '#757575',
     fontWeight: "600",
-    fontSize: 13,
+    fontSize: fontSize(13),
   },
   classText: { 
     color: "rgba(255, 255, 255, 0.85)", 
-    fontSize: 11,
+    fontSize: fontSize(11),
     fontWeight: '600',
   },
   statusText: {
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontWeight: '700',
-    marginLeft: 8,
+    marginLeft: SPACING.sm,
   },
   cardDetails: { 
-    padding: 12,
+    padding: SPACING.md,
   },
   detailText: { 
     color: "#424242", 
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     lineHeight: 20,
     fontWeight: '600',
   },
@@ -1390,14 +1391,14 @@ expiredText: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#E3F2FD',
-    padding: 10,
+    padding: spacing(10),
     borderRadius: 8,
-    marginTop: 8,
+    marginTop: SPACING.sm,
   },
   infoText: {
     color: '#1565C0',
-    fontSize: 13,
-    marginLeft: 8,
+    fontSize: fontSize(13),
+    marginLeft: SPACING.sm,
     fontWeight: '500',
     flex: 1,
   },
@@ -1405,20 +1406,20 @@ expiredText: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFEBEE',
-    padding: 10,
+    padding: spacing(10),
     borderRadius: 8,
-    marginTop: 8,
+    marginTop: SPACING.sm,
   },
   actionButtons: {
     flexDirection: 'row',
     gap: 6,
-    paddingHorizontal: 12,
-    paddingBottom: 12,
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.md,
     flexWrap: 'wrap',
   },
   editButton: { 
     backgroundColor: "#4CAF50", 
-    padding: 6,
+    padding: spacing(6),
     borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1428,7 +1429,7 @@ expiredText: {
   },
   deleteButton: { 
     backgroundColor: "#F44336", 
-    padding: 6,
+    padding: spacing(6),
     borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1438,8 +1439,8 @@ expiredText: {
   },
   attendanceButton: { 
     backgroundColor: "#2196F3", 
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: spacing(10),
+    paddingHorizontal: SPACING.xl,
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
@@ -1450,32 +1451,32 @@ expiredText: {
   buttonText: { 
     color: "#FFF", 
     fontWeight: "600", 
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
   },
   
     
   // CR Info Styles
   crInfoContainer: {
     backgroundColor: '#F5F5F5',
-    padding: 16,
+    padding: SPACING.lg,
     borderRadius: 12,
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
     borderLeftWidth: 4,
     borderLeftColor: '#600202',
   },
   crInfoText: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     fontWeight: '500',
     color: '#424242',
-    marginBottom: 6,
+    marginBottom: spacing(6),
   },
   
   // Form Styles
   label: {
-    fontSize: 15,
+    fontSize: fontSize(15),
     fontWeight: '600',
-    marginBottom: 8,
-    marginTop: 12,
+    marginBottom: SPACING.sm,
+    marginTop: SPACING.md,
     color: '#424242',
   },
   input: {
@@ -1483,9 +1484,9 @@ expiredText: {
     borderColor: "#E0E0E0",
     color: '#424242',
     borderRadius: 10,
-    padding: 14,
-    marginBottom: 16,
-    fontSize: 15,
+    padding: spacing(14),
+    marginBottom: SPACING.lg,
+    fontSize: fontSize(15),
     backgroundColor: '#FAFAFA',
   },
   
@@ -1497,8 +1498,8 @@ expiredText: {
     borderWidth: 1.5,
     borderColor: "#E0E0E0",
     borderRadius: 10,
-    padding: 14,
-    marginBottom: 12,
+    padding: spacing(14),
+    marginBottom: SPACING.md,
     backgroundColor: '#FAFAFA',
   },
   dropdownButtonDisabled: {
@@ -1506,19 +1507,19 @@ expiredText: {
     opacity: 0.6,
   },
   dropdownButtonTextSelected: {
-    fontSize: 15,
+    fontSize: fontSize(15),
     color: '#424242',
     fontWeight: '500',
   },
   dropdownButtonTextPlaceholder: {
-    fontSize: 15,
+    fontSize: fontSize(15),
     color: '#999',
   },
   dropdownList: {
     borderWidth: 1,
     borderColor: "#E0E0E0",
     borderRadius: 10,
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
     backgroundColor: '#FFF',
     maxHeight: 200,
     elevation: 3,
@@ -1529,7 +1530,7 @@ expiredText: {
   },
 
   dropdownItem: {
-    padding: 12,
+    padding: SPACING.md,
     borderBottomWidth: 1,
     borderBottomColor: "#EEE",
   },
@@ -1537,7 +1538,7 @@ expiredText: {
     backgroundColor: '#600202',
   },
   dropdownItemText: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     color: '#333',
   },
   dropdownItemTextSelected: {
@@ -1545,15 +1546,15 @@ expiredText: {
   },
   disabledText: {
     color: '#999',
-    marginTop: 10,
-    marginLeft:10,
-    fontSize:15,
+    marginTop: spacing(10),
+    marginLeft: spacing(10),
+    fontSize: fontSize(15),
     fontStyle: 'italic',
   },
   modalButton: {
     backgroundColor: "#600202",
-    paddingVertical: 14,
-    paddingHorizontal: 32,
+    paddingVertical: spacing(14),
+    paddingHorizontal: SPACING.xxxl,
     borderRadius: 10,
     minWidth: 120,
     alignItems: 'center',
@@ -1568,13 +1569,13 @@ expiredText: {
     flex: 1, 
     justifyContent: "center", 
     alignItems: "center",
-    marginTop: 100,
-    paddingHorizontal: 40,
+    marginTop: spacing(100),
+    paddingHorizontal: spacing(40),
   },
   emptyText: { 
     color: 'rgba(255, 255, 255, 0.9)', 
-    fontSize: 16,
-    marginBottom: 24,
+    fontSize: FONT_SIZES.lg,
+    marginBottom: SPACING.xxl,
     textAlign: 'center',
     fontWeight: '600',
   },
@@ -1582,8 +1583,8 @@ expiredText: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
+    paddingHorizontal: SPACING.xxl,
+    paddingVertical: spacing(14),
     borderRadius: 24,
     elevation: 4,
     shadowColor: '#000',
@@ -1593,16 +1594,16 @@ expiredText: {
   },
   refreshText: {
     color: '#900a02',
-    marginLeft: 8,
+    marginLeft: SPACING.sm,
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: fontSize(15),
   },
    modalContainer: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: SPACING.xl,
   },
   modalContent: {
     width: "100%",
@@ -1622,8 +1623,8 @@ expiredText: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
     backgroundColor: '#FFF',
@@ -1634,11 +1635,11 @@ expiredText: {
   
   // Ensure proper spacing for modal title
   modalTitle: { 
-    fontSize: 20, 
+    fontSize: FONT_SIZES.xxl, 
     fontWeight: "700", 
     textAlign: "center",
-    paddingVertical: 18,
-    paddingHorizontal: 20,
+    paddingVertical: spacing(18),
+    paddingHorizontal: SPACING.xl,
     backgroundColor: '#600202',
     color: '#FFF',
   },
@@ -1646,13 +1647,13 @@ expiredText: {
     flex: 1,
   },
   modalScrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.lg,
+    paddingBottom: SPACING.xl,
   },
 dropdownScrollView: {
   maxHeight: 120, // Limits height of each dropdown
-  marginBottom: 10,
+  marginBottom: spacing(10),
 },
 dropdown: {
   maxHeight: 120,
@@ -1663,8 +1664,8 @@ dropdown: {
 },
 upcomingPlaceholder: {
   backgroundColor: '#F5F5F5',
-  paddingVertical: 10,
-  paddingHorizontal: 20,
+  paddingVertical: spacing(10),
+  paddingHorizontal: SPACING.xl,
   borderRadius: 8,
   flexDirection: 'row',
   alignItems: 'center',
@@ -1673,9 +1674,9 @@ upcomingPlaceholder: {
 },
 upcomingPlaceholderText: {
   color: '#9E9E9E',
-  fontSize: 13,
+  fontSize: fontSize(13),
   fontWeight: '500',
-  marginLeft: 8,
+  marginLeft: SPACING.sm,
 },
 });
 

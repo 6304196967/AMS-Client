@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, BackHandler } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 
 type BlockedScreenProps = {
   navigation: any;
@@ -65,23 +66,23 @@ const styles = StyleSheet.create({
     backgroundColor: "#600202",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: SPACING.xl,
   },
   title: {
-    fontSize: 28,
+    fontSize: FONT_SIZES.heading,
     fontWeight: "bold",
     color: "#FFF",
-    marginBottom: 15,
+    marginBottom: spacing(15),
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     color: "#FFF",
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
     textAlign: "center",
   },
   timer: {
-    fontSize: 24,
+    fontSize: FONT_SIZES.xxxl,
     color: "#FFF",
     fontWeight: "bold",
   },

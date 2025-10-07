@@ -77,3 +77,13 @@ yarn-error.log
 # Google Services
 google-services.json
 GoogleService-Info.plist
+
+#Scripts
+migrate-*.js
+migrate-*.*
+
+#Ignore md files
+*.md
+
+#Ignore backup files
+*.backup

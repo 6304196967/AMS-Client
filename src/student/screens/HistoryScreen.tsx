@@ -14,6 +14,7 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from "react-native-linear-gradient";
+import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 
 // Configuration
 const API_BASE_URL = 'http://10.182.66.80:5000';
@@ -101,7 +102,7 @@ const ErrorView: React.FC<ErrorViewProps> = ({ onRetry }) => (
     start={{ x: 0, y: 0 }}
     end={{ x: 1, y: 1 }}
   >
-    <Icon name="warning-outline" size={48} color="#ffffff" />
+    <Icon name="warning-outline" size={fontSize(48)} color="#ffffff" />
     <Text style={styles.errorText}>
       Unable to fetch attendance data
     </Text>
@@ -201,9 +202,9 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({ user }) => {
         style={styles.dateSelector}
         onPress={() => setShowPicker(true)}
       >
-        <Icon name="calendar-outline" size={20} color="#6366f1" />
+        <Icon name="calendar-outline" size={fontSize(20)} color="#6366f1" />
         <Text style={styles.dateSelectorText}>{displayDate}</Text>
-        <Icon name="chevron-down" size={16} color="#9ca3af" />
+        <Icon name="chevron-down" size={fontSize(16)} color="#9ca3af" />
       </TouchableOpacity>
 
       {showPicker && (
@@ -220,21 +221,21 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({ user }) => {
       {!loading && dataForDate.length > 0 && (
         <View style={styles.statsContainer}>
           <View style={[styles.statCard, { backgroundColor: '#f0f9ff' }]}>
-            <Icon name="book-outline" size={20} color="#0369a1" />
+            <Icon name="book-outline" size={fontSize(20)} color="#0369a1" />
             <View style={styles.statContent}>
               <Text style={[styles.statNumber, { color: '#0369a1' }]}>{totalClasses}</Text>
               <Text style={[styles.statLabel, { color: '#0369a1' }]}>Total</Text>
             </View>
           </View>
           <View style={[styles.statCard, { backgroundColor: '#f0fdf4' }]}>
-            <Icon name="check-circle-outline" size={20} color="#15803d" />
+            <Icon name="check-circle-outline" size={fontSize(20)} color="#15803d" />
             <View style={styles.statContent}>
               <Text style={[styles.statNumber, { color: '#15803d' }]}>{presentCount}</Text>
               <Text style={[styles.statLabel, { color: '#15803d' }]}>Present</Text>
             </View>
           </View>
           <View style={[styles.statCard, { backgroundColor: '#fef2f2' }]}>
-            <Icon name="close-circle-outline" size={20} color="#dc2626" />
+            <Icon name="close-circle-outline" size={fontSize(20)} color="#dc2626" />
             <View style={styles.statContent}>
               <Text style={[styles.statNumber, { color: '#dc2626' }]}>{absentCount}</Text>
               <Text style={[styles.statLabel, { color: '#dc2626' }]}>Absent</Text>
@@ -277,7 +278,7 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({ user }) => {
                   <View style={[styles.statusBadge, { backgroundColor: `${getStatusColor(item.status)}15` }]}>
                     <Icon 
                       name={getStatusIcon(item.status)} 
-                      size={16} 
+                      size={fontSize(16)} 
                       color={getStatusColor(item.status)} 
                     />
                     <Text style={[styles.status, { color: getStatusColor(item.status) }]}>
@@ -300,7 +301,7 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({ user }) => {
         ) : !loading && (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconContainer}>
-              <Icon name="calendar-check-outline" size={48} color="#94a3b8" />
+              <Icon name="calendar-check-outline" size={fontSize(48)} color="#94a3b8" />
             </View>
             <Text style={styles.emptyStateTitle}>No classes scheduled</Text>
             <Text style={styles.emptyStateText}>
@@ -316,26 +317,26 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({ user }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 28,
-    paddingHorizontal: 4,
+    marginBottom: spacing(28),
+    paddingHorizontal: SPACING.xs,
   },
   greeting: {
-    fontSize: 22,
+    fontSize: fontSize(22),
     fontWeight: '700',
     color: '#ffffff',
     letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     color: 'rgba(255, 255, 255, 0.8)',
-    marginTop: 4,
+    marginTop: SPACING.xs,
     fontWeight: '500',
   },
   avatar: {
@@ -354,18 +355,18 @@ const styles = StyleSheet.create({
   avatarText: {
     color: 'white',
     fontWeight: '700',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     letterSpacing: 0.5,
   },
   dateSelector: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'white',
-    padding: 18,
+    padding: spacing(18),
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    marginBottom: 24,
+    marginBottom: SPACING.xxl,
     shadowColor: '#64748b',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -374,23 +375,23 @@ const styles = StyleSheet.create({
   },
   dateSelectorText: {
     flex: 1,
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     color: '#374151',
-    marginLeft: 12,
+    marginLeft: SPACING.md,
     fontWeight: '500',
   },
   statsContainer: {
     flexDirection: 'row',
-    marginBottom: 24,
-    paddingHorizontal: 4,
+    marginBottom: SPACING.xxl,
+    paddingHorizontal: SPACING.xs,
   },
   statCard: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    padding: SPACING.lg,
     borderRadius: 12,
-    marginHorizontal: 4,
+    marginHorizontal: SPACING.xs,
     shadowColor: '#64748b',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -398,17 +399,17 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   statContent: {
-    marginLeft: 12,
+    marginLeft: SPACING.md,
     alignItems: 'flex-start',
   },
   statNumber: {
-    fontSize: 20,
+    fontSize: FONT_SIZES.xxl,
     fontWeight: '700',
-    marginBottom: 2,
+    marginBottom: spacing(2),
     letterSpacing: -0.3,
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: fontSize(11),
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -418,17 +419,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
   classCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: 'white',
-    padding: 20,
+    padding: SPACING.xl,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#f1f5f9',
@@ -444,13 +445,13 @@ const styles = StyleSheet.create({
   subjectRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
   },
   statusIndicator: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    marginRight: 10,
+    marginRight: spacing(10),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
@@ -458,15 +459,15 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   subject: {
-    fontSize: 17,
+    fontSize: fontSize(17),
     fontWeight: '700',
     color: '#0f172a',
     letterSpacing: -0.3,
   },
   time: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#64748b',
-    marginLeft: 12,
+    marginLeft: SPACING.md,
     fontWeight: '500',
   },
   statusContainer: {
@@ -476,16 +477,16 @@ const styles = StyleSheet.create({
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'transparent',
   },
   status: {
-    fontSize: 13,
+    fontSize: fontSize(13),
     fontWeight: '600',
-    marginLeft: 6,
+    marginLeft: spacing(6),
     textTransform: 'capitalize',
   },
   separator: {
@@ -495,8 +496,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 80,
-    paddingHorizontal: 40,
+    paddingVertical: spacing(80),
+    paddingHorizontal: spacing(40),
   },
   emptyIconContainer: {
     width: 80,
@@ -505,17 +506,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#f1f5f9',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   emptyStateTitle: {
-    fontSize: 20,
+    fontSize: FONT_SIZES.xxl,
     fontWeight: '700',
     color: '#999b9fff',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
     textAlign: 'center',
   },
   emptyStateText: {
-    fontSize: 15,
+    fontSize: fontSize(15),
     color: '#999b9fff',
     textAlign: 'center',
     lineHeight: 22,
@@ -525,11 +526,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: spacing(40),
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
+    marginTop: SPACING.lg,
+    fontSize: FONT_SIZES.lg,
     color: '#ffffff',
     fontWeight: '500',
   },
@@ -537,30 +538,30 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: spacing(40),
   },
   errorText: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginTop: 16,
+    marginTop: SPACING.lg,
     textAlign: 'center',
   },
   errorSubText: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: SPACING.sm,
     lineHeight: 20,
   },
   retryButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-    paddingHorizontal: 28,
-    paddingVertical: 14,
+    paddingHorizontal: spacing(28),
+    paddingVertical: spacing(14),
     borderRadius: 12,
-    marginTop: 24,
+    marginTop: SPACING.xxl,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -569,7 +570,7 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
@@ -577,13 +578,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 20,
-    marginBottom: 20,
+    paddingVertical: SPACING.xl,
+    marginBottom: SPACING.xl,
   },
   dateLoadingText: {
     color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 14,
-    marginLeft: 10,
+    fontSize: FONT_SIZES.md,
+    marginLeft: spacing(10),
     fontWeight: '500',
   },
 });

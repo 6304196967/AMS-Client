@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import ReactNativeBiometrics from "react-native-biometrics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StackParamList } from "../Navigators/StudentNavigator";
+import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 
 const API_BASE_URL = 'http://10.182.66.80:5000';
 
@@ -82,15 +83,15 @@ const BiometricScreen: React.FC<Props> = ({ navigation, route }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Fingerprint Verification</Text>
       <Text style={styles.subtitle}>Please verify your fingerprint to confirm attendance</Text>
-      <ActivityIndicator size="large" color="#FFF" style={{ marginTop: 20 }} />
+      <ActivityIndicator size="large" color="#FFF" style={{ marginTop: spacing(20) }} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#600202", justifyContent: "center", alignItems: "center", padding: 20 },
-  title: { fontSize: 28, fontWeight: "bold", color: "#FFF", marginBottom: 10, textAlign: "center" },
-  subtitle: { fontSize: 16, color: "#FFF", textAlign: "center" },
+  container: { flex: 1, backgroundColor: "#600202", justifyContent: "center", alignItems: "center", padding: SPACING.xl },
+  title: { fontSize: FONT_SIZES.heading, fontWeight: "bold", color: "#FFF", marginBottom: spacing(10), textAlign: "center" },
+  subtitle: { fontSize: FONT_SIZES.lg, color: "#FFF", textAlign: "center" },
 });
 
 export default BiometricScreen;

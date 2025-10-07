@@ -16,6 +16,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { launchImageLibrary } from 'react-native-image-picker';
+import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 
 // Configuration
 const API_BASE_URL = 'http://10.182.66.80:5000';
@@ -132,7 +133,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: spacing(40) }}>
       {/* Header with avatar */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleImageUpload} style={styles.avatarContainer}>
@@ -141,7 +142,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             style={styles.avatar}
           />
           <View style={styles.cameraIconContainer}>
-            <Icon name="camera" size={20} color="#FFF" />
+            <Icon name="camera" size={fontSize(20)} color="#FFF" />
           </View>
         </TouchableOpacity>
         <Text style={styles.name}>{user.name}</Text>
@@ -166,7 +167,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
       {/* Logout Button */}
       <TouchableOpacity style={styles.logoutButton} onPress={() => setLogoutModalVisible(true)}>
-        <Icon name="logout" size={22} color="#FFF" />
+        <Icon name="logout" size={fontSize(22)} color="#FFF" />
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
 
@@ -183,7 +184,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Confirm Logout</Text>
-            <Text style={{ marginBottom: 10 }}>
+            <Text style={{ marginBottom: spacing(10) }}>
               Please type <Text style={{ fontWeight: "bold" }}>"I want to logout"</Text> to confirm.
             </Text>
             <TextInput
@@ -192,7 +193,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               onChangeText={setLogoutInput}
               style={styles.input}
             />
-            <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: 10 }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: spacing(10) }}>
             <TouchableOpacity
                 style={[styles.modalButton, { backgroundColor: "red" }]}
                 onPress={() => {
@@ -216,7 +217,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
 const InfoRow = ({ icon, label, value }: { icon: string; label: string; value: string }) => (
   <View style={styles.infoRow}>
-    <Icon name={icon} size={22} color="#2E3B55" style={{ marginRight: 12 }} />
+    <Icon name={icon} size={fontSize(22)} color="#2E3B55" style={{ marginRight: SPACING.md }} />
     <View>
       <Text style={styles.infoLabel}>{label}</Text>
       <Text style={styles.infoValue}>{value}</Text>
@@ -228,14 +229,14 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F9FAFB" },
   header: {
     alignItems: "center",
-    paddingVertical: 30,
+    paddingVertical: spacing(30),
     backgroundColor: "#2E3B55",
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
   avatarContainer: {
     position: 'relative',
-    marginBottom: 15,
+    marginBottom: spacing(15),
   },
   avatar: {
     width: 120,
@@ -259,45 +260,45 @@ const styles = StyleSheet.create({
     borderColor: '#FFF',
   },
   loadingContainer: {
-    marginHorizontal: 20,
-    marginTop: 25,
-    padding: 40,
+    marginHorizontal: SPACING.xl,
+    marginTop: spacing(25),
+    padding: spacing(40),
     alignItems: 'center',
     justifyContent: 'center',
   },
   loadingText: {
-    marginTop: 10,
-    fontSize: 14,
+    marginTop: spacing(10),
+    fontSize: FONT_SIZES.md,
     color: '#666',
   },
-  name: { fontSize: 22, fontWeight: "bold", color: "#FFF" },
-  role: { fontSize: 16, color: "#CCC", marginTop: 4 },
+  name: { fontSize: fontSize(22), fontWeight: "bold", color: "#FFF" },
+  role: { fontSize: FONT_SIZES.lg, color: "#CCC", marginTop: SPACING.xs },
   card: {
     backgroundColor: "#FFF",
-    marginHorizontal: 20,
-    marginTop: 25,
-    padding: 20,
+    marginHorizontal: SPACING.xl,
+    marginTop: spacing(25),
+    padding: SPACING.xl,
     borderRadius: 16,
     shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 4,
   },
-  infoRow: { flexDirection: "row", alignItems: "center", marginBottom: 18 },
-  infoLabel: { fontSize: 13, color: "#666" },
-  infoValue: { fontSize: 16, fontWeight: "600", color: "#111" },
+  infoRow: { flexDirection: "row", alignItems: "center", marginBottom: spacing(18) },
+  infoLabel: { fontSize: fontSize(13), color: "#666" },
+  infoValue: { fontSize: FONT_SIZES.lg, fontWeight: "600", color: "#111" },
   logoutButton: {
-    marginTop: 40,
-    marginHorizontal: 20,
+    marginTop: spacing(40),
+    marginHorizontal: SPACING.xl,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#B71C1C",
-    paddingVertical: 14,
+    paddingVertical: spacing(14),
     borderRadius: 12,
     elevation: 3,
   },
-  logoutText: { color: "#FFF", fontWeight: "bold", fontSize: 16, marginLeft: 8 },
+  logoutText: { color: "#FFF", fontWeight: "bold", fontSize: FONT_SIZES.lg, marginLeft: SPACING.sm },
 
   // 🔥 Extra modal styles (kept minimal so styles remain intact)
   modalOverlay: {
@@ -306,16 +307,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  modalContent: { width: "85%", backgroundColor: "#FFF", borderRadius: 12, padding: 20 },
-  modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 15, textAlign: "center" },
+  modalContent: { width: "85%", backgroundColor: "#FFF", borderRadius: 12, padding: SPACING.xl },
+  modalTitle: { fontSize: FONT_SIZES.xxl, fontWeight: "bold", marginBottom: spacing(15), textAlign: "center" },
   input: {
     borderWidth: 1,
     borderColor: "#CCC",
     borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
+    padding: spacing(10),
+    marginBottom: spacing(10),
   },
-  modalButton: { backgroundColor: "#28a745", paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
+  modalButton: { backgroundColor: "#28a745", paddingVertical: spacing(10), paddingHorizontal: SPACING.xl, borderRadius: 8 },
 });
 
 export default ProfileScreen;

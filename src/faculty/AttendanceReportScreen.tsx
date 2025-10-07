@@ -14,6 +14,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import RNFS from 'react-native-fs';
+import { spacing, fontSize, FONT_SIZES, SPACING } from '../utils/responsive';
 
 type RootStackParamList = {
   AttendanceReport: { classData: any };
@@ -288,7 +289,7 @@ ${lowAttendance ? `📉 Needs Improvement:\n${lowAttendance}` : ''}
   if (!reportData) {
     return (
       <View style={styles.errorContainer}>
-        <Icon name="error-outline" size={48} color="#dc3545" />
+        <Icon name="error-outline" size={fontSize(48)} color="#dc3545" />
         <Text style={styles.errorText}>Failed to load report data</Text>
         <TouchableOpacity style={styles.retryButton} onPress={fetchReportData}>
           <Text style={styles.retryButtonText}>Retry</Text>
@@ -312,7 +313,7 @@ ${lowAttendance ? `📉 Needs Improvement:\n${lowAttendance}` : ''}
             <ActivityIndicator size="small" color="#FFF" />
           ) : (
             <>
-              <Icon name="description" size={20} color="#FFF" />
+              <Icon name="description" size={fontSize(20)} color="#FFF" />
               <Text style={styles.exportButtonText}>
                 Export as CSV
               </Text>
@@ -323,7 +324,7 @@ ${lowAttendance ? `📉 Needs Improvement:\n${lowAttendance}` : ''}
           style={styles.shareButton}
           onPress={shareReport}
         >
-          <Icon name="share" size={20} color="#600202" />
+          <Icon name="share" size={fontSize(20)} color="#600202" />
           <Text style={styles.shareButtonText}>Share Summary</Text>
         </TouchableOpacity>
       </View>
@@ -344,17 +345,17 @@ ${lowAttendance ? `📉 Needs Improvement:\n${lowAttendance}` : ''}
         {/* Summary Cards */}
         <View style={styles.summaryCards}>
           <View style={styles.summaryCard}>
-            <Icon name="class" size={24} color="#600202" />
+            <Icon name="class" size={fontSize(24)} color="#600202" />
             <Text style={styles.summaryNumber}>{reportData.class_summary.total_sessions}</Text>
             <Text style={styles.summaryLabel}>Total Classes</Text>
           </View>
           <View style={styles.summaryCard}>
-            <Icon name="check-circle" size={24} color="#28a745" />
+            <Icon name="check-circle" size={fontSize(24)} color="#28a745" />
             <Text style={styles.summaryNumber}>{reportData.class_summary.avg_students_present}</Text>
             <Text style={styles.summaryLabel}>Avg Present</Text>
           </View>
           <View style={styles.summaryCard}>
-            <Icon name="cancel" size={24} color="#dc3545" />
+            <Icon name="cancel" size={fontSize(24)} color="#dc3545" />
             <Text style={styles.summaryNumber}>{reportData.class_summary.avg_students_absent}</Text>
             <Text style={styles.summaryLabel}>Avg Absent</Text>
           </View>
@@ -370,7 +371,7 @@ ${lowAttendance ? `📉 Needs Improvement:\n${lowAttendance}` : ''}
             <View style={styles.trendIndicator}>
               <Icon 
                 name={trendInfo.icon} 
-                size={20} 
+                size={fontSize(20)} 
                 color={trendInfo.color} 
               />
               <Text style={[styles.trendText, { color: trendInfo.color }]}>
@@ -393,7 +394,7 @@ ${lowAttendance ? `📉 Needs Improvement:\n${lowAttendance}` : ''}
           {/* Search Bar */}
           <View style={styles.searchContainer}>
             <View style={styles.searchInputContainer}>
-              <Icon name="search" size={20} color="#666" style={styles.searchIcon} />
+              <Icon name="search" size={fontSize(20)} color="#666" style={styles.searchIcon} />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Search by Student ID or Name..."
@@ -403,7 +404,7 @@ ${lowAttendance ? `📉 Needs Improvement:\n${lowAttendance}` : ''}
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={clearSearch} style={styles.clearButton}>
-                  <Icon name="close" size={18} color="#666" />
+                  <Icon name="close" size={fontSize(18)} color="#666" />
                 </TouchableOpacity>
               )}
             </View>
@@ -458,12 +459,12 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: SPACING.lg,
   },
   // Top Action Buttons
   topActionButtons: {
     flexDirection: 'row',
-    padding: 16,
+    padding: SPACING.lg,
     backgroundColor: '#FFF',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
@@ -479,9 +480,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#600202',
-    padding: 12,
+    padding: SPACING.md,
     borderRadius: 8,
-    marginRight: 8,
+    marginRight: SPACING.sm,
   },
   shareButton: {
     flex: 1,
@@ -489,23 +490,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFF',
-    padding: 12,
+    padding: SPACING.md,
     borderRadius: 8,
-    marginLeft: 8,
+    marginLeft: SPACING.sm,
     borderWidth: 1,
     borderColor: '#600202',
   },
   exportButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    marginLeft: 8,
-    fontSize: 14,
+    marginLeft: SPACING.sm,
+    fontSize: FONT_SIZES.md,
   },
   shareButtonText: {
     color: '#600202',
     fontWeight: '600',
-    marginLeft: 8,
-    fontSize: 14,
+    marginLeft: SPACING.sm,
+    fontSize: FONT_SIZES.md,
   },
   loadingContainer: {
     flex: 1,
@@ -514,8 +515,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
+    marginTop: SPACING.lg,
+    fontSize: FONT_SIZES.lg,
     color: '#600202',
   },
   errorContainer: {
@@ -523,18 +524,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f8f9fa',
-    padding: 20,
+    padding: SPACING.xl,
   },
   errorText: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     color: '#dc3545',
-    marginTop: 12,
+    marginTop: SPACING.md,
     textAlign: 'center',
   },
   retryButton: {
-    marginTop: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    marginTop: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: spacing(10),
     backgroundColor: '#600202',
     borderRadius: 8,
   },
@@ -544,44 +545,44 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#600202',
-    padding: 20,
+    padding: SPACING.xl,
     borderRadius: 12,
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   subjectCode: {
-    fontSize: 24,
+    fontSize: FONT_SIZES.xxxl,
     fontWeight: 'bold',
     color: '#FFF',
   },
   section: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     color: '#FFF',
-    marginTop: 4,
+    marginTop: SPACING.xs,
   },
   reportTitle: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     color: '#FFF',
-    marginTop: 8,
+    marginTop: SPACING.sm,
     opacity: 0.9,
   },
   generatedDate: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#FFF',
-    marginTop: 4,
+    marginTop: SPACING.xs,
     opacity: 0.7,
   },
   summaryCards: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   summaryCard: {
     backgroundColor: '#FFF',
     borderRadius: 12,
-    padding: 16,
+    padding: SPACING.lg,
     alignItems: 'center',
     flex: 1,
-    marginHorizontal: 5,
+    marginHorizontal: spacing(5),
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -589,29 +590,29 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   summaryNumber: {
-    fontSize: 20,
+    fontSize: FONT_SIZES.xxl,
     fontWeight: 'bold',
     color: '#600202',
-    marginTop: 8,
+    marginTop: SPACING.sm,
   },
   summaryLabel: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
-    marginTop: 4,
+    marginTop: SPACING.xs,
   },
   overallSection: {
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
     color: '#600202',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   overallCard: {
     backgroundColor: '#FFF',
     borderRadius: 12,
-    padding: 20,
+    padding: SPACING.xl,
     alignItems: 'center',
     elevation: 2,
     shadowColor: '#000',
@@ -620,45 +621,45 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   overallPercentage: {
-    fontSize: 48,
+    fontSize: fontSize(48),
     fontWeight: 'bold',
     color: '#600202',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   trendIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   trendText: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    marginLeft: 4,
+    marginLeft: SPACING.xs,
   },
   studentsSection: {
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   studentCount: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#666',
     fontWeight: '600',
   },
   // Search Bar Styles
   searchContainer: {
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF',
     borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -666,31 +667,31 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: SPACING.sm,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#333',
-    paddingVertical: 4,
+    paddingVertical: SPACING.xs,
   },
   clearButton: {
-    padding: 4,
+    padding: SPACING.xs,
   },
   searchResultsInfo: {
-    marginBottom: 8,
-    paddingHorizontal: 4,
+    marginBottom: SPACING.sm,
+    paddingHorizontal: SPACING.xs,
   },
   searchResultsText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
     fontStyle: 'italic',
   },
   noResultsText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#dc3545',
     fontStyle: 'italic',
-    marginTop: 2,
+    marginTop: spacing(2),
   },
   studentsList: {
     backgroundColor: '#FFF',
@@ -705,7 +706,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: SPACING.lg,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
@@ -713,43 +714,43 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   studentId: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     fontWeight: '600',
     color: '#600202',
   },
   studentName: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
-    marginTop: 2,
+    marginTop: spacing(2),
   },
   attendanceInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   attendanceCount: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#666',
-    marginRight: 12,
+    marginRight: SPACING.md,
   },
   percentageBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
     borderRadius: 12,
   },
   percentageText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     fontWeight: '600',
   },
   infoFooter: {
     backgroundColor: '#e9ecef',
-    padding: 16,
+    padding: SPACING.lg,
     borderRadius: 8,
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   infoText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
   },
 });
 

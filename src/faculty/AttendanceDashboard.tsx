@@ -18,6 +18,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ClassAssignment } from 'src/services/Interfaces';
+import { spacing, fontSize, FONT_SIZES, SPACING } from '../utils/responsive';
 
 type RootStackParamList = {
   ClassDetails: { classData: any };
@@ -144,11 +145,11 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
       
       <View style={styles.classStats}>
         <View style={styles.statItem}>
-          <Icon name="class" size={16} color="#600202" />
+          <Icon name="class" size={fontSize(16)} color="#600202" />
           <Text style={styles.statText}>Total: {item.totalClasses}</Text>
         </View>
         <View style={styles.statItem}>
-          <Icon name="calendar-today" size={16} color="#600202" />
+          <Icon name="calendar-today" size={fontSize(16)} color="#600202" />
           <Text style={styles.statText}>Last: {item.lastClass}</Text>
         </View>
       </View>
@@ -158,7 +159,7 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
           style={styles.actionButton}
           onPress={() => navigation.navigate('AttendanceReport', { classData: item })}
         >
-          <Icon name="bar-chart" size={18} color="#600202" />
+          <Icon name="bar-chart" size={fontSize(18)} color="#600202" />
           <Text style={styles.actionButtonText}>Report</Text>
         </TouchableOpacity>
       </View>
@@ -176,7 +177,7 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
   // Empty State Component
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Icon name="class" size={64} color="#ccc" />
+      <Icon name="class" size={fontSize(64)} color="#ccc" />
       <Text style={styles.emptyText}>No classes found</Text>
       <Text style={styles.emptySubtext}>You don't have any classes assigned yet.</Text>
     </View>
@@ -195,17 +196,17 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
       {/* Stats Overview */}
       <View style={styles.statsOverview}>
         <View style={styles.statCard}>
-          <Icon name="class" size={24} color="#600202" />
+          <Icon name="class" size={fontSize(24)} color="#600202" />
           <Text style={styles.statNumber}>{classes.length}</Text>
           <Text style={styles.statLabel}>Active Classes</Text>
         </View>
         <View style={styles.statCard}>
-          <Icon name="people" size={24} color="#600202" />
+          <Icon name="people" size={fontSize(24)} color="#600202" />
           <Text style={styles.statNumber}>67</Text>
           <Text style={styles.statLabel}>Avg. Attendance</Text>
         </View>
         <View style={styles.statCard}>
-          <Icon name="trending-up" size={24} color="#600202" />
+          <Icon name="trending-up" size={fontSize(24)} color="#600202" />
           <Text style={styles.statNumber}>80%</Text>
           <Text style={styles.statLabel}>Overall Avg.</Text>
         </View>
@@ -253,37 +254,37 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#600202',
-    padding: 20,
-    paddingTop: 50,
+    padding: SPACING.xl,
+    paddingTop: spacing(50),
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: FONT_SIZES.title,
     fontWeight: 'bold',
     color: '#FFF',
     textAlign: 'center',
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     color: '#FFF',
     textAlign: 'center',
     opacity: 0.9,
-    marginTop: 4,
+    marginTop: SPACING.xs,
   },
   statsOverview: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 20,
-    marginTop: -30,
+    padding: SPACING.xl,
+    marginTop: spacing(-30),
   },
   statCard: {
     backgroundColor: '#FFF',
     borderRadius: 12,
-    padding: 15,
+    padding: spacing(15),
     alignItems: 'center',
     flex: 1,
-    marginHorizontal: 5,
+    marginHorizontal: spacing(5),
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -291,30 +292,30 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   statNumber: {
-    fontSize: 20,
+    fontSize: FONT_SIZES.xxl,
     fontWeight: 'bold',
     color: '#600202',
-    marginTop: 8,
+    marginTop: SPACING.sm,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
-    marginTop: 4,
+    marginTop: SPACING.xs,
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: SPACING.lg,
   },
   // Loading Styles
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 50,
+    padding: spacing(50),
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
+    marginTop: SPACING.lg,
+    fontSize: FONT_SIZES.lg,
     color: '#600202',
     textAlign: 'center',
   },
@@ -322,35 +323,35 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 40,
+    padding: spacing(40),
     backgroundColor: '#FFF',
     borderRadius: 12,
-    marginTop: 20,
+    marginTop: SPACING.xl,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     color: '#666',
-    marginTop: 16,
+    marginTop: SPACING.lg,
     fontWeight: '600',
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#999',
-    marginTop: 8,
+    marginTop: SPACING.sm,
     textAlign: 'center',
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
     color: '#600202',
-    marginBottom: 12,
-    marginTop: 8,
+    marginBottom: SPACING.md,
+    marginTop: SPACING.sm,
   },
   classCard: {
     backgroundColor: '#FFF',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -361,69 +362,69 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   section: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
     color: '#600202',
   },
   subjectCode: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#666',
-    marginTop: 2,
+    marginTop: spacing(2),
   },
   subjectName: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#999',
-    marginTop: 2,
+    marginTop: spacing(2),
   },
   attendanceBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: spacing(6),
     borderRadius: 20,
   },
   attendancePercent: {
     color: '#FFF',
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     fontWeight: 'bold',
   },
   classStats: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: SPACING.lg,
   },
   statText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
-    marginLeft: 4,
+    marginLeft: SPACING.xs,
   },
   actionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
-    paddingTop: 12,
+    paddingTop: SPACING.md,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   actionButtonText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#600202',
-    marginLeft: 4,
+    marginLeft: SPACING.xs,
     fontWeight: '500',
   },
   activityItem: {
     backgroundColor: '#FFF',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
+    padding: SPACING.lg,
+    marginBottom: SPACING.sm,
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -434,89 +435,89 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   activityClass: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     fontWeight: '600',
     color: '#600202',
   },
   activityDate: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
   },
   activityTopic: {
-    fontSize: 13,
+    fontSize: fontSize(13),
     color: '#333',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   activityStats: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   attendedText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
-    marginLeft: 4,
+    marginLeft: SPACING.xs,
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 20,
+    padding: SPACING.xl,
   },
   modalContent: {
     backgroundColor: '#FFF',
     borderRadius: 16,
-    padding: 20,
+    padding: SPACING.xl,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: FONT_SIZES.xxl,
     fontWeight: 'bold',
     color: '#600202',
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
   label: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     fontWeight: '600',
     color: '#600202',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   textInput: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
+    padding: SPACING.md,
+    fontSize: FONT_SIZES.lg,
     backgroundColor: '#f8f9fa',
   },
   modalFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: SPACING.xl,
   },
   cancelButton: {
     flex: 1,
-    padding: 15,
+    padding: spacing(15),
     borderRadius: 8,
     backgroundColor: '#6c757d',
-    marginRight: 10,
+    marginRight: spacing(10),
     alignItems: 'center',
   },
   submitButton: {
     flex: 1,
-    padding: 15,
+    padding: spacing(15),
     borderRadius: 8,
     backgroundColor: '#600202',
-    marginLeft: 10,
+    marginLeft: spacing(10),
     alignItems: 'center',
   },
   cancelButtonText: {

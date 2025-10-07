@@ -14,6 +14,7 @@ import {
   Platform
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { spacing, fontSize, FONT_SIZES, SPACING } from '../utils/responsive';
 
 type HomeScreenProps = {
     userEmail: string;
@@ -572,25 +573,25 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                 </View>
                 <View style={styles.scheduleDetailsContainer}>
                     <View style={styles.detailRow}>
-                        <Icon name="school" size={14} color="#600202" />
+                        <Icon name="school" size={fontSize(14)} color="#600202" />
                         <Text style={styles.scheduleDetails}>
                             E-{item.year} ,{item.department} - {item.section}
                         </Text>
                     </View>
                     <View style={styles.detailRow}>
-                        <Icon name="access-time" size={14} color="#600202" />
+                        <Icon name="access-time" size={fontSize(14)} color="#600202" />
                         <Text style={styles.scheduleDetails}>
                             {formatTime(item.start_time)} - {formatTime(item.end_time)}
                         </Text>
                     </View>
                     <View style={styles.detailRow}>
-                        <Icon name="location-on" size={14} color="#600202" />
+                        <Icon name="location-on" size={fontSize(14)} color="#600202" />
                         <Text style={styles.scheduleDetails}>
                             {item.venue || 'Venue not specified'}
                         </Text>
                     </View>
                     <View style={styles.detailRow}>
-                        <Icon name="info" size={14} color="#600202" />
+                        <Icon name="info" size={fontSize(14)} color="#600202" />
                         <Text style={styles.scheduleDetails}>
                             Status: {item.status ? 'Completed' : 'Scheduled'}
                         </Text>
@@ -604,7 +605,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                         style={styles.attendanceButton}
                         onPress={() => handleMarkAttendance(item)}
                     >
-                        <Icon name="how-to-reg" size={16} color="#FFF" />
+                        <Icon name="how-to-reg" size={fontSize(16)} color="#FFF" />
                         <Text style={styles.attendanceButtonText}>Mark Attendance</Text>
                     </TouchableOpacity>
                 )}
@@ -613,7 +614,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                         style={styles.cancelButton}
                         onPress={() => handleCancelSchedule(item)}
                     >
-                        <Icon name="close" size={16} color="#FFF" />
+                        <Icon name="close" size={fontSize(16)} color="#FFF" />
                     </TouchableOpacity>
                 )}
             </View>
@@ -649,7 +650,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
         style={styles.navButton}
         onPress={() => navigateDate(-1)}
     >
-        <Icon name="chevron-left" size={24} color="#FFFFFF" />
+        <Icon name="chevron-left" size={fontSize(24)} color="#FFFFFF" />
     </TouchableOpacity>
     
     <View style={styles.dateDisplay}>
@@ -668,7 +669,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
         style={styles.navButton}
         onPress={() => navigateDate(1)}
     >
-        <Icon name="chevron-right" size={24} color="#FFFFFF" />
+        <Icon name="chevron-right" size={fontSize(24)} color="#FFFFFF" />
     </TouchableOpacity>
 </View>
             </View>
@@ -700,7 +701,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                     contentContainerStyle={styles.listContainer}
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
-                            <Icon name="event-busy" size={60} color="#f5f5f5" />
+                            <Icon name="event-busy" size={fontSize(60)} color="#f5f5f5" />
                             <Text style={styles.emptyText}>No Classes Scheduled</Text>
                             <Text style={styles.emptySubText}>
                                 No classes scheduled for {getDateDisplayText().toLowerCase()}
@@ -713,7 +714,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                                 style={styles.createScheduleButton}
                                 onPress={handleCreateSchedule}
                             >
-                                <Icon name="add" size={20} color="#FFF" />
+                                <Icon name="add" size={fontSize(20)} color="#FFF" />
                                 <Text style={styles.createScheduleButtonText}>
                                     Schedule New Class
                                 </Text>
@@ -744,7 +745,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                                 setShowCreateModal(false);
                                 resetNewSchedule();
                             }}>
-                                <Icon name="close" size={24} color="#600202" />
+                                <Icon name="close" size={fontSize(24)} color="#600202" />
                             </TouchableOpacity>
                         </View>
                         
@@ -797,7 +798,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                                         <ActivityIndicator size="small" color="#FFFFFF" />
                                     ) : (
                                         <>
-                                            <Icon name="search" size={20} color="#FFF" />
+                                            <Icon name="search" size={fontSize(20)} color="#FFF" />
                                             <Text style={styles.fetchSlotsButtonText}>
                                                 Fetch Available Time Slots
                                             </Text>
@@ -900,7 +901,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                                 setGeneratedOTP('');
                                 setAttendanceReason('');
                             }}>
-                                <Icon name="close" size={24} color="#600202" />
+                                <Icon name="close" size={fontSize(24)} color="#600202" />
                             </TouchableOpacity>
                         </View>
                         
@@ -975,7 +976,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                                         <ActivityIndicator size="small" color="#FFFFFF" />
                                     ) : (
                                         <>
-                                            <Icon name="vpn-key" size={20} color="#FFF" />
+                                            <Icon name="vpn-key" size={fontSize(20)} color="#FFF" />
                                             <Text style={styles.generateOtpButtonText}>
                                                 {generatedOTP ? 'Regenerate OTP' : 'Generate OTP'}
                                             </Text>
@@ -1007,14 +1008,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#600202',
     },
     header: {
-        padding: 20,
-        paddingBottom: 10,
+        padding: SPACING.xl,
+        paddingBottom: spacing(10),
     },
     greeting: {
-        fontSize: 24,
+        fontSize: FONT_SIZES.xxxl,
         fontWeight: 'bold',
         color: '#FFFFFF',
-        marginBottom: 16,
+        marginBottom: SPACING.lg,
         textAlign: 'center',
     },
     calendarNav: {
@@ -1023,12 +1024,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
         borderRadius: 15,
-        padding: 10,
-        marginHorizontal: 10,
+        padding: spacing(10),
+        marginHorizontal: spacing(10),
     },
     navButton: {
-        paddingHorizontal: 15,
-        paddingVertical: 8,
+        paddingHorizontal: spacing(15),
+        paddingVertical: SPACING.sm,
         borderRadius: 10,
     },
     dateDisplay: {
@@ -1036,17 +1037,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     dateTitle: {
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
         fontWeight: '600',
         color: '#FFFFFF',
     },
     statsContainer: {
-        paddingHorizontal: 20,
-        paddingVertical: 8,
+        paddingHorizontal: SPACING.xl,
+        paddingVertical: SPACING.sm,
     },
     statsText: {
         color: '#f5f5f5',
-        fontSize: 12,
+        fontSize: FONT_SIZES.sm,
         opacity: 0.9,
     },
     loadingContainer: {
@@ -1056,19 +1057,19 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         color: '#f5f5f5',
-        marginTop: 10,
+        marginTop: spacing(10),
     },
     listContainer: {
-        padding: 10,
-        paddingBottom: 20,
+        padding: spacing(10),
+        paddingBottom: SPACING.xl,
     },
     scheduleCard: {
         flexDirection: 'row',
         backgroundColor: '#f5f5f5',
         borderRadius: 12,
-        padding: 12,
-        marginBottom: 8,
-        marginHorizontal: 10,
+        padding: SPACING.md,
+        marginBottom: SPACING.sm,
+        marginHorizontal: spacing(10),
         alignItems: 'center',
         borderLeftWidth: 6,
         borderLeftColor: '#dd5e5eff',
@@ -1080,32 +1081,32 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 8,
+        marginBottom: SPACING.sm,
     },
     subjectName: {
         color: '#600202',
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
         fontWeight: 'bold',
         flex: 1,
     },
     dateSubText: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#FFFFFF',
     opacity: 0.9,
     textAlign: 'center',
-    marginTop: 2,
+    marginTop: spacing(2),
 },
    
     scheduleDetailsContainer: {},
     detailRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 2,
+        marginBottom: spacing(2),
     },
     scheduleDetails: {
         color: '#600202',
-        fontSize: 12,
-        marginLeft: 6,
+        fontSize: FONT_SIZES.sm,
+        marginLeft: spacing(6),
     },
     actionButtons: {
         flexDirection: 'row',
@@ -1115,58 +1116,58 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#28a745',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
+        paddingHorizontal: SPACING.md,
+        paddingVertical: SPACING.sm,
         borderRadius: 6,
         gap: 4,
     },
     attendanceButtonText: {
         color: '#FFF',
-        fontSize: 12,
+        fontSize: FONT_SIZES.sm,
         fontWeight: '600',
     },
     cancelButton: {
         backgroundColor: '#dc3545',
-        padding: 8,
+        padding: SPACING.sm,
         borderRadius: 6,
     },
     emptyContainer: {
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 40,
-        marginTop: 20,
+        padding: spacing(40),
+        marginTop: SPACING.xl,
     },
     emptyText: {
         color: '#f5f5f5',
-        fontSize: 18,
+        fontSize: FONT_SIZES.xl,
         fontWeight: '600',
-        marginTop: 12,
+        marginTop: SPACING.md,
     },
     emptySubText: {
         color: 'rgba(245, 245, 245, 0.7)',
-        fontSize: 14,
-        marginTop: 6,
+        fontSize: FONT_SIZES.md,
+        marginTop: spacing(6),
         textAlign: 'center',
     },
     footerContainer: {
-        padding: 20,
+        padding: SPACING.xl,
         alignItems: 'center',
     },
     createScheduleButton: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#28a745',
-        paddingHorizontal: 20,
-        paddingVertical: 12,
+        paddingHorizontal: SPACING.xl,
+        paddingVertical: SPACING.md,
         borderRadius: 10,
-        marginBottom: 20,
+        marginBottom: SPACING.xl,
         justifyContent: 'center',
     },
     createScheduleButtonText: {
         color: '#FFF',
         fontWeight: '600',
-        fontSize: 16,
-        marginLeft: 8,
+        fontSize: FONT_SIZES.lg,
+        marginLeft: SPACING.sm,
     },
     // Modal Styles
     modalContainer: {
@@ -1176,7 +1177,7 @@ const styles = StyleSheet.create({
     },
     modalContent: {
         backgroundColor: '#FFF',
-        margin: 20,
+        margin: SPACING.xl,
         borderRadius: 15,
         maxHeight: '80%',
     },
@@ -1184,37 +1185,37 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 20,
+        padding: SPACING.xl,
         borderBottomWidth: 1,
         borderBottomColor: '#e9ecef',
     },
     modalTitle: {
-        fontSize: 20,
+        fontSize: FONT_SIZES.xxl,
         fontWeight: 'bold',
         color: '#600202',
     },
     formContainer: {
-        padding: 20,
+        padding: SPACING.xl,
     },
     // Filter Styles
     filterSection: {
-        marginBottom: 25,
+        marginBottom: spacing(25),
     },
     filterLabel: {
         color: '#600202',
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
         fontWeight: '600',
-        marginBottom: 12,
+        marginBottom: SPACING.md,
     },
     filterButtonsContainer: {
         flexDirection: 'row',
     },
     filterButton: {
         backgroundColor: '#e9ecef',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
+        paddingHorizontal: SPACING.lg,
+        paddingVertical: spacing(10),
         borderRadius: 20,
-        marginRight: 10,
+        marginRight: spacing(10),
         borderWidth: 1,
         borderColor: '#dee2e6',
         minWidth: 60,
@@ -1227,7 +1228,7 @@ const styles = StyleSheet.create({
     filterButtonText: {
         color: '#495057',
         fontWeight: '500',
-        fontSize: 14,
+        fontSize: FONT_SIZES.md,
     },
     filterButtonTextSelected: {
         color: '#f5f5f5',
@@ -1235,13 +1236,13 @@ const styles = StyleSheet.create({
     },
     // Subject Dropdown
     inputGroup: {
-        marginBottom: 20,
+        marginBottom: SPACING.xl,
     },
     label: {
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
         fontWeight: '600',
         color: '#600202',
-        marginBottom: 8,
+        marginBottom: SPACING.sm,
     },
     subjectDropdown: {
         maxHeight: 150,
@@ -1251,7 +1252,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#f8f9fa',
     },
     subjectItem: {
-        padding: 12,
+        padding: SPACING.md,
         borderBottomWidth: 1,
         borderBottomColor: '#e9ecef',
     },
@@ -1261,22 +1262,22 @@ const styles = StyleSheet.create({
         borderLeftColor: '#28A745',
     },
     subjectText: {
-        fontSize: 14,
+        fontSize: FONT_SIZES.md,
         color: '#600202',
         fontWeight: '500',
     },
     subjectType: {
-        fontSize: 12,
+        fontSize: FONT_SIZES.sm,
         color: '#6C757D',
-        marginTop: 2,
+        marginTop: spacing(2),
     },
     // Text Area Styles
     textArea: {
         borderWidth: 1,
         borderColor: '#ddd',
         borderRadius: 8,
-        padding: 12,
-        fontSize: 16,
+        padding: SPACING.md,
+        fontSize: FONT_SIZES.lg,
         backgroundColor: '#f8f9fa',
         minHeight: 100,
         textAlignVertical: 'top',
@@ -1285,37 +1286,37 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#ff6b35',
-        paddingVertical: 12,
-        paddingHorizontal: 16,
+        paddingVertical: SPACING.md,
+        paddingHorizontal: SPACING.lg,
         borderRadius: 8,
-        marginBottom: 20,
+        marginBottom: SPACING.xl,
         justifyContent: 'center',
         gap: 8,
     },
     fetchSlotsButtonText: {
         color: '#FFFFFF',
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
         fontWeight: '600',
     },
     slotsSection: {
         backgroundColor: '#F8F9FA',
-        padding: 15,
+        padding: spacing(15),
         borderRadius: 12,
-        marginBottom: 15,
+        marginBottom: spacing(15),
         borderLeftWidth: 4,
         borderLeftColor: '#28A745',
     },
     slotsTitle: {
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
         fontWeight: '600',
         color: '#600202',
-        marginBottom: 10,
+        marginBottom: spacing(10),
     },
     slotItem: {
-        padding: 12,
+        padding: SPACING.md,
         backgroundColor: '#FFFFFF',
         borderRadius: 8,
-        marginBottom: 8,
+        marginBottom: SPACING.sm,
         borderWidth: 1,
         borderColor: '#E9ECEF',
     },
@@ -1324,7 +1325,7 @@ const styles = StyleSheet.create({
         borderColor: '#28A745',
     },
     slotText: {
-        fontSize: 14,
+        fontSize: FONT_SIZES.md,
         color: '#28A745',
         fontWeight: '500',
         textAlign: 'center',
@@ -1333,18 +1334,18 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#ddd',
         borderRadius: 8,
-        padding: 12,
-        fontSize: 16,
+        padding: SPACING.md,
+        fontSize: FONT_SIZES.lg,
         backgroundColor: '#f8f9fa',
     },
     selectedTimeContainer: {
         backgroundColor: '#FFF3CD',
-        padding: 15,
+        padding: spacing(15),
         borderRadius: 8,
-        marginTop: 10,
+        marginTop: spacing(10),
     },
     selectedTime: {
-        fontSize: 15,
+        fontSize: fontSize(15),
         color: '#600202',
         fontWeight: '600',
         textAlign: 'center',
@@ -1352,16 +1353,16 @@ const styles = StyleSheet.create({
     modalFooter: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        padding: 20,
+        padding: SPACING.xl,
         borderTopWidth: 1,
         borderTopColor: '#e9ecef',
     },
     modalButton: {
         flex: 1,
-        padding: 15,
+        padding: spacing(15),
         borderRadius: 10,
         alignItems: 'center',
-        marginHorizontal: 8,
+        marginHorizontal: SPACING.sm,
     },
     modalCancelButton: {
         backgroundColor: '#6c757d',
@@ -1378,102 +1379,102 @@ const styles = StyleSheet.create({
     modalCancelButtonText: {
         color: '#FFF',
         fontWeight: '600',
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
     },
     modalSubmitButtonText: {
         color: '#FFF',
         fontWeight: '600',
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
     },
     // Attendance Modal Styles
     classInfoContainer: {
         backgroundColor: '#F8F9FA',
-        padding: 15,
+        padding: spacing(15),
         borderRadius: 12,
-        marginBottom: 20,
+        marginBottom: SPACING.xl,
         borderLeftWidth: 4,
         borderLeftColor: '#600202',
     },
     classInfoTitle: {
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
         fontWeight: 'bold',
         color: '#600202',
-        marginBottom: 10,
+        marginBottom: spacing(10),
     },
     classDetailRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 6,
+        marginBottom: spacing(6),
     },
     classDetailLabel: {
-        fontSize: 14,
+        fontSize: FONT_SIZES.md,
         color: '#600202',
         fontWeight: '600',
     },
     classDetailValue: {
-        fontSize: 14,
+        fontSize: FONT_SIZES.md,
         color: '#495057',
         fontWeight: '500',
     },
     otpSection: {
         backgroundColor: '#E8F5E8',
-        padding: 15,
+        padding: spacing(15),
         borderRadius: 12,
         borderLeftWidth: 4,
         borderLeftColor: '#28A745',
-        marginBottom: 30,
+        marginBottom: spacing(30),
     },
     otpTitle: {
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
         fontWeight: 'bold',
         color: '#28A745',
-        marginBottom: 5,
+        marginBottom: spacing(5),
     },
     otpDescription: {
-        fontSize: 14,
+        fontSize: FONT_SIZES.md,
         color: '#495057',
-        marginBottom: 15,
+        marginBottom: spacing(15),
         lineHeight: 20,
     },
     generateOtpButton: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#28A745',
-        paddingVertical: 12,
-        paddingHorizontal: 16,
+        paddingVertical: SPACING.md,
+        paddingHorizontal: SPACING.lg,
         borderRadius: 8,
         justifyContent: 'center',
         gap: 8,
-        marginBottom: 10,
+        marginBottom: spacing(10),
     },
     generateOtpButtonText: {
         color: '#FFFFFF',
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
         fontWeight: '600',
     },
     generatedOtpContainer: {
         backgroundColor: '#FFFFFF',
-        padding: 15,
+        padding: spacing(15),
         borderRadius: 8,
         borderWidth: 1,
         borderColor: '#28A745',
     },
     generatedOtpLabel: {
-        fontSize: 14,
+        fontSize: FONT_SIZES.md,
         fontWeight: '600',
         color: '#28A745',
-        marginBottom: 5,
+        marginBottom: spacing(5),
     },
     generatedOtpValue: {
-        fontSize: 24,
+        fontSize: FONT_SIZES.xxxl,
         fontWeight: 'bold',
         color: '#600202',
         textAlign: 'center',
-        marginVertical: 10,
+        marginVertical: spacing(10),
         letterSpacing: 3,
     },
     otpInstruction: {
-        fontSize: 12,
+        fontSize: FONT_SIZES.sm,
         color: '#6C757D',
         fontStyle: 'italic',
         textAlign: 'center',
@@ -1481,14 +1482,14 @@ const styles = StyleSheet.create({
    
     loadingBadgeText: {
         color: '#FFFFFF',
-        fontSize: 10,
+        fontSize: FONT_SIZES.xs,
         fontWeight: 'bold',
     },
     timeStatusBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
+        paddingHorizontal: SPACING.sm,
+        paddingVertical: SPACING.xs,
         borderRadius: 6,
-        marginLeft: 8,
+        marginLeft: SPACING.sm,
     },
     ongoingBadge: {
         backgroundColor: '#28a745', // Green for ongoing
@@ -1507,7 +1508,7 @@ const styles = StyleSheet.create({
     },
     timeStatusText: {
         color: '#FFFFFF',
-        fontSize: 10,
+        fontSize: FONT_SIZES.xs,
         fontWeight: 'bold',
     },
 

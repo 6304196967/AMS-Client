@@ -14,6 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform, Dimensions } from 'react-native';
 import { getUniqueId, getManufacturer } from 'react-native-device-info';
 import { registerFCMToken } from './utils/notificationService';
+import { wp, hp, fontSize, spacing, FONT_SIZES, SPACING } from './utils/responsive';
 
 const amsLogo = require("../assets/images/rgukt_w.png");
 const googleLogo = require("../assets/images/google.png");
@@ -110,7 +111,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ setIsLoggedIn, setUser }) => 
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <Image source={amsLogo} style={styles.logoImage} />
       <Text style={styles.welcomeText}>Welcome to AMS</Text>
-      <Text style={{ fontSize: 22, color: "#FFF", textAlign: "center", fontFamily: "QuicksandMedium", marginTop: -155 }}>
+      <Text style={styles.subtitle}>
         RGUKT RK-VALLEY
       </Text>
       <TouchableOpacity style={styles.loginButton} onPress={handleGoogleLogin}>
@@ -122,12 +123,55 @@ const LandingPage: React.FC<LandingPageProps> = ({ setIsLoggedIn, setUser }) => 
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "space-around", padding: 20 },
-  logoImage: { width: 150, height: 150, resizeMode: "contain", tintColor: "#FFF",marginTop:80 },
-  welcomeText: { fontSize: 42, color: "#FFF", textAlign: "center", fontFamily: "QuicksandBold",marginTop:-100 },
-  loginButton: { flexDirection: "row", backgroundColor: "#FFF", padding: 12, paddingLeft: 25, paddingRight: 25, borderRadius: 30, alignItems: "center", justifyContent: "center",marginBottom:40 },
-  googleLogo: { width: 28, height: 28, marginRight: 15,marginTop:5 },
-  loginButtonText: { fontSize: 25, color: "#600202", fontFamily: "QuicksandBold" },
+  container: { 
+    flex: 1, 
+    alignItems: "center", 
+    justifyContent: "space-around", 
+    padding: spacing(20) 
+  },
+  logoImage: { 
+    width: wp(35), 
+    height: wp(35), 
+    resizeMode: "contain", 
+    tintColor: "#FFF",
+    marginTop: hp(8) 
+  },
+  welcomeText: { 
+    fontSize: FONT_SIZES.display, 
+    color: "#FFF", 
+    textAlign: "center", 
+    fontFamily: "QuicksandBold",
+    marginTop: hp(-10) 
+  },
+  subtitle: {
+    fontSize: fontSize(22),
+    color: "#FFF",
+    textAlign: "center",
+    fontFamily: "QuicksandMedium",
+    marginTop: hp(-15.5)
+  },
+  loginButton: { 
+    flexDirection: "row", 
+    backgroundColor: "#FFF", 
+    padding: spacing(12), 
+    paddingLeft: spacing(25), 
+    paddingRight: spacing(25), 
+    borderRadius: 30, 
+    alignItems: "center", 
+    justifyContent: "center",
+    marginBottom: hp(4) 
+  },
+  googleLogo: { 
+    width: wp(7), 
+    height: wp(7), 
+    marginRight: spacing(15),
+    marginTop: spacing(5) 
+  },
+  loginButtonText: { 
+    fontSize: fontSize(25), 
+    color: "#600202", 
+    fontFamily: "QuicksandBold" 
+  },
 });
 
 export default LandingPage;

@@ -17,6 +17,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { pick, types} from '@react-native-documents/picker';
 
 import { Faculty, InputFieldProps, FilterButtonsProps} from 'src/services/Interfaces';
+import { spacing, fontSize, FONT_SIZES, SPACING } from '../utils/responsive';
 
 
 // Filter options
@@ -385,19 +386,19 @@ const handleAddFaculty = async () => {
         </View>
         <View style={styles.facultyDetailsContainer}>
           <View style={styles.detailRow}>
-            <Icon name="badge" size={14} color="#600202" />
+            <Icon name="badge" size={fontSize(14)} color="#600202" />
             <Text style={styles.facultyDetails}>ID: {item.id}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Icon name="business" size={14} color="#600202" />
+            <Icon name="business" size={fontSize(14)} color="#600202" />
             <Text style={styles.facultyDetails}>Dept: {item.department}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Icon name="menu-book" size={14} color="#600202" />
+            <Icon name="menu-book" size={fontSize(14)} color="#600202" />
             <Text style={styles.facultyDetails}>Subject Code: {item.subject_code}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Icon name="school" size={14} color="#600202" />
+            <Icon name="school" size={fontSize(14)} color="#600202" />
             <Text style={styles.facultyDetails}>Year: {item.year} • Section: {item.section}</Text>
           </View>
         </View>
@@ -407,13 +408,13 @@ const handleAddFaculty = async () => {
           style={styles.editButton}
           onPress={() => editFaculty(item)}
         >
-          <Icon name="edit" size={16} color="#FFF" />
+          <Icon name="edit" size={fontSize(16)} color="#FFF" />
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.removeButton}
           onPress={() => removeFaculty(item.assignment_id)}
         >
-          <Icon name="delete" size={16} color="#FFF" />
+          <Icon name="delete" size={fontSize(16)} color="#FFF" />
         </TouchableOpacity>
       </View>
     </View>
@@ -467,7 +468,7 @@ const handleAddFaculty = async () => {
     <View style={styles.container}>
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
-          <Icon name="search" size={20} color="#600202" />
+          <Icon name="search" size={fontSize(20)} color="#600202" />
           <TextInput
             style={styles.searchInput}
             placeholder="Search by name, ID, or subject_code..."
@@ -477,7 +478,7 @@ const handleAddFaculty = async () => {
           />
           {searchQuery !== '' && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Icon name="close" size={20} color="#600206" />
+              <Icon name="close" size={fontSize(20)} color="#600206" />
             </TouchableOpacity>
           )}
         </View>
@@ -485,7 +486,7 @@ const handleAddFaculty = async () => {
           style={[styles.filterButton1, countActiveFilters() > 0 && styles.filterButtonActive1]} 
           onPress={() => setIsFilterModalVisible(true)}
         >
-          <Icon name="filter-list" size={25} color="#ffffff" />
+          <Icon name="filter-list" size={fontSize(25)} color="#ffffff" />
           {countActiveFilters() > 0 && (
             <View style={styles.filterBadge}>
               <Text style={styles.filterBadgeText}>{countActiveFilters()}</Text>
@@ -497,12 +498,12 @@ const handleAddFaculty = async () => {
       {/* Action Buttons Row */}
       <View style={styles.actionButtonsContainer}>
         <TouchableOpacity style={styles.uploadButton} onPress={() => setIsUploadModalVisible(true)}>
-          <Icon name="upload" size={20} color="#FFF" />
+          <Icon name="upload" size={fontSize(20)} color="#FFF" />
           <Text style={styles.uploadButtonText}>Upload Excel</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.addButton} onPress={() => setIsAddModalVisible(true)}>
-          <Icon name="person-add" size={20} color="#FFF" />
+          <Icon name="person-add" size={fontSize(20)} color="#FFF" />
           <Text style={styles.addButtonText}>Add Faculty</Text>
         </TouchableOpacity>
 
@@ -536,7 +537,7 @@ const handleAddFaculty = async () => {
           contentContainerStyle={styles.listContainer}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Icon name="people-outline" size={60} color="#f5f5f5" />
+              <Icon name="people-outline" size={fontSize(60)} color="#f5f5f5" />
               <Text style={styles.emptyText}>No Faculty Members Found</Text>
               <Text style={styles.emptySubText}>
                 {selectedDepartment !== 'All' || selectedYear !== 'All' || selectedSection !== 'All' || searchQuery !== '' 
@@ -561,7 +562,7 @@ const handleAddFaculty = async () => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Filters</Text>
               <TouchableOpacity onPress={() => setIsFilterModalVisible(false)}>
-                <Icon name="close" size={24} color="#600202" />
+                <Icon name="close" size={fontSize(24)} color="#600202" />
               </TouchableOpacity>
             </View>
 
@@ -596,7 +597,7 @@ const handleAddFaculty = async () => {
               <Text style={styles.modalTitle}>Add New Faculty</Text>
               {!isSubmitting && (
                 <TouchableOpacity onPress={resetAddForm}>
-                  <Icon name="close" size={24} color="#600202" />
+                  <Icon name="close" size={fontSize(24)} color="#600202" />
                 </TouchableOpacity>
               )}
             </View>
@@ -639,7 +640,7 @@ const handleAddFaculty = async () => {
               <Text style={styles.modalTitle}>Edit Faculty</Text>
               {!isSubmitting && (
                 <TouchableOpacity onPress={resetEditForm}>
-                  <Icon name="close" size={24} color="#600202" />
+                  <Icon name="close" size={fontSize(24)} color="#600202" />
                 </TouchableOpacity>
               )}
             </View>
@@ -686,13 +687,13 @@ const handleAddFaculty = async () => {
               <Text style={styles.modalTitle}>Upload Excel Sheet</Text>
               {!isUploading && (
                 <TouchableOpacity onPress={() => setIsUploadModalVisible(false)}>
-                  <Icon name="close" size={24} color="#600202" />
+                  <Icon name="close" size={fontSize(24)} color="#600202" />
                 </TouchableOpacity>
               )}
             </View>
 
             <View style={styles.uploadContainer}>
-              <Icon name="cloud-upload" size={60} color="#600202" />
+              <Icon name="cloud-upload" size={fontSize(60)} color="#600202" />
               <Text style={styles.uploadTitle}>Upload Faculty Excel Sheet</Text>
               <Text style={styles.uploadDescription}>
                 Upload an Excel file with columns: Faculty ID, Name, Department, Subject_code, Year, Section
@@ -712,7 +713,7 @@ const handleAddFaculty = async () => {
                 onPress={handleExcelUpload}
                 disabled={isUploading}
               >
-                <Icon name="upload" size={20} color="#FFF" />
+                <Icon name="upload" size={fontSize(20)} color="#FFF" />
                 <Text style={styles.uploadModalButtonText}>
                   {isUploading ? 'Uploading...' : 'Choose Excel File'}
                 </Text>
@@ -733,8 +734,8 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
-    paddingBottom: 5,
+    padding: spacing(15),
+    paddingBottom: spacing(5),
   },
   searchInputContainer: {
     flex: 1,
@@ -742,47 +743,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f8f9fa',
     borderRadius: 10,
-    paddingHorizontal: 12,
-    marginRight: 10,
+    paddingHorizontal: SPACING.md,
+    marginRight: spacing(10),
   },
   searchInput: {
     flex: 1,
-    paddingVertical: 12,
-    fontSize: 16,
+    paddingVertical: SPACING.md,
+    fontSize: FONT_SIZES.lg,
     color: '#600202',
   },
   actionButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginHorizontal: 15,
-    marginBottom: 10,
+    marginHorizontal: spacing(15),
+    marginBottom: spacing(10),
     alignItems: 'center',
   },
   uploadButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#ff6b35',
-    paddingHorizontal: 15,
-    paddingVertical: 12,
+    paddingHorizontal: spacing(15),
+    paddingVertical: SPACING.md,
     borderRadius: 10,
     flex: 1,
-    marginRight: 10,
+    marginRight: spacing(10),
     justifyContent: 'center',
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#28a745',
-    paddingHorizontal: 15,
-    paddingVertical: 12,
+    paddingHorizontal: spacing(15),
+    paddingVertical: SPACING.md,
     borderRadius: 10,
     flex: 1,
-    marginRight: 10,
+    marginRight: spacing(10),
     justifyContent: 'center',
   },
   filterButton1: {
     backgroundColor: '#495057',
-    padding: 12,
+    padding: SPACING.md,
     borderRadius: 10,
     width: 50,
     alignItems: 'center',
@@ -806,12 +807,12 @@ const styles = StyleSheet.create({
   },
   filterBadgeText: {
     color: '#FFF',
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     fontWeight: 'bold',
   },
   clearButton: {
     backgroundColor: '#dc3545',
-    padding: 12,
+    padding: SPACING.md,
     borderRadius: 10,
     width: 50,
     alignItems: 'center',
@@ -820,22 +821,22 @@ const styles = StyleSheet.create({
   uploadButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 14,
-    marginLeft: 8,
+    fontSize: FONT_SIZES.md,
+    marginLeft: SPACING.sm,
   },
   addButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 14,
-    marginLeft: 8,
+    fontSize: FONT_SIZES.md,
+    marginLeft: SPACING.sm,
   },
   statsContainer: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
+    paddingHorizontal: spacing(15),
+    paddingVertical: SPACING.sm,
   },
   statsText: {
     color: '#f5f5f5',
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     opacity: 0.9,
   },
   loadingContainer: {
@@ -844,16 +845,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContainer: {
-    padding: 10,
-    paddingBottom: 20,
+    padding: spacing(10),
+    paddingBottom: SPACING.xl,
   },
   facultyCard: {
     flexDirection: 'row',
     backgroundColor: '#f5f5f5',
     borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-    marginHorizontal: 10,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    marginHorizontal: spacing(10),
     alignItems: 'center',
     borderLeftWidth: 6,
     borderLeftColor: '#dd5e5eff',
@@ -864,66 +865,66 @@ const styles = StyleSheet.create({
   facultyHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   facultyName: {
     color: '#600202',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
-    marginRight: 10,
+    marginRight: spacing(10),
   },
   facultyBadge: {
     backgroundColor: '#600202',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: spacing(2),
     borderRadius: 6,
   },
   facultyBadgeText: {
     color: '#f5f5f5',
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontWeight: 'bold',
   },
   facultyDetailsContainer: {},
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: spacing(2),
   },
   facultyDetails: {
     color: '#600202',
-    fontSize: 12,
-    marginLeft: 6,
+    fontSize: FONT_SIZES.sm,
+    marginLeft: spacing(6),
   },
   actionButtons: {
     flexDirection: 'row',
   },
   editButton: {
     backgroundColor: '#ffc107',
-    padding: 8,
+    padding: SPACING.sm,
     borderRadius: 6,
-    marginRight: 8,
+    marginRight: SPACING.sm,
   },
   removeButton: {
     backgroundColor: '#dc3545',
-    padding: 8,
+    padding: SPACING.sm,
     borderRadius: 6,
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 40,
-    marginTop: 20,
+    padding: spacing(40),
+    marginTop: SPACING.xl,
   },
   emptyText: {
     color: '#f5f5f5',
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: '600',
-    marginTop: 12,
+    marginTop: SPACING.md,
   },
   emptySubText: {
     color: 'rgba(245, 245, 245, 0.7)',
-    fontSize: 14,
-    marginTop: 6,
+    fontSize: FONT_SIZES.md,
+    marginTop: spacing(6),
     textAlign: 'center',
   },
   modalContainer: {
@@ -933,7 +934,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: '#FFF',
-    margin: 20,
+    margin: SPACING.xl,
     borderRadius: 15,
     maxHeight: '80%',
   },
@@ -941,26 +942,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    padding: SPACING.xl,
     borderBottomWidth: 1,
     borderBottomColor: '#e9ecef',
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: FONT_SIZES.xxl,
     fontWeight: 'bold',
     color: '#600202',
   },
   filtersModalContainer: {
-    padding: 20,
+    padding: SPACING.xl,
   },
   filterSection: {
-    marginBottom: 25,
+    marginBottom: spacing(25),
   },
   filterLabel: {
     color: '#600202',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   filterButtonsContainer: {
     flexDirection: 'row',
@@ -968,11 +969,11 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     backgroundColor: '#e9ecef',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: spacing(10),
     borderRadius: 20,
-    marginRight: 10,
-    marginBottom: 10,
+    marginRight: spacing(10),
+    marginBottom: spacing(10),
     borderWidth: 1,
     borderColor: '#dee2e6',
     minWidth: 60,
@@ -985,7 +986,7 @@ const styles = StyleSheet.create({
   filterButtonText: {
     color: '#495057',
     fontWeight: '500',
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
   },
   filterButtonTextSelected: {
     color: '#f5f5f5',
@@ -994,52 +995,52 @@ const styles = StyleSheet.create({
   filterActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: SPACING.xl,
   },
   clearAllButton: {
     flex: 1,
-    padding: 15,
+    padding: spacing(15),
     borderRadius: 10,
     backgroundColor: '#6c757d',
-    marginRight: 10,
+    marginRight: spacing(10),
     alignItems: 'center',
   },
   applyButton: {
     flex: 1,
-    padding: 15,
+    padding: spacing(15),
     borderRadius: 10,
     backgroundColor: '#28a745',
-    marginLeft: 10,
+    marginLeft: spacing(10),
     alignItems: 'center',
   },
   clearAllButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
   },
   applyButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
   },
   formContainer: {
-    padding: 20,
+    padding: SPACING.xl,
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   label: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '600',
     color: '#600202',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   textInput: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
+    padding: SPACING.md,
+    fontSize: FONT_SIZES.lg,
     backgroundColor: '#f8f9fa',
   },
   textInputDisabled: {
@@ -1052,10 +1053,10 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     backgroundColor: '#e9ecef',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: spacing(10),
     borderRadius: 20,
-    marginRight: 10,
+    marginRight: spacing(10),
     borderWidth: 1,
     borderColor: '#dee2e6',
   },
@@ -1074,24 +1075,24 @@ const styles = StyleSheet.create({
   modalFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 20,
+    padding: SPACING.xl,
     borderTopWidth: 1,
     borderTopColor: '#e9ecef',
   },
   cancelButton: {
     flex: 1,
-    padding: 15,
+    padding: spacing(15),
     borderRadius: 10,
     backgroundColor: '#6c757d',
-    marginRight: 10,
+    marginRight: spacing(10),
     alignItems: 'center',
   },
   submitButton: {
     flex: 1,
-    padding: 15,
+    padding: spacing(15),
     borderRadius: 10,
     backgroundColor: '#28a745',
-    marginLeft: 10,
+    marginLeft: spacing(10),
     alignItems: 'center',
   },
   submitButtonDisabled: {
@@ -1103,39 +1104,39 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
   },
   submitButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
   },
   uploadContainer: {
     alignItems: 'center',
-    padding: 30,
+    padding: spacing(30),
   },
   uploadTitle: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
     color: '#600202',
-    marginTop: 10,
+    marginTop: spacing(10),
   },
   uploadDescription: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#666',
     textAlign: 'center',
-    marginTop: 5,
-    marginBottom: 20,
+    marginTop: spacing(5),
+    marginBottom: SPACING.xl,
     lineHeight: 20,
   },
   progressContainer: {
     width: '100%',
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   progressText: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#600202',
-    marginBottom: 5,
+    marginBottom: spacing(5),
   },
   progressBar: {
     height: 6,
@@ -1149,24 +1150,24 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     color: '#f5f5f5',
-    marginTop: 10,
+    marginTop: spacing(10),
   },
     // Add new styles for the modal upload button
   uploadModalButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#ff6b35',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xxl,
     borderRadius: 8,
-    marginTop: 15,
+    marginTop: spacing(15),
     gap: 8,
     minWidth: 200,
     justifyContent: 'center',
   },
   uploadModalButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '600',
     flexShrink: 1,
   },

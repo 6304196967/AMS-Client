@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { View, Text, StyleSheet, TextInput, Alert, BackHandler, ActivityIndicator } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StackParamList } from "../Navigators/StudentNavigator";
+import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 
 type Props = NativeStackScreenProps<StackParamList, "Otp">;
 
@@ -163,34 +164,34 @@ const styles = StyleSheet.create({
     backgroundColor: "#600202", 
     justifyContent: "center", 
     alignItems: "center", 
-    padding: 20 
+    padding: SPACING.xl 
   },
   title: { 
-    fontSize: 28, 
+    fontSize: FONT_SIZES.heading, 
     fontWeight: "bold", 
     color: "#FFF", 
-    marginBottom: 10 
+    marginBottom: spacing(10) 
   },
   subtitle: { 
-    fontSize: 16, 
+    fontSize: FONT_SIZES.lg, 
     color: "#FFF", 
-    marginBottom: 30, 
+    marginBottom: spacing(30), 
     textAlign: "center" 
   },
   otpContainer: { 
     flexDirection: "row", 
     justifyContent: "center", 
-    marginBottom: 20 
+    marginBottom: SPACING.xl 
   },
   otpInput: { 
     width: 45, 
     height: 55, 
-    marginHorizontal: 5, 
+    marginHorizontal: spacing(5), 
     borderRadius: 10, 
     borderWidth: 1, 
     borderColor: "#FFF", 
     textAlign: "center", 
-    fontSize: 20, 
+    fontSize: FONT_SIZES.xxl, 
     fontWeight: "bold", 
     color: "#FFF", 
     backgroundColor: "rgba(255,255,255,0.1)" 
@@ -200,17 +201,17 @@ const styles = StyleSheet.create({
   },
   timer: { 
     color: "#FFF", 
-    fontSize: 16, 
-    marginTop: 15 
+    fontSize: FONT_SIZES.lg, 
+    marginTop: spacing(15) 
   },
   loadingContainer: {
     alignItems: 'center',
-    marginVertical: 10
+    marginVertical: spacing(10)
   },
   loadingText: {
     color: '#FFF',
-    marginTop: 10,
-    fontSize: 16
+    marginTop: spacing(10),
+    fontSize: FONT_SIZES.lg
   }
 });
 

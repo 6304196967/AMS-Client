@@ -8,6 +8,7 @@ import {
   RefreshControl 
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
+import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 
 const API_BASE_URL = 'http://10.182.66.80:5000';
 
@@ -206,39 +207,39 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     color: '#FFF',
-    fontSize: 16,
-    marginTop: 16,
+    fontSize: FONT_SIZES.lg,
+    marginTop: SPACING.lg,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: SPACING.xl,
+    paddingBottom: spacing(40),
   },
   header: {
     alignItems: 'center',
-    marginBottom: 30,
-    marginTop: 10,
+    marginBottom: spacing(30),
+    marginTop: spacing(10),
   },
   title: {
     color: '#FFF',
-    fontSize: 28,
+    fontSize: FONT_SIZES.heading,
     fontWeight: 'bold',
     textAlign: 'center',
   },
   subtitle: {
     color: '#FFF',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     opacity: 0.8,
-    marginTop: 8,
+    marginTop: SPACING.sm,
     textAlign: 'center',
   },
   overallCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 20,
-    padding: 20,
-    marginBottom: 20,
+    padding: SPACING.xl,
+    marginBottom: SPACING.xl,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -249,27 +250,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   overallTitle: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
     color: '#600202',
   },
   quickStatsTitle: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
     color: '#6f0000ff',
-    marginBottom: 15,
+    marginBottom: spacing(15),
     textAlign: 'center',
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: spacing(6),
     borderRadius: 12,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     fontWeight: '600',
   },
   overallStats: {
@@ -282,13 +283,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: FONT_SIZES.xxxl,
     fontWeight: 'bold',
     color: '#600202',
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
     fontWeight: '500',
   },
@@ -300,8 +301,8 @@ const styles = StyleSheet.create({
   quickStatsCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 20,
-    padding: 30,
-    marginBottom: 25,
+    padding: spacing(30),
+    marginBottom: spacing(25),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -309,10 +310,10 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
     color: '#ffffffff',
-    marginBottom: 15,
+    marginBottom: spacing(15),
     textAlign: 'center',
   },
   quickStats: {
@@ -325,13 +326,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   quickStatNumber: {
-    fontSize: 22,
+    fontSize: fontSize(22),
     fontWeight: 'bold',
     color: '#600202',
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
   },
   quickStatLabel: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
     fontWeight: '500',
     textAlign: 'center',
@@ -342,13 +343,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#810101ff',
   },
   subjectsSection: {
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   subjectCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 16,
-    padding: 18,
-    marginBottom: 12,
+    padding: spacing(18),
+    marginBottom: SPACING.md,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -359,22 +360,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   subjectName: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '600',
     color: '#600202',
     flex: 1,
   },
   subjectPercent: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
   },
   subjectDetail: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#666',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   progressBar: {
     height: 6,

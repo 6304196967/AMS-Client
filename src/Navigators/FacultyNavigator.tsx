@@ -3,7 +3,6 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
 // Admin Screens
-import Analytics from "../faculty/Analytics";
 import HomeScreen from "../faculty/HomeScreen";
 import Profile from "../admin/Profile";
 import AttendanceStackNavigator from "./AttendanceStackNavigator";

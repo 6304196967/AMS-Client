@@ -3,6 +3,7 @@ import { Alert, View, TouchableOpacity, StyleSheet, Modal, Text } from "react-na
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { wp, spacing, fontSize, FONT_SIZES } from '../utils/responsive';
 
 type ProfileProps = {
   user: {
@@ -36,12 +37,12 @@ const Profile: React.FC<ProfileProps> = ({ user, setIsLoggedIn, setUser }) => {
   };
 
   return (
-    <View style={{ marginRight: 10 }}>
+    <View style={{ marginRight: spacing(10) }}>
       <TouchableOpacity
         onPress={() => setOpen(true)}
         style={styles.profileButton}
       >
-        <Icon name="person" size={28} color="#f5f5f5" />
+        <Icon name="person" size={fontSize(28)} color="#f5f5f5" />
     
       </TouchableOpacity>
 
@@ -58,7 +59,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setIsLoggedIn, setUser }) => {
         >
           <View style={styles.dropdown}>
             <View style={styles.userInfo}>
-              <Icon name="person" size={20} color="#600202" />
+              <Icon name="person" size={fontSize(20)} color="#600202" />
               <Text style={styles.usernameDropdown}>
                 {user?.name || 'User'}
               </Text>
@@ -68,7 +69,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setIsLoggedIn, setUser }) => {
               style={styles.logoutItem}
               onPress={handleLogout}
             >
-              <Icon name="logout" size={20} color="red" />
+              <Icon name="logout" size={fontSize(20)} color="red" />
               <Text style={styles.logoutText}>Logout</Text>
             </TouchableOpacity>
           </View>
@@ -82,7 +83,7 @@ const styles = StyleSheet.create({
   profileButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 8,
+    padding: spacing(8),
     borderRadius: 20,
     justifyContent: "center",
   },
@@ -94,12 +95,12 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   dropdown: {
-    marginTop: 60,
-    marginRight: 10,
+    marginTop: spacing(60),
+    marginRight: spacing(10),
     backgroundColor: "#fff",
     borderRadius: 8,
     overflow: "hidden",
-    width: 160,
+    width: wp(40),
     elevation: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -109,26 +110,26 @@ const styles = StyleSheet.create({
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    padding: spacing(10),
     backgroundColor: '#f8f9fa',
     borderBottomWidth: 1,
     borderBottomColor: '#e9ecef',
   },
   usernameDropdown: {
-    marginLeft: 8,
-    marginRight: 8,
-    fontSize: 14,
+    marginLeft: spacing(8),
+    marginRight: spacing(8),
+    fontSize: FONT_SIZES.md,
     fontWeight: 'bold',
     color: '#333',
   },
   logoutItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: spacing(12),
   },
   logoutText: {
-    marginLeft: 8,
-    fontSize: 14,
+    marginLeft: spacing(8),
+    fontSize: FONT_SIZES.md,
     color: 'red',
     fontWeight: '500',
   },

@@ -15,6 +15,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { sendNotificationToClass } from '../../utils/notificationService';
+import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 
 interface SendNotificationModalProps {
   visible: boolean;
@@ -164,18 +165,18 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
               style={styles.header}
             >
               <View style={styles.headerContent}>
-                <Icon name="bell-ring" size={28} color="#FFF" />
+                <Icon name="bell-ring" size={fontSize(28)} color="#FFF" />
                 <Text style={styles.headerTitle}>Send Notification</Text>
               </View>
               <TouchableOpacity onPress={handleClose} disabled={sending}>
-                <Icon name="close" size={28} color="#FFF" />
+                <Icon name="close" size={fontSize(28)} color="#FFF" />
               </TouchableOpacity>
             </LinearGradient>
 
             {/* Class Info */}
             {crInfo && (
               <View style={styles.classInfo}>
-                <Icon name="account-group" size={20} color="#600202" />
+                <Icon name="account-group" size={fontSize(20)} color="#600202" />
                 <Text style={styles.classInfoText}>
                   E{crInfo.year} {crInfo.department} - {crInfo.section}
                 </Text>
@@ -262,7 +263,7 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
                     <ActivityIndicator color="#FFF" />
                   ) : (
                     <>
-                      <Icon name="send" size={20} color="#FFF" />
+                      <Icon name="send" size={fontSize(20)} color="#FFF" />
                       <Text style={styles.sendButtonText}>Send to Class</Text>
                     </>
                   )}
@@ -271,7 +272,7 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
 
               {/* Info Note */}
               <View style={styles.infoNote}>
-                <Icon name="information" size={16} color="#666" />
+                <Icon name="information" size={fontSize(16)} color="#666" />
                 <Text style={styles.infoText}>
                   This notification will be sent to all students in your class who have the app
                   installed.
@@ -305,8 +306,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.lg,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
@@ -315,75 +316,75 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: FONT_SIZES.xxl,
     fontWeight: 'bold',
     color: '#FFF',
-    marginLeft: 12,
+    marginLeft: SPACING.md,
   },
   classInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF8DC',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
     borderBottomWidth: 1,
     borderBottomColor: '#EEE',
   },
   classInfoText: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     fontWeight: '600',
     color: '#600202',
-    marginLeft: 8,
+    marginLeft: SPACING.sm,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
+    padding: SPACING.xl,
   },
   section: {
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   templatesScroll: {
-    marginHorizontal: -20,
-    paddingHorizontal: 20,
+    marginHorizontal: spacing(-20),
+    paddingHorizontal: SPACING.xl,
   },
   templateButton: {
     backgroundColor: '#F5F5F5',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: spacing(10),
     borderRadius: 20,
-    marginRight: 10,
+    marginRight: spacing(10),
     borderWidth: 1,
     borderColor: '#DDD',
   },
   templateText: {
-    fontSize: 13,
+    fontSize: fontSize(13),
     color: '#600202',
     fontWeight: '500',
   },
   inputSection: {
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   inputHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   inputLabel: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     fontWeight: '600',
     color: '#333',
   },
   charCount: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#999',
   },
   titleInput: {
@@ -391,9 +392,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DDD',
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    fontSize: fontSize(15),
     color: '#333',
   },
   messageInput: {
@@ -401,9 +402,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DDD',
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    fontSize: fontSize(15),
     color: '#333',
     minHeight: 120,
   },
@@ -411,28 +412,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: SPACING.lg,
     borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
   sendButtonText: {
     color: '#FFF',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
-    marginLeft: 8,
+    marginLeft: SPACING.sm,
   },
   infoNote: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: '#F5F5F5',
-    padding: 12,
+    padding: SPACING.md,
     borderRadius: 8,
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   infoText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
-    marginLeft: 8,
+    marginLeft: SPACING.sm,
     flex: 1,
     lineHeight: 18,
   },

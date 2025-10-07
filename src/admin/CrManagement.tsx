@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {CR} from '../services/Interfaces';
+import { spacing, fontSize, FONT_SIZES, SPACING } from '../utils/responsive';
 
 const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
@@ -262,19 +263,19 @@ const CrManagement = () => {
         </View>
         <View style={styles.crDetailsContainer}>
           <View style={styles.detailRow}>
-            <Icon name="badge" size={14} color="#600202" />
+            <Icon name="badge" size={fontSize(14)} color="#600202" />
             <Text style={styles.crDetails}>ID: {item.id}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Icon name="school" size={14} color="#600202" />
+            <Icon name="school" size={fontSize(14)} color="#600202" />
             <Text style={styles.crDetails}>Year: {item.year} • Branch: {item.branch}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Icon name="class" size={14} color="#600202" />
+            <Icon name="class" size={fontSize(14)} color="#600202" />
             <Text style={styles.crDetails}>Section: {item.section}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Icon name="phone" size={14} color="#600202" />
+            <Icon name="phone" size={fontSize(14)} color="#600202" />
             <Text style={styles.crDetails}>{item.phone}</Text>
           </View>
         </View>
@@ -283,7 +284,7 @@ const CrManagement = () => {
         style={styles.removeButton}
         onPress={() => removeCR(item.id)}
       >
-        <Icon name="delete" size={18} color="#FFF" />
+        <Icon name="delete" size={fontSize(18)} color="#FFF" />
       </TouchableOpacity>
     </View>
   );
@@ -293,7 +294,7 @@ const CrManagement = () => {
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
-          <Icon name="search" size={20} color="#600202" style={styles.searchIcon} />
+          <Icon name="search" size={fontSize(20)} color="#600202" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search by ID or name..."
@@ -303,7 +304,7 @@ const CrManagement = () => {
           />
           {searchQuery !== '' && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Icon name="close" size={20} color="#600202" />
+              <Icon name="close" size={fontSize(20)} color="#600202" />
             </TouchableOpacity>
           )}
         </View>
@@ -316,7 +317,7 @@ const CrManagement = () => {
           ]} 
           onPress={() => setIsFilterModalVisible(true)}
         >
-          <Icon name="filter-list" size={24} color="#FFF" />
+          <Icon name="filter-list" size={fontSize(24)} color="#FFF" />
           {getActiveFiltersCount() > 0 && (
             <View style={styles.filterBadge}>
               <Text style={styles.filterBadgeText}>{getActiveFiltersCount()}</Text>
@@ -328,7 +329,7 @@ const CrManagement = () => {
       {/* Action Buttons Row */}
       <View style={styles.actionButtonsContainer}>
         <TouchableOpacity style={styles.addButton} onPress={addCR}>
-          <Icon name="person-add" size={20} color="#FFF" />
+          <Icon name="person-add" size={fontSize(20)} color="#FFF" />
           <Text style={styles.addButtonText}>Add New CR</Text>
         </TouchableOpacity>
 
@@ -360,7 +361,7 @@ const CrManagement = () => {
           contentContainerStyle={styles.listContainer}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Icon name="people-outline" size={60} color="#f5f5f5" />
+              <Icon name="people-outline" size={fontSize(60)} color="#f5f5f5" />
               <Text style={styles.emptyText}>No CRs Found</Text>
               <Text style={styles.emptySubText}>
                 {getActiveFiltersCount() > 0 
@@ -392,7 +393,7 @@ const CrManagement = () => {
                   style={styles.closeButton}
                   onPress={() => setIsAddModalVisible(false)}
                 >
-                  <Icon name="close" size={24} color="#600202" />
+                  <Icon name="close" size={fontSize(24)} color="#600202" />
                 </TouchableOpacity>
               )}
             </View>
@@ -425,7 +426,7 @@ const CrManagement = () => {
               </View>
 
               <View style={styles.noteContainer}>
-                <Icon name="info" size={16} color="#600202" />
+                <Icon name="info" size={fontSize(16)} color="#600202" />
                 <Text style={styles.noteText}>
                   Student details (name, year, branch, section) will be fetched from the database automatically.
                 </Text>
@@ -453,7 +454,7 @@ const CrManagement = () => {
                   <ActivityIndicator size="small" color="#FFF" />
                 ) : (
                   <>
-                    <Icon name="person-add" size={20} color="#FFF" />
+                    <Icon name="person-add" size={fontSize(20)} color="#FFF" />
                     <Text style={styles.submitButtonText}>Add CR</Text>
                   </>
                 )}
@@ -478,7 +479,7 @@ const CrManagement = () => {
                 style={styles.closeButton}
                 onPress={() => setIsFilterModalVisible(false)}
               >
-                <Icon name="close" size={24} color="#600202" />
+                <Icon name="close" size={fontSize(24)} color="#600202" />
               </TouchableOpacity>
             </View>
 
@@ -491,7 +492,7 @@ const CrManagement = () => {
                   style={styles.clearAllButton}
                   onPress={clearFilters}
                 >
-                  <Icon name="clear" size={20} color="#FFF" />
+                  <Icon name="clear" size={fontSize(20)} color="#FFF" />
                   <Text style={styles.clearAllButtonText}>Clear All</Text>
                 </TouchableOpacity>
                 
@@ -518,8 +519,8 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
-    paddingBottom: 5,
+    padding: spacing(15),
+    paddingBottom: spacing(5),
   },
   searchInputContainer: {
     flex: 1,
@@ -527,21 +528,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f8f9fa',
     borderRadius: 10,
-    paddingHorizontal: 12,
-    marginRight: 10,
+    paddingHorizontal: SPACING.md,
+    marginRight: spacing(10),
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: SPACING.sm,
   },
   searchInput: {
     flex: 1,
-    paddingVertical: 12,
-    fontSize: 16,
+    paddingVertical: SPACING.md,
+    fontSize: FONT_SIZES.lg,
     color: '#600202',
   },
   filterButtonMain: {
     backgroundColor: '#495057',
-    padding: 12,
+    padding: SPACING.md,
     borderRadius: 10,
     width: 50,
     alignItems: 'center',
@@ -564,25 +565,25 @@ const styles = StyleSheet.create({
   },
   filterBadgeText: {
     color: '#FFF',
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     fontWeight: 'bold',
   },
   actionButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingBottom: 10,
+    paddingHorizontal: spacing(15),
+    paddingBottom: spacing(10),
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#28a745',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
     borderRadius: 10,
     flex: 1,
-    marginRight: 10,
+    marginRight: spacing(10),
     justifyContent: 'center',
     elevation: 3,
     shadowColor: '#000',
@@ -592,7 +593,7 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     backgroundColor: '#dc3545',
-    padding: 12,
+    padding: SPACING.md,
     borderRadius: 10,
     width: 50,
     alignItems: 'center',
@@ -606,17 +607,17 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 16,
-    marginLeft: 8,
+    fontSize: FONT_SIZES.lg,
+    marginLeft: SPACING.sm,
   },
   statsContainer: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    marginBottom: 5,
+    paddingHorizontal: spacing(15),
+    paddingVertical: SPACING.sm,
+    marginBottom: spacing(5),
   },
   statsText: {
     color: '#f5f5f5',
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     opacity: 0.9,
     fontStyle: 'italic',
   },
@@ -626,16 +627,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContainer: {
-    padding: 10,
-    paddingBottom: 20,
+    padding: spacing(10),
+    paddingBottom: SPACING.xl,
   },
   crCard: {
     flexDirection: 'row',
     backgroundColor: '#f5f5f5',
     borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-    marginHorizontal: 10,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    marginHorizontal: spacing(10),
     alignItems: 'center',
     borderLeftWidth: 6,
     borderLeftColor: '#dd5e5eff',
@@ -646,58 +647,58 @@ const styles = StyleSheet.create({
   crHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   crName: {
     color: '#600202',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
-    marginRight: 10,
+    marginRight: spacing(10),
   },
   crBadge: {
     backgroundColor: '#600202',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: spacing(2),
     borderRadius: 6,
   },
   crBadgeText: {
     color: '#f5f5f5',
-    fontSize: 10,
+    fontSize: FONT_SIZES.xs,
     fontWeight: 'bold',
   },
   crDetailsContainer: {},
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: spacing(2),
   },
   crDetails: {
     color: '#600202',
-    fontSize: 12,
-    marginLeft: 6,
+    fontSize: FONT_SIZES.sm,
+    marginLeft: spacing(6),
   },
   removeButton: {
     backgroundColor: '#dc3545',
-    padding: 8,
+    padding: SPACING.sm,
     borderRadius: 6,
-    marginLeft: 10,
+    marginLeft: spacing(10),
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 40,
-    marginTop: 20,
+    padding: spacing(40),
+    marginTop: SPACING.xl,
   },
   emptyText: {
     color: '#f5f5f5',
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: '600',
-    marginTop: 12,
+    marginTop: SPACING.md,
   },
   emptySubText: {
     color: 'rgba(245, 245, 245, 0.7)',
-    fontSize: 14,
-    marginTop: 6,
+    fontSize: FONT_SIZES.md,
+    marginTop: spacing(6),
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -709,7 +710,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: '#FFF',
-    margin: 20,
+    margin: SPACING.xl,
     borderRadius: 15,
     maxHeight: '80%',
   },
@@ -717,66 +718,66 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    padding: SPACING.xl,
     borderBottomWidth: 1,
     borderBottomColor: '#e9ecef',
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: FONT_SIZES.xxl,
     fontWeight: 'bold',
     color: '#600202',
   },
   closeButton: {
-    padding: 5,
+    padding: spacing(5),
   },
   formContainer: {
-    padding: 20,
+    padding: SPACING.xl,
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   label: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '600',
     color: '#600202',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   textInput: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
+    padding: SPACING.md,
+    fontSize: FONT_SIZES.lg,
     backgroundColor: '#f8f9fa',
   },
   noteContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: '#f8f9fa',
-    padding: 12,
+    padding: SPACING.md,
     borderRadius: 8,
-    marginTop: -10,
+    marginTop: spacing(-10),
   },
   noteText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#600202',
-    marginLeft: 8,
+    marginLeft: SPACING.sm,
     flex: 1,
     fontStyle: 'italic',
   },
   modalFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 20,
+    padding: SPACING.xl,
     borderTopWidth: 1,
     borderTopColor: '#e9ecef',
   },
   cancelButton: {
     flex: 1,
-    padding: 15,
+    padding: spacing(15),
     borderRadius: 10,
     backgroundColor: '#6c757d',
-    marginRight: 10,
+    marginRight: spacing(10),
     alignItems: 'center',
   },
   submitButton: {
@@ -784,10 +785,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 15,
+    padding: spacing(15),
     borderRadius: 10,
     backgroundColor: '#28a745',
-    marginLeft: 10,
+    marginLeft: spacing(10),
   },
   submitButtonDisabled: {
     backgroundColor: '#6c757d',
@@ -798,31 +799,31 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
   },
   submitButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 16,
-    marginLeft: 8,
+    fontSize: FONT_SIZES.lg,
+    marginLeft: SPACING.sm,
   },
   loadingText: {
     color: '#f5f5f5',
-    marginTop: 10,
-    fontSize: 16,
+    marginTop: spacing(10),
+    fontSize: FONT_SIZES.lg,
   },
   // Filter Modal Styles
   filterModalContent: {
-    padding: 20,
+    padding: SPACING.xl,
   },
   filterSection: {
-    marginBottom: 25,
+    marginBottom: spacing(25),
   },
   filterLabel: {
     color: '#600202',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '600',
-    marginBottom: 10,
+    marginBottom: spacing(10),
   },
   filterScroll: {
     flexGrow: 0,
@@ -833,11 +834,11 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     backgroundColor: '#e9ecef',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
     borderRadius: 20,
-    marginRight: 8,
-    marginBottom: 8,
+    marginRight: SPACING.sm,
+    marginBottom: SPACING.sm,
     borderWidth: 1,
     borderColor: '#dee2e6',
     minWidth: 50,
@@ -850,7 +851,7 @@ const styles = StyleSheet.create({
   filterButtonText: {
     color: '#495057',
     fontWeight: '500',
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
   },
   filterButtonTextSelected: {
     color: '#f5f5f5',
@@ -859,38 +860,38 @@ const styles = StyleSheet.create({
   filterActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: SPACING.xl,
   },
   clearAllButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#dc3545',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
     borderRadius: 10,
     flex: 1,
-    marginRight: 10,
+    marginRight: spacing(10),
     justifyContent: 'center',
   },
   clearAllButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 16,
-    marginLeft: 8,
+    fontSize: FONT_SIZES.lg,
+    marginLeft: SPACING.sm,
   },
   applyButton: {
     flex: 1,
     backgroundColor: '#28a745',
-    paddingVertical: 12,
+    paddingVertical: SPACING.md,
     borderRadius: 10,
-    marginLeft: 10,
+    marginLeft: spacing(10),
     alignItems: 'center',
     justifyContent: 'center',
   },
   applyButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
   },
 });
 

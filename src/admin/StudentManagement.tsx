@@ -13,6 +13,7 @@ import { pick, types } from '@react-native-documents/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Picker } from '@react-native-picker/picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { spacing, fontSize, FONT_SIZES } from '../utils/responsive';
 
 // --- Type Definitions & Constants ---
 type SelectedFile = { uri: string; name: string | null; type: string | null; } | null;
@@ -91,7 +92,7 @@ const StudentManagement = () => {
                 
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
-                        <Icon name="people" size={24} color="#600202" />
+                        <Icon name="people" size={fontSize(24)} color="#600202" />
                         <Text style={styles.cardTitle}>Manage Students by Class</Text>
                     </View>
                     <Text style={styles.cardDescription}>
@@ -121,7 +122,7 @@ const StudentManagement = () => {
                     </View>
 
                     <TouchableOpacity style={styles.selectButton} onPress={handleSelectFile}>
-                        <Icon name="attach-file" size={20} color="#600202" />
+                        <Icon name="attach-file" size={fontSize(20)} color="#600202" />
                         <Text style={styles.selectButtonText}>Select Students File</Text>
                     </TouchableOpacity>
                     
@@ -152,18 +153,18 @@ const StudentManagement = () => {
 // --- Stylesheet ---
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f0f2f5' },
-    scrollContent: { padding: 20, paddingBottom: 40 },
+    scrollContent: { padding: spacing(20), paddingBottom: spacing(40) },
     headerTitle: {
-        fontSize: 32,
+        fontSize: FONT_SIZES.title,
         fontWeight: 'bold',
         color: '#600202',
-        marginBottom: 20,
+        marginBottom: spacing(20),
     },
     card: {
         backgroundColor: '#fff',
         borderRadius: 12,
-        padding: 20,
-        marginBottom: 20,
+        padding: spacing(20),
+        marginBottom: spacing(20),
         elevation: 4,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
@@ -173,36 +174,36 @@ const styles = StyleSheet.create({
     cardHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: spacing(10),
     },
     cardTitle: {
-        fontSize: 20,
+        fontSize: FONT_SIZES.xxl,
         fontWeight: '600',
         color: '#333',
-        marginLeft: 10,
+        marginLeft: spacing(10),
     },
     cardDescription: {
-        fontSize: 14,
+        fontSize: FONT_SIZES.md,
         color: '#666',
-        marginBottom: 20,
-        lineHeight: 20,
+        marginBottom: spacing(20),
+        lineHeight: fontSize(20),
     },
     selectButton: {
         flexDirection: 'row',
         backgroundColor: '#e9ecef',
-        paddingVertical: 12,
+        paddingVertical: spacing(12),
         borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
     },
     selectButtonText: {
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
         fontWeight: '500',
         color: '#600202',
-        marginLeft: 10,
+        marginLeft: spacing(10),
     },
     fileName: {
-        marginTop: 15,
+        marginTop: spacing(15),
         fontStyle: 'italic',
         color: '#555',
         textAlign: 'center',
@@ -211,28 +212,28 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 20,
-        paddingVertical: 10,
+        marginTop: spacing(20),
+        paddingVertical: spacing(10),
         borderTopWidth: 1,
         borderBottomWidth: 1,
         borderColor: '#eee',
     },
     toggleLabel: {
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
         color: '#333',
         fontWeight: '500',
         flex: 1,
-        marginRight: 10,
+        marginRight: spacing(10),
     },
     uploadButton: {
         backgroundColor: '#600202',
-        paddingVertical: 15,
+        paddingVertical: spacing(15),
         borderRadius: 8,
         alignItems: 'center',
-        marginTop: 20,
+        marginTop: spacing(20),
     },
     uploadButtonText: {
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
         fontWeight: 'bold',
         color: '#FFF',
     },
@@ -240,18 +241,18 @@ const styles = StyleSheet.create({
         backgroundColor: '#aaa',
     },
     pickerLabel: {
-        fontSize: 16,
+        fontSize: FONT_SIZES.lg,
         fontWeight: '500',
         color: '#333',
-        marginBottom: 5,
-        marginTop: 15,
+        marginBottom: spacing(5),
+        marginTop: spacing(15),
     },
     pickerContainer: {
         backgroundColor: '#f8f9fa',
         borderRadius: 8,
         borderWidth: 1,
         borderColor: '#dee2e6',
-        marginBottom: 20,
+        marginBottom: spacing(20),
     },
     picker: {
         color: '#333',

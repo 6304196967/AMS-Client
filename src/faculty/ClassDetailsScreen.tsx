@@ -17,6 +17,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AttendanceData, AttendanceSession, StudentAttendance } from 'src/services/Interfaces';
+import { spacing, fontSize, FONT_SIZES, SPACING } from '../utils/responsive';
 
 type RootStackParamList = {
   ClassDetails: { classData: any };
@@ -700,7 +701,7 @@ const dummyAttendanceData: AttendanceData = {
         ]}>
           <Icon 
             name={item.status ? 'check' : 'close'} 
-            size={14} 
+            size={fontSize(14)} 
             color="#FFF" 
           />
           <Text style={styles.statusText}>
@@ -712,7 +713,7 @@ const dummyAttendanceData: AttendanceData = {
           style={styles.editButton}
           onPress={() => setEditingStudent({ id: item.student_id, currentStatus: item.status })}
         >
-          <Icon name="edit" size={16} color="#600202" />
+          <Icon name="edit" size={fontSize(16)} color="#600202" />
         </TouchableOpacity>
       </View>
     </View>
@@ -828,11 +829,11 @@ const dummyAttendanceData: AttendanceData = {
             style={styles.datePicker}
             onPress={() => setIsCalendarModalVisible(true)}
           >
-            <Icon name="calendar-today" size={20} color="#600202" />
+            <Icon name="calendar-today" size={fontSize(20)} color="#600202" />
             <Text style={styles.dateText}>
               {selectedDate || 'Select Date'}
             </Text>
-            <Icon name="arrow-drop-down" size={20} color="#600202" />
+            <Icon name="arrow-drop-down" size={fontSize(20)} color="#600202" />
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -840,11 +841,11 @@ const dummyAttendanceData: AttendanceData = {
             onPress={() => currentDatePeriods.length > 0 && setIsPeriodModalVisible(true)}
             disabled={currentDatePeriods.length === 0}
           >
-            <Icon name="access-time" size={20} color="#600202" />
+            <Icon name="access-time" size={fontSize(20)} color="#600202" />
             <Text style={styles.periodText}>
               {currentPeriod ? `${currentPeriod.start_time} - ${currentPeriod.end_time}` : 'No Sessions'}
             </Text>
-            <Icon name="arrow-drop-down" size={20} color="#600202" />
+            <Icon name="arrow-drop-down" size={fontSize(20)} color="#600202" />
           </TouchableOpacity>
         </View>
 
@@ -853,7 +854,7 @@ const dummyAttendanceData: AttendanceData = {
           style={styles.reportButton}
           onPress={() => navigation.navigate('AttendanceReport', { classData })}
         >
-          <Icon name="bar-chart" size={20} color="#FFF" />
+          <Icon name="bar-chart" size={fontSize(20)} color="#FFF" />
           <Text style={styles.reportButtonText}>Generate Report</Text>
         </TouchableOpacity>
 
@@ -861,7 +862,7 @@ const dummyAttendanceData: AttendanceData = {
           <>
             {/* Search Bar */}
             <View style={styles.searchContainer}>
-              <Icon name="search" size={20} color="#600202" />
+              <Icon name="search" size={fontSize(20)} color="#600202" />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Search by ID or Name..."
@@ -871,7 +872,7 @@ const dummyAttendanceData: AttendanceData = {
               />
               {searchQuery !== '' && (
                 <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <Icon name="close" size={20} color="#600202" />
+                  <Icon name="close" size={fontSize(20)} color="#600202" />
                 </TouchableOpacity>
               )}
             </View>
@@ -891,7 +892,7 @@ const dummyAttendanceData: AttendanceData = {
             <View style={styles.attendanceStats}>
               <View style={styles.stat}>
                 <View style={[styles.statIcon, { backgroundColor: '#28a745' }]}>
-                  <Icon name="check" size={16} color="#FFF" />
+                  <Icon name="check" size={fontSize(16)} color="#FFF" />
                 </View>
                 <Text style={styles.statNumber}>{currentPeriod.present_count}</Text>
                 <Text style={styles.statLabel}>Present</Text>
@@ -899,7 +900,7 @@ const dummyAttendanceData: AttendanceData = {
               
               <View style={styles.stat}>
                 <View style={[styles.statIcon, { backgroundColor: '#dc3545' }]}>
-                  <Icon name="close" size={16} color="#FFF" />
+                  <Icon name="close" size={fontSize(16)} color="#FFF" />
                 </View>
                 <Text style={styles.statNumber}>{currentPeriod.absent_count}</Text>
                 <Text style={styles.statLabel}>Absent</Text>
@@ -907,7 +908,7 @@ const dummyAttendanceData: AttendanceData = {
               
               <View style={styles.stat}>
                 <View style={[styles.statIcon, { backgroundColor: '#600202' }]}>
-                  <Icon name="people" size={16} color="#FFF" />
+                  <Icon name="people" size={fontSize(16)} color="#FFF" />
                 </View>
                 <Text style={styles.statNumber}>{currentPeriod.total_students}</Text>
                 <Text style={styles.statLabel}>Total</Text>
@@ -932,7 +933,7 @@ const dummyAttendanceData: AttendanceData = {
               />
             ) : (
               <View style={styles.noDataContainer}>
-                <Icon name="search-off" size={48} color="#ccc" />
+                <Icon name="search-off" size={fontSize(48)} color="#ccc" />
                 <Text style={styles.noDataText}>
                   {searchQuery ? 'No students found' : 'No students data available'}
                 </Text>
@@ -941,7 +942,7 @@ const dummyAttendanceData: AttendanceData = {
           </>
         ) : (
           <View style={styles.noDataContainer}>
-            <Icon name="event-busy" size={48} color="#ccc" />
+            <Icon name="event-busy" size={fontSize(48)} color="#ccc" />
             <Text style={styles.noDataText}>No attendance data available</Text>
             <Text style={styles.noDataSubText}>
               {Object.keys(attendanceData).length === 0 
@@ -965,7 +966,7 @@ const dummyAttendanceData: AttendanceData = {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Edit Attendance</Text>
               <TouchableOpacity onPress={() => setEditingStudent(null)}>
-                <Icon name="close" size={24} color="#600202" />
+                <Icon name="close" size={fontSize(24)} color="#600202" />
               </TouchableOpacity>
             </View>
             
@@ -987,7 +988,7 @@ const dummyAttendanceData: AttendanceData = {
               >
                 <Icon 
                   name={editingStudent?.currentStatus ? 'close' : 'check'} 
-                  size={16} 
+                  size={fontSize(16)} 
                   color="#FFF" 
                 />
                 <Text style={styles.confirmEditButtonText}>
@@ -1011,7 +1012,7 @@ const dummyAttendanceData: AttendanceData = {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Select Date</Text>
               <TouchableOpacity onPress={() => setIsCalendarModalVisible(false)}>
-                <Icon name="close" size={24} color="#600202" />
+                <Icon name="close" size={fontSize(24)} color="#600202" />
               </TouchableOpacity>
             </View>
             
@@ -1021,7 +1022,7 @@ const dummyAttendanceData: AttendanceData = {
                 style={styles.monthNavButton}
                 onPress={() => navigateMonth('prev')}
               >
-                <Icon name="chevron-left" size={24} color="#600202" />
+                <Icon name="chevron-left" size={fontSize(24)} color="#600202" />
               </TouchableOpacity>
               
               <Text style={styles.monthYearText}>
@@ -1032,7 +1033,7 @@ const dummyAttendanceData: AttendanceData = {
                 style={styles.monthNavButton}
                 onPress={() => navigateMonth('next')}
               >
-                <Icon name="chevron-right" size={24} color="#600202" />
+                <Icon name="chevron-right" size={fontSize(24)} color="#600202" />
               </TouchableOpacity>
             </View>
 
@@ -1087,7 +1088,7 @@ const dummyAttendanceData: AttendanceData = {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Select Session - {selectedDate}</Text>
               <TouchableOpacity onPress={() => setIsPeriodModalVisible(false)}>
-                <Icon name="close" size={24} color="#600202" />
+                <Icon name="close" size={fontSize(24)} color="#600202" />
               </TouchableOpacity>
             </View>
             
@@ -1127,19 +1128,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
+    marginTop: SPACING.lg,
+    fontSize: FONT_SIZES.lg,
     color: '#600202',
   },
   venueLabel: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     fontWeight: '600',
     color: '#600202',
-    marginTop: 12,
-    marginBottom: 4,
+    marginTop: SPACING.md,
+    marginBottom: SPACING.xs,
   },
   venueText: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     color: '#333',
   },
   // ... keep all your existing styles from the previous code
@@ -1149,57 +1150,57 @@ const styles = StyleSheet.create({
   },
   classHeader: {
     backgroundColor: '#fff',
-    padding: 20,
+    padding: SPACING.xl,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   subjectCode: {
-    fontSize: 24,
+    fontSize: FONT_SIZES.xxxl,
     fontWeight: 'bold',
     color: '#600202',
   },
   section: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     color: '#600202',
-    marginTop: 4,
+    marginTop: SPACING.xs,
   },
   subjectName: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#600202',
     opacity: 0.9,
-    marginTop: 2,
+    marginTop: spacing(2),
   },
   attendanceOverview: {
     alignItems: 'center',
   },
   attendancePercent: {
-    fontSize: 28,
+    fontSize: FONT_SIZES.heading,
     fontWeight: 'bold',
     color: '#600202',
   },
   attendanceLabel: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#600202',
     opacity: 0.9,
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: SPACING.lg,
   },
   headerActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
     gap: 12,
   },
   datePicker: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
     borderRadius: 12,
     flex: 1,
     elevation: 2,
@@ -1212,8 +1213,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
     borderRadius: 12,
     flex: 1,
     elevation: 2,
@@ -1223,17 +1224,17 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   dateText: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '600',
     color: '#600202',
-    marginHorizontal: 8,
+    marginHorizontal: SPACING.sm,
     flex: 1,
   },
   periodText: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '600',
     color: '#600202',
-    marginHorizontal: 8,
+    marginHorizontal: SPACING.sm,
     flex: 1,
   },
   reportButton: {
@@ -1241,9 +1242,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#600202',
-    padding: 16,
+    padding: SPACING.lg,
     borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -1253,16 +1254,16 @@ const styles = StyleSheet.create({
   reportButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    marginLeft: 8,
+    marginLeft: SPACING.sm,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
     borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -1271,15 +1272,15 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    marginLeft: 8,
-    fontSize: 16,
+    marginLeft: SPACING.sm,
+    fontSize: FONT_SIZES.lg,
     color: '#600202',
   },
   periodDetails: {
     backgroundColor: '#FFF',
-    padding: 16,
+    padding: SPACING.lg,
     borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -1290,26 +1291,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   periodDetailTitle: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
     color: '#600202',
   },
   periodDetailTime: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#666',
     fontWeight: '600',
   },
   topicLabel: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     fontWeight: '600',
     color: '#600202',
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
   },
   topicText: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     color: '#333',
   },
   attendanceStats: {
@@ -1317,8 +1318,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     backgroundColor: '#FFF',
     borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
+    padding: SPACING.xl,
+    marginBottom: SPACING.xl,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -1334,40 +1335,40 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   statNumber: {
-    fontSize: 20,
+    fontSize: FONT_SIZES.xxl,
     fontWeight: 'bold',
     color: '#600202',
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
-    marginTop: 4,
+    marginTop: SPACING.xs,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
     color: '#600202',
-    marginBottom: 12,
+    marginBottom: SPACING.md,
   },
   searchResultText: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#666',
     fontWeight: 'normal',
   },
   studentsList: {
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   studentItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#FFF',
-    padding: 16,
+    padding: SPACING.lg,
     borderRadius: 8,
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -1378,14 +1379,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   studentId: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     fontWeight: '600',
     color: '#600202',
   },
   studentName: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
-    marginTop: 2,
+    marginTop: spacing(2),
   },
   studentActions: {
     flexDirection: 'row',
@@ -1395,18 +1396,18 @@ const styles = StyleSheet.create({
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: spacing(6),
     borderRadius: 16,
     gap: 4,
   },
   statusText: {
     color: '#FFF',
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     fontWeight: '600',
   },
   editButton: {
-    padding: 6,
+    padding: spacing(6),
     borderRadius: 8,
     backgroundColor: '#f8f9fa',
     borderWidth: 1,
@@ -1415,7 +1416,7 @@ const styles = StyleSheet.create({
   noDataContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 40,
+    padding: spacing(40),
     backgroundColor: '#FFF',
     borderRadius: 12,
     elevation: 1,
@@ -1425,34 +1426,34 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   noDataText: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '600',
     color: '#666',
-    marginTop: 12,
+    marginTop: SPACING.md,
     textAlign: 'center',
   },
   noDataSubText: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#999',
-    marginTop: 4,
+    marginTop: SPACING.xs,
     textAlign: 'center',
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 20,
+    padding: SPACING.xl,
   },
   modalContent: {
     backgroundColor: '#FFF',
     borderRadius: 16,
-    padding: 20,
+    padding: SPACING.xl,
     maxHeight: '80%',
   },
   editModalContent: {
     backgroundColor: '#FFF',
     borderRadius: 16,
-    padding: 20,
+    padding: SPACING.xl,
     maxWidth: '90%',
     alignSelf: 'center',
   },
@@ -1460,23 +1461,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: FONT_SIZES.xxl,
     fontWeight: 'bold',
     color: '#600202',
   },
   modalSubtitle: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#666',
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
     textAlign: 'center',
   },
   editModalText: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     color: '#333',
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
     textAlign: 'center',
   },
   editModalActions: {
@@ -1486,7 +1487,7 @@ const styles = StyleSheet.create({
   },
   cancelEditButton: {
     flex: 1,
-    padding: 15,
+    padding: spacing(15),
     borderRadius: 8,
     backgroundColor: '#6c757d',
     alignItems: 'center',
@@ -1496,7 +1497,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 15,
+    padding: spacing(15),
     borderRadius: 8,
     backgroundColor: '#28a745',
     gap: 8,
@@ -1506,7 +1507,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 15,
+    padding: spacing(15),
     borderRadius: 8,
     backgroundColor: '#dc3545',
     gap: 8,
@@ -1523,35 +1524,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
   monthNavButton: {
-    padding: 8,
+    padding: SPACING.sm,
   },
   monthYearText: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
     color: '#600202',
   },
   dayHeaders: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   dayHeaderText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     fontWeight: '600',
     color: '#600202',
     width: 40,
     textAlign: 'center',
   },
   calendarGrid: {
-    padding: 8,
+    padding: SPACING.sm,
   },
   calendarDate: {
     alignItems: 'center',
-    padding: 8,
-    margin: 2,
+    padding: SPACING.sm,
+    margin: spacing(2),
     borderRadius: 8,
     backgroundColor: '#f8f9fa',
     width: 40,
@@ -1569,7 +1570,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   calendarDateText: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     fontWeight: '600',
     color: '#600202',
   },
@@ -1584,13 +1585,13 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     backgroundColor: '#28a745',
-    marginTop: 4,
+    marginTop: SPACING.xs,
   },
   legend: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
-    marginBottom: 10,
+    marginTop: SPACING.xl,
+    marginBottom: spacing(10),
     gap: 20,
   },
   legendItem: {
@@ -1602,17 +1603,17 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#28a745',
-    marginRight: 6,
+    marginRight: spacing(6),
   },
   legendText: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
   },
   modalFooter: {
-    marginTop: 20,
+    marginTop: SPACING.xl,
   },
   cancelButton: {
-    padding: 15,
+    padding: spacing(15),
     borderRadius: 8,
     backgroundColor: '#6c757d',
     alignItems: 'center',
@@ -1630,9 +1631,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#f8f9fa',
-    padding: 16,
+    padding: SPACING.lg,
     borderRadius: 12,
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
     borderWidth: 2,
     borderColor: 'transparent',
   },
@@ -1644,36 +1645,36 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   periodTitle: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
     color: '#600202',
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
   },
   periodTime: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#666',
-    marginBottom: 2,
+    marginBottom: spacing(2),
   },
   periodTopic: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.sm,
     color: '#999',
   },
   periodVenue: {
-    fontSize: 11,
+    fontSize: fontSize(11),
     color: '#666',
-    marginTop: 4,
+    marginTop: SPACING.xs,
   },
   periodStats: {
     alignItems: 'flex-end',
   },
   periodAttendance: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
     color: '#600202',
-    marginBottom: 2,
+    marginBottom: spacing(2),
   },
   periodPercentage: {
-    fontSize: 14,
+    fontSize: FONT_SIZES.md,
     color: '#28a745',
     fontWeight: '600',
   },

@@ -66,6 +66,7 @@ const App: React.FC = () => {
     }
 
     if (email.endsWith("rguktrkv.ac.in")) {
+    if (email.endsWith("rkv.ac.inm")) {
       return (
         <StudentNavigator
           user={user}

@@ -92,7 +92,7 @@ const App: React.FC = () => {
       );
     }
 
-    if (email.endsWith("rguktrkv.a.in")) {
+    if (email.endsWith("rguktrkv.ac.in")) {
       return (
         <StudentNavigator
           user={user}

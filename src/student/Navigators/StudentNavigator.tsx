@@ -6,6 +6,7 @@ import { View, TouchableOpacity, StyleSheet, Modal, Text, TextInput, Alert } fro
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
+import { fontSize, spacing, FONT_SIZES, SPACING } from '../../utils/responsive';
 
 // Student Screens
 import HomeScreen from "../screens/HomeScreen";
@@ -130,14 +131,14 @@ const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser })
         backgroundColor: '#1E1E1E',
         borderTopWidth: 0,
         elevation: 0,
-        height: 70,
-        paddingBottom: 8,
-        paddingTop: 8,
+        height: spacing(70),
+        paddingBottom: SPACING.sm,
+        paddingTop: SPACING.sm,
       },
       tabBarActiveTintColor: '#FFF',
       tabBarInactiveTintColor: '#888',
       tabBarLabelStyle: {
-        fontSize: 12,
+        fontSize: FONT_SIZES.sm,
         fontWeight: '500',
       },
       headerShown: true,
@@ -216,7 +217,7 @@ const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser })
     <View style={styles.logoutModalOverlay}>
       <View style={styles.logoutModalContent}>
         <Text style={styles.logoutModalTitle}>Confirm Logout</Text>
-        <Text style={{ marginBottom: 10 }}>
+        <Text style={{ marginBottom: SPACING.md }}>
           Please type <Text style={{ fontWeight: "bold" }}>"I want to logout"</Text> to confirm.
         </Text>
         <TextInput
@@ -225,7 +226,7 @@ const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser })
           onChangeText={setLogoutInput}
           style={styles.logoutModalInput}
         />
-        <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: 10 }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: SPACING.md }}>
           <TouchableOpacity
             style={[styles.logoutModalButton, { backgroundColor: "red" }]}
             onPress={() => {
@@ -261,7 +262,7 @@ const styles = StyleSheet.create({
   profileButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 8,
+    padding: SPACING.sm,
     borderRadius: 20,
     justifyContent: "center",
   },
@@ -272,12 +273,12 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   dropdown: {
-    marginTop: 60,
-    marginRight: 10,
+    marginTop: spacing(60),
+    marginRight: SPACING.md,
     backgroundColor: "#fff",
     borderRadius: 8,
-    minWidth: 180,
-    padding: 8,
+    minWidth: spacing(180),
+    padding: SPACING.sm,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -287,28 +288,28 @@ const styles = StyleSheet.create({
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
   },
   usernameDropdown: {
-    marginLeft: 8,
-    fontSize: 14,
+    marginLeft: SPACING.sm,
+    fontSize: FONT_SIZES.md,
     fontWeight: "600",
     color: "#333",
-    maxWidth: 150,
+    maxWidth: spacing(150),
     flexWrap: 'wrap',
   },
   logoutItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
   },
   logoutText: {
-    marginLeft: 8,
-    fontSize: 14,
+    marginLeft: SPACING.sm,
+    fontSize: FONT_SIZES.md,
     color: "red",
     fontWeight: "500",
   },
@@ -323,25 +324,25 @@ const styles = StyleSheet.create({
     width: "85%", 
     backgroundColor: "#FFF", 
     borderRadius: 12, 
-    padding: 20 
+    padding: SPACING.xl 
   },
   logoutModalTitle: { 
-    fontSize: 20, 
+    fontSize: FONT_SIZES.xl, 
     fontWeight: "bold", 
-    marginBottom: 15, 
+    marginBottom: SPACING.lg, 
     textAlign: "center" 
   },
   logoutModalInput: {
     borderWidth: 1,
     borderColor: "#CCC",
     borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
   },
   logoutModalButton: { 
     backgroundColor: "#28a745", 
-    paddingVertical: 10, 
-    paddingHorizontal: 20, 
+    paddingVertical: SPACING.md, 
+    paddingHorizontal: SPACING.xl, 
     borderRadius: 8 
   },
 });

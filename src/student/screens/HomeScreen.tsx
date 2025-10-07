@@ -19,7 +19,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StackParamList } from "../Navigators/StudentNavigator";
 import LinearGradient from "react-native-linear-gradient";
 
-const API_BASE_URL = 'http://10.182.66.80:5000';
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
 // Type for schedule
 type ScheduleItem = {

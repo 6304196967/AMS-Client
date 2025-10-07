@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "897409483825",
+    "project_id": "ams-rkv-e6f4d",
+    "storage_bucket": "ams-rkv-e6f4d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:897409483825:android:88ac4d2794d40d785dc110",
+        "android_client_info": {
+          "package_name": "com.amsrkv"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrup5pHxfm30O2tRMD6zYmuK5cGBqo5NE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

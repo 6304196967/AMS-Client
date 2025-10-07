@@ -16,6 +16,7 @@ import ProfileScreen from "../screens/ProfileScreen";
 import OtpScreen from "../screens/OtpScreen";
 import BiometricScreen from "../screens/BiometricScreen";
 import BlockedScreen from "../screens/BlockedScreen";
+import DeviceInfoScreen from "../screens/DeviceInfoScreen";
 
 export type StackParamList = {
   Tabs: undefined;
@@ -205,6 +206,17 @@ const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser })
         />
       )}
     </Tab.Screen>
+
+    <Tab.Screen 
+     name="DeviceInfo"
+     component={DeviceInfoScreen}
+     options={{
+       title: 'Device Info',
+       tabBarIcon: ({ color, size }) => (
+         <Icon name="cellphone-information" size={size} color={color} />
+       ),
+     }}
+   />
   </Tab.Navigator>
   
   {/* Global Logout Modal */}

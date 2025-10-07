@@ -258,17 +258,25 @@ const ClassScheduleCard = ({
 
       {/* Class Details */}
       <View style={styles.cardDetails}>
-        {/* Timing and Venue side-by-side */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING.md }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-            <Icon name="clock-outline" size={fontSize(20)} color="#1976D2" />
-            <Text style={[styles.detailText, { marginLeft: SPACING.sm, fontSize: FONT_SIZES.lg, fontWeight: '600' }]}>
+        {/* Timing and Venue side-by-side with proper spacing */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING.md, gap: SPACING.sm }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 }}>
+            <Icon name="clock-outline" size={fontSize(20)} color="#1976D2" style={{ flexShrink: 0 }} />
+            <Text 
+              style={[styles.detailText, { marginLeft: SPACING.sm, fontSize: FONT_SIZES.lg, fontWeight: '600', flex: 1 }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {item.time}
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-            <Icon name="map-marker" size={fontSize(20)} color="#E65100" />
-            <Text style={[styles.detailText, { marginLeft: SPACING.sm, fontSize: FONT_SIZES.lg, fontWeight: '600' }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 }}>
+            <Icon name="map-marker" size={fontSize(20)} color="#E65100" style={{ flexShrink: 0 }} />
+            <Text 
+              style={[styles.detailText, { marginLeft: SPACING.sm, fontSize: FONT_SIZES.lg, fontWeight: '600', flex: 1 }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {item.location}
             </Text>
           </View>

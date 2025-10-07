@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Alert } from "react-native";
 import LandingPage from "./LandingPage";
 import AdminNavigator from "./Navigators/AdminNavigator";
 import StudentNavigator from "./student/Navigators/StudentNavigator";
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import FacultyNavigator from "./Navigators/FacultyNavigator";
+import { setupForegroundNotificationHandler, setupNotificationOpenedHandler } from './utils/notificationService';
 
 // Type
 type UserInfo = { name: string; email: string };
@@ -39,6 +41,31 @@ const App: React.FC = () => {
       }
     };
     loadData();
+  }, []);
+
+  // Setup notification handlers when app loads
+  useEffect(() => {
+    // Handle foreground notifications
+    const unsubscribeForeground = setupForegroundNotificationHandler((notification) => {
+      // Show alert when notification is received in foreground
+      Alert.alert(
+        notification.notification?.title || 'New Notification',
+        notification.notification?.body || '',
+        [{ text: 'OK' }]
+      );
+    });
+
+    // Handle notification when app is opened from notification
+    const unsubscribeOpened = setupNotificationOpenedHandler((notification) => {
+      console.log('App opened from notification:', notification);
+      // You can navigate to a specific screen based on notification data
+    });
+
+    // Cleanup on unmount
+    return () => {
+      unsubscribeForeground();
+      unsubscribeOpened();
+    };
   }, []);
 
   if (loading) return null;

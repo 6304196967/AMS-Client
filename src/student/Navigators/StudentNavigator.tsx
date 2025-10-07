@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { View, TouchableOpacity, StyleSheet, Modal, Text } from "react-native";
+import { View, TouchableOpacity, StyleSheet, Modal, Text, TextInput, Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 
@@ -92,17 +93,27 @@ const StudentHeaderProfile: React.FC<{
 };
 
 const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser }) => {
-  const [triggerLogout, setTriggerLogout] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [logoutInput, setLogoutInput] = useState("");
 
   const handleLogoutPress = () => {
-    setTriggerLogout(true);
+    setLogoutModalVisible(true);
   };
 
-  const handleLogoutHandled = () => {
-    setTriggerLogout(false);
+  const handleLogout = async () => {
+    if (logoutInput.trim() === "I want to logout") {
+      await AsyncStorage.clear();
+      setIsLoggedIn(false);
+      setUser(null);
+      setLogoutModalVisible(false);
+      setLogoutInput("");
+    } else {
+      Alert.alert("Error", "You must type exactly: I want to logout");
+    }
   };
 
   return (
+  <>
   <Tab.Navigator 
     screenOptions={({ route }) => ({
       headerRight: () => (
@@ -190,12 +201,48 @@ const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser })
           user={user}
           setIsLoggedIn={setIsLoggedIn}
           setUser={setUser}
-          triggerLogout={triggerLogout}
-          onLogoutHandled={handleLogoutHandled}
         />
       )}
     </Tab.Screen>
   </Tab.Navigator>
+  
+  {/* Global Logout Modal */}
+  <Modal
+    transparent
+    visible={logoutModalVisible}
+    animationType="slide"
+    onRequestClose={() => setLogoutModalVisible(false)}
+  >
+    <View style={styles.logoutModalOverlay}>
+      <View style={styles.logoutModalContent}>
+        <Text style={styles.logoutModalTitle}>Confirm Logout</Text>
+        <Text style={{ marginBottom: 10 }}>
+          Please type <Text style={{ fontWeight: "bold" }}>"I want to logout"</Text> to confirm.
+        </Text>
+        <TextInput
+          placeholder="Type here..."
+          value={logoutInput}
+          onChangeText={setLogoutInput}
+          style={styles.logoutModalInput}
+        />
+        <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: 10 }}>
+          <TouchableOpacity
+            style={[styles.logoutModalButton, { backgroundColor: "red" }]}
+            onPress={() => {
+              setLogoutModalVisible(false);
+              setLogoutInput("");
+            }}
+          >
+            <Text style={{ color: "#FFF", fontWeight: "bold" }}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.logoutModalButton} onPress={handleLogout}>
+            <Text style={{ color: "#FFF", fontWeight: "bold" }}>Confirm</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </Modal>
+  </>
   );
 };
 
@@ -264,6 +311,38 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "red",
     fontWeight: "500",
+  },
+  // Logout Modal Styles (matching ProfileScreen)
+  logoutModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logoutModalContent: { 
+    width: "85%", 
+    backgroundColor: "#FFF", 
+    borderRadius: 12, 
+    padding: 20 
+  },
+  logoutModalTitle: { 
+    fontSize: 20, 
+    fontWeight: "bold", 
+    marginBottom: 15, 
+    textAlign: "center" 
+  },
+  logoutModalInput: {
+    borderWidth: 1,
+    borderColor: "#CCC",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+  },
+  logoutModalButton: { 
+    backgroundColor: "#28a745", 
+    paddingVertical: 10, 
+    paddingHorizontal: 20, 
+    borderRadius: 8 
   },
 });
 

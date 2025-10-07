@@ -18,22 +18,18 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { launchImageLibrary } from 'react-native-image-picker';
 
 // Configuration
-const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
+const API_BASE_URL = 'http://10.182.66.80:5000';
 
 type ProfileScreenProps = {
   user: { name: string; email: string; role?: string; id?: string; phone?: string };
   setIsLoggedIn: (val: boolean) => void;
   setUser: (user: any) => void;
-  triggerLogout?: boolean;
-  onLogoutHandled?: () => void;
 };
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ 
   user, 
   setIsLoggedIn, 
-  setUser,
-  triggerLogout,
-  onLogoutHandled 
+  setUser
 }) => {
   // 🔥 State for Logout Modal
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
@@ -88,14 +84,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     fetchStudentDetails();
     loadProfileImage();
   }, [user.email]);
-
-  // Handle external logout trigger
-  React.useEffect(() => {
-    if (triggerLogout) {
-      setLogoutModalVisible(true);
-      onLogoutHandled?.();
-    }
-  }, [triggerLogout, onLogoutHandled]);
 
   // Handle image upload
   const handleImageUpload = async () => {

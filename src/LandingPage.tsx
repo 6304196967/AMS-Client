@@ -13,6 +13,7 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform, Dimensions } from 'react-native';
 import { getUniqueId, getManufacturer } from 'react-native-device-info';
+import { registerFCMToken } from './utils/notificationService';
 
 const amsLogo = require("../assets/images/rgukt_w.png");
 const googleLogo = require("../assets/images/google.png");
@@ -85,6 +86,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ setIsLoggedIn, setUser }) => 
       setUser({ name: userInfo?.data?.user?.familyName || "", email: userEmail });
       await AsyncStorage.setItem("user", JSON.stringify({ name: userInfo?.data?.user?.familyName || "", email: userEmail }));
       await AsyncStorage.setItem("isLoggedIn", "true");
+
+      // Register FCM token for push notifications
+      try {
+        await registerFCMToken(userEmail);
+        console.log('✅ FCM token registration initiated');
+      } catch (error) {
+        console.error('⚠️ Failed to register FCM token:', error);
+        // Don't block login if FCM registration fails
+      }
     } catch (error) {
       console.error(error);
     }

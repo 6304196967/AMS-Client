@@ -18,8 +18,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StackParamList } from "../Navigators/StudentNavigator";
 import LinearGradient from "react-native-linear-gradient";
+import SendNotificationModal from './SendNotificationModal';
 
-const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
+const API_BASE_URL = 'http://10.182.66.80:5000';
 
 // Type for schedule
 type ScheduleItem = {
@@ -379,6 +380,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
   const [isCR, setIsCR] = useState(false);
   const [crLoading, setCrLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<'today' | 'tomorrow'>('today');
+  const [notificationModalVisible, setNotificationModalVisible] = useState(false);
   
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string>('');
@@ -825,7 +827,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
             <TouchableOpacity style={{ marginRight: 15 }} onPress={openSchedulingModal}>
               <Icon name="plus-circle" size={32} color="#FFF" />
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => setNotificationModalVisible(true)}>
               <Icon name="bell" size={32} color="#FFF" />
             </TouchableOpacity>
           </View>
@@ -1102,6 +1104,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
           </View>
         </Modal>
       )}
+
+      {/* Send Notification Modal for CR */}
+      <SendNotificationModal
+        visible={notificationModalVisible}
+        onClose={() => setNotificationModalVisible(false)}
+        crEmail={user.email}
+        crInfo={crInfo}
+      />
     </LinearGradient>
   );
 };

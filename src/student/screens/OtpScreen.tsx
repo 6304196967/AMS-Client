@@ -7,7 +7,7 @@ import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 
 type Props = NativeStackScreenProps<StackParamList, "Otp">;
 
-const API_BASE_URL = 'http://10.182.66.80:5000';
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
 const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
   const { scheduleId, classEndTime, userEmail } = route.params; // Add userEmail here

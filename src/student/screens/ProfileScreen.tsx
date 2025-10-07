@@ -19,7 +19,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 
 // Configuration
-const API_BASE_URL = 'http://10.182.66.80:5000';
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
 type ProfileScreenProps = {
   user: { name: string; email: string; role?: string; id?: string; phone?: string };

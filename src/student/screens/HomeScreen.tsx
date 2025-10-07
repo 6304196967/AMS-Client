@@ -21,7 +21,7 @@ import LinearGradient from "react-native-linear-gradient";
 import SendNotificationModal from './SendNotificationModal';
 import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 
-const API_BASE_URL = 'http://10.182.66.80:5000';
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
 // Type for schedule
 type ScheduleItem = {

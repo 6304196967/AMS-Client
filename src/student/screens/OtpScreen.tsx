@@ -6,7 +6,7 @@ import { StackParamList } from "../Navigators/StudentNavigator";
 
 type Props = NativeStackScreenProps<StackParamList, "Otp">;
 
-const API_BASE_URL = 'http://10.173.174.102:5000';
+const API_BASE_URL = 'http://10.182.66.80:5000';
 
 const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
   const { scheduleId, classEndTime, userEmail } = route.params; // Add userEmail here

@@ -5,7 +5,7 @@ import ReactNativeBiometrics from "react-native-biometrics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StackParamList } from "../Navigators/StudentNavigator";
 
-const API_BASE_URL = 'http://10.173.174.102:5000';
+const API_BASE_URL = 'http://10.182.66.80:5000';
 
 type Props = NativeStackScreenProps<StackParamList, "Biometric">;
 

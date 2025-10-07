@@ -95,7 +95,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
         subject_code: ''
     });
 
-    const API_BASE_URL = 'http://10.173.174.102:5000';
+    const API_BASE_URL = 'http://10.182.66.80:5000';
 
     useEffect(() => {
         if (user?.email) {
@@ -358,11 +358,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
             
             const otp = 
                 getRandomChar(capitals) + 
-                getRandomChar(capitals) + 
-                getRandomChar(smalls) + 
-                getRandomChar(smalls) + 
+                getRandomChar(smalls) +
+                getRandomChar(digits) +
+                getRandomChar(capitals) +
                 getRandomChar(digits) + 
-                getRandomChar(digits);
+                getRandomChar(smalls); 
+                
+               
             
             // Shuffle the OTP
             const shuffledOTP = otp.split('').sort(() => 0.5 - Math.random()).join('');

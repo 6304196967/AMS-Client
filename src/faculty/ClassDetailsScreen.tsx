@@ -958,6 +958,7 @@ const dummyAttendanceData: AttendanceData = {
         visible={!!editingStudent}
         animationType="slide"
         transparent
+        onRequestClose={() => setEditingStudent(null)}
       >
         <View style={styles.modalContainer}>
           <View style={styles.editModalContent}>
@@ -1003,6 +1004,7 @@ const dummyAttendanceData: AttendanceData = {
         visible={isCalendarModalVisible}
         animationType="slide"
         transparent
+        onRequestClose={() => setIsCalendarModalVisible(false)}
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -1078,6 +1080,7 @@ const dummyAttendanceData: AttendanceData = {
         visible={isPeriodModalVisible}
         animationType="slide"
         transparent
+        onRequestClose={() => setIsPeriodModalVisible(false)}
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>

@@ -17,13 +17,16 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StackParamList } from "../Navigators/StudentNavigator";
+import LinearGradient from "react-native-linear-gradient";
 
-const API_BASE_URL = 'http://10.173.174.102:5000';
+const API_BASE_URL = 'http://10.182.66.80:5000';
 
 // Type for schedule
 type ScheduleItem = {
   id: string;
   subject: string;
+  subject_mnemonic?: string;
+  subject_type?: string;
   time: string;
   location: string;
   color: string;
@@ -67,6 +70,78 @@ const ClassScheduleCard = ({
   isCR: boolean;
   onMarkAttendance: (classEndTime: number, item: ScheduleItem) => void;
 }) => {
+  // Get subject color based on subject name
+  const getSubjectColor = (subject: string) => {
+    const colors = {
+      // CS/IT subjects - Blue tones
+      'Data Structures': { bg: '#1976D2', text: '#FFF' },
+      'Algorithms': { bg: '#1565C0', text: '#FFF' },
+      'Database': { bg: '#0277BD', text: '#FFF' },
+      'DBMS': { bg: '#0277BD', text: '#FFF' },
+      'OS': { bg: '#01579B', text: '#FFF' },
+      'Operating System': { bg: '#01579B', text: '#FFF' },
+      'Networks': { bg: '#0288D1', text: '#FFF' },
+      'Computer Networks': { bg: '#0288D1', text: '#FFF' },
+      'Software Engineering': { bg: '#0097A7', text: '#FFF' },
+      'SE': { bg: '#0097A7', text: '#FFF' },
+      
+      // Programming subjects - Purple/Violet tones
+      'Java': { bg: '#6A1B9A', text: '#FFF' },
+      'Python': { bg: '#7B1FA2', text: '#FFF' },
+      'C': { bg: '#4A148C', text: '#FFF' },
+      'C++': { bg: '#6200EA', text: '#FFF' },
+      'Web Development': { bg: '#5E35B1', text: '#FFF' },
+      
+      // Mathematics subjects - Teal/Cyan
+      'Mathematics': { bg: '#00796B', text: '#FFF' },
+      'Maths': { bg: '#00796B', text: '#FFF' },
+      'Discrete Mathematics': { bg: '#00897B', text: '#FFF' },
+      'Linear Algebra': { bg: '#00695C', text: '#FFF' },
+      'Probability': { bg: '#009688', text: '#FFF' },
+      
+      // Core Engineering - Orange/Amber
+      'Digital Logic': { bg: '#E65100', text: '#FFF' },
+      'COA': { bg: '#EF6C00', text: '#FFF' },
+      'Computer Organization': { bg: '#EF6C00', text: '#FFF' },
+      'Microprocessors': { bg: '#F57C00', text: '#FFF' },
+      
+      // Theory subjects - Deep Purple
+      'Theory of Computation': { bg: '#512DA8', text: '#FFF' },
+      'TOC': { bg: '#512DA8', text: '#FFF' },
+      'Compiler Design': { bg: '#4527A0', text: '#FFF' },
+      
+      // AI/ML - Pink/Rose
+      'Machine Learning': { bg: '#C2185B', text: '#FFF' },
+      'ML': { bg: '#C2185B', text: '#FFF' },
+      'AI': { bg: '#AD1457', text: '#FFF' },
+      'Artificial Intelligence': { bg: '#AD1457', text: '#FFF' },
+      'Data Mining': { bg: '#880E4F', text: '#FFF' },
+      
+      // Electronics - Green
+      'Electronics': { bg: '#388E3C', text: '#FFF' },
+      'Digital Electronics': { bg: '#2E7D32', text: '#FFF' },
+      'Signals': { bg: '#43A047', text: '#FFF' },
+      
+      // Management/Soft skills - Indigo
+      'Management': { bg: '#303F9F', text: '#FFF' },
+      'Economics': { bg: '#3949AB', text: '#FFF' },
+      'Communication': { bg: '#3F51B5', text: '#FFF' },
+      
+      // Default color - Gray
+      'default': { bg: '#546E7A', text: '#FFF' }
+    };
+
+    // Check if subject contains any keyword
+    for (const [key, color] of Object.entries(colors)) {
+      if (subject.toLowerCase().includes(key.toLowerCase())) {
+        return color;
+      }
+    }
+    return colors.default;
+  };
+
+  const subjectColor = getSubjectColor(item.subject);
+  
   // Check if current time is between start time and end time + 30 minutes
   const isWaitingForOTP = () => {
     if (!item.date || !item.start_time || !item.end_time) return false;
@@ -129,28 +204,90 @@ const ClassScheduleCard = ({
 
   return (
     <View style={styles.card}>
-      <View style={[styles.subjectCircle, { backgroundColor: item.color }]}>
-        <Text style={styles.subjectText}>{item.subject}</Text>
-        <Text style={styles.classText}>(Class)</Text>
-        {status.text && (
-          <Text style={[styles.statusText, { color: status.color }]}>
+      {/* Status badge - top right corner */}
+      {status.text && (
+        <View style={styles.statusBadgeTopRight}>
+          <Text style={styles.statusBadgeText}>
             {status.text}
           </Text>
-        )}
+        </View>
+      )}
+      
+      {/* Subject Header with colored badge */}
+      <View style={styles.subjectCircle}>
+        {/* Circular/Rounded subject badge */}
+        <View style={[styles.subjectBadge, { backgroundColor: subjectColor.bg }]}>
+          <Text style={[styles.subjectInitial, { color: subjectColor.text }]} numberOfLines={1} adjustsFontSizeToFit>
+            {item.subject_mnemonic}
+          </Text>
+        </View>
+        
+        <View style={{ flex: 1, marginLeft: 14, paddingRight: isCR && isUpcoming ? 0 : 90 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <Text style={[styles.subjectText, { flex: 1, paddingRight: isCR && isUpcoming ? 8 : 0 }]} numberOfLines={2}>
+              {item.subject}
+            </Text>
+            
+            {/* Edit/Delete buttons next to subject name for CR users with upcoming classes */}
+            {isCR && isUpcoming && (
+              <View style={{ flexDirection: 'row', gap: 8, flexShrink: 0, marginTop: 15 }}>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => onEdit && onEdit(item)}
+                >
+                  <Icon name="pencil-outline" size={16} color="#FFF" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() =>
+                    Alert.alert("Delete Class", "Are you sure you want to delete this class?", [
+                      { text: "Cancel", style: "cancel" },
+                      { text: "Delete", style: "destructive", onPress: () => onDelete && onDelete(item.id) },
+                    ])
+                  }
+                >
+                  <Icon name="delete-outline" size={16} color="#FFF" />
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
       </View>
 
+      {/* Class Details */}
       <View style={styles.cardDetails}>
-        <Text style={styles.detailText}>
-          <Icon name="clock" size={14} color="#FFF" /> {item.time}{"   "}{"\n"}
-          <Icon name="map-marker" size={14} color="#FFF" /> {item.location}
-        </Text>
+        {/* Timing and Venue side-by-side */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            <Icon name="clock-outline" size={20} color="#1976D2" />
+            <Text style={[styles.detailText, { marginLeft: 8, fontSize: 16, fontWeight: '600' }]}>
+              {item.time}
+            </Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            <Icon name="map-marker" size={20} color="#E65100" />
+            <Text style={[styles.detailText, { marginLeft: 8, fontSize: 16, fontWeight: '600' }]}>
+              {item.location}
+            </Text>
+          </View>
+        </View>
+        
+        {/* Contextual Status Messages */}
+        {isUpcoming && !item.attendance_marked && (
+          <View style={styles.infoContainer}>
+            <Icon name="calendar-clock" size={16} color="#1976D2" />
+            <Text style={styles.infoText}>
+              Class is scheduled - Not started yet
+            </Text>
+          </View>
+        )}
         
         {/* Show waiting for OTP message */}
         {waitingForOTP && !item.otp && (
           <View style={styles.waitingOTPContainer}>
-            <Icon name="clock-alert" size={16} color="#FF9F43" />
+            <Icon name="clock-alert-outline" size={16} color="#F57C00" />
             <Text style={styles.waitingOTPText}>
-              Waiting for faculty to generate OTP
+              Class in progress - Waiting for faculty to generate OTP
             </Text>
           </View>
         )}
@@ -158,47 +295,38 @@ const ClassScheduleCard = ({
         {/* Show attendance status */}
         {item.attendance_marked ? (
           <View style={styles.attendanceStatusContainer}>
-            <Icon name="check-circle" size={16} color="#4ECDC4" />
+            <Icon name="check-circle" size={16} color="#00796B" />
             <Text style={styles.attendanceMarkedText}>
-              ✓ Attendance Marked
+              ✓ Attendance marked successfully
             </Text>
           </View>
         ) : isCompleted && item.otp ? (
-          <Text style={styles.pendingAttendanceText}>
-            • Attendance Available
-          </Text>
-        ) : isExpired ? (
-          <Text style={styles.expiredText}>
-            • Class Time Passed
-          </Text>
+          <View style={{ backgroundColor: '#FFF8E1', padding: 10, borderRadius: 8, marginTop: 8, flexDirection: 'row', alignItems: 'center' }}>
+            <Icon name="alert-circle-outline" size={16} color="#F57F17" />
+            <Text style={[styles.pendingAttendanceText, { marginTop: 0, marginLeft: 8, fontSize: 13 }]}>
+              Class completed - Attendance available to mark
+            </Text>
+          </View>
+        ) : isCompleted && !item.otp && !item.attendance_marked ? (
+          <View style={{ backgroundColor: '#FFF3E0', padding: 10, borderRadius: 8, marginTop: 8, flexDirection: 'row', alignItems: 'center' }}>
+            <Icon name="information-outline" size={16} color="#F57C00" />
+            <Text style={[styles.pendingAttendanceText, { marginTop: 0, marginLeft: 8, fontSize: 13 }]}>
+              Class completed - Waiting for faculty to generate OTP
+            </Text>
+          </View>
+        ) : isExpired && !item.attendance_marked ? (
+          <View style={styles.expiredContainer}>
+            <Icon name="close-circle-outline" size={16} color="#D32F2F" />
+            <Text style={[styles.expiredText, { marginTop: 0, marginLeft: 8 }]}>
+              Class time passed - Attendance not marked
+            </Text>
+          </View>
         ) : null}
       </View>
 
+      {/* Action Buttons Section - Always show to maintain consistent card height */}
       <View style={styles.actionButtons}>
-        {isCR && isUpcoming && (
-          <>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => onEdit && onEdit(item)}
-            >
-              <Icon name="pencil" size={18} color="#FFF" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() =>
-                Alert.alert("Delete Class", "Are you sure you want to delete this class?", [
-                  { text: "Cancel", style: "cancel" },
-                  { text: "Delete", style: "destructive", onPress: () => onDelete && onDelete(item.id) },
-                ])
-              }
-            >
-              <Icon name="delete" size={18} color="#FFF" />
-            </TouchableOpacity>
-          </>
-        )}
-
-        {/* Show Mark Attendance button ONLY when:
-            - Class is completed AND has OTP AND attendance is NOT marked */}
+        {/* Show Mark Attendance button when class is completed AND has OTP AND attendance is NOT marked */}
         {canMarkAttendance && (
           <TouchableOpacity
             style={styles.attendanceButton}
@@ -207,29 +335,34 @@ const ClassScheduleCard = ({
               onMarkAttendance(classEndTime, item);
             }}
           >
-            <Text style={styles.buttonText}>Mark{'\n'}Attendance</Text>
+            <Icon name="check-circle-outline" size={20} color="#FFF" />
+            <Text style={[styles.buttonText, { marginLeft: 8 }]}>Mark Attendance</Text>
           </TouchableOpacity>
         )}
 
         {/* Show waiting status when class is in OTP waiting period */}
-        {waitingForOTP && !item.otp && (
-          <View style={styles.waitingButton}>
-            <Icon name="clock" size={16} color="#FFF" />
-            <Text style={styles.waitingButtonText}>Waiting{'\n'}for OTP</Text>
-          </View>
+        {waitingForOTP && !item.otp && !isCR && !canMarkAttendance && !item.attendance_marked && (
+          <TouchableOpacity style={styles.waitingButton} disabled>
+            <Icon name="clock-outline" size={18} color="#FFF" />
+            <Text style={styles.waitingButtonText}>Waiting for OTP</Text>
+          </TouchableOpacity>
         )}
 
         {/* If attendance is already marked, show a disabled state */}
-        {item.attendance_marked && (
-          <View style={styles.attendanceButtonDisabled}>
-            <Text style={styles.buttonTextDisabled}>Already{'\n'}Marked</Text>
-          </View>
+        {item.attendance_marked && !isCR && (
+          <TouchableOpacity style={styles.attendanceButtonDisabled} disabled>
+            <Icon name="check-all" size={18} color="#757575" />
+            <Text style={[styles.buttonTextDisabled, { marginLeft: 6 }]}>Already Marked</Text>
+          </TouchableOpacity>
         )}
 
-        {/* Show expired state for CR users */}
-        {isCR && isExpired && (
-          <View style={styles.expiredButton}>
-            <Text style={styles.buttonTextDisabled}>Expired</Text>
+        {/* Show placeholder for upcoming classes (non-CR students) */}
+        {!isCR && isUpcoming && !canMarkAttendance && !item.attendance_marked && (
+          <View style={styles.upcomingPlaceholder}>
+            <Icon name="calendar-clock" size={16} color="#9E9E9E" />
+            <Text style={styles.upcomingPlaceholderText}>
+              Class scheduled
+            </Text>
           </View>
         )}
       </View>
@@ -258,6 +391,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
   const [editingSchedule, setEditingSchedule] = useState<ScheduleItem | null>(null);
   const [editVenue, setEditVenue] = useState('');
   const [editLoading, setEditLoading] = useState(false);
+  
+  // Dropdown visibility states
+  const [showSubjectDropdown, setShowSubjectDropdown] = useState(false);
+  const [showTimeSlotDropdown, setShowTimeSlotDropdown] = useState(false);
 
   // Get all time slots (for scheduleClass function)
   const getAllTimeSlots = () => {
@@ -365,6 +502,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
         time: item.time,
         location: item.location,
         status: item.status,
+        subject_mnemonic: item.subject_mnemonic,
         otp: item.otp,
         attendance_marked: item.attendance_marked,
         attendance_status: item.attendance_status,
@@ -624,17 +762,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
 
   if (crLoading) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <LinearGradient colors={["#900a02", "#600202"]} style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
         <ActivityIndicator size="large" color="#FFF" />
         <Text style={{ color: "#FFF", marginTop: 10 }}>Loading today's schedule...</Text>
-      </View>
+      </LinearGradient>
     );
   }
 
   const currentSchedule = getCurrentSchedule();
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={["#900a02", "#600202"]}
+      style={styles.container}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
       <StatusBar barStyle="light-content" />
 
       <View style={styles.greetingContainer}>
@@ -674,7 +817,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
         </TouchableOpacity>
       </View>
 
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 14 }}>
         <Text style={styles.scheduleTitle}>{getScheduleTitle()}</Text>
 
         {isCR && (
@@ -728,15 +871,25 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
       )}
 
       {isCR && (
-        <Modal visible={modalVisible} animationType="slide" transparent={true}>
+        <Modal 
+          visible={modalVisible} 
+          animationType="slide" 
+          transparent={true}
+          onRequestClose={() => setModalVisible(false)}
+        >
           <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Schedule New Class</Text>
+            <View style={[styles.modalContent, { height: '80%' }]}>
+              {/* Title Header */}
+              <View>
+                <Text style={styles.modalTitle}>Schedule New Class</Text>
+              </View>
               
+              {/* Scrollable Content */}
               <ScrollView 
-                style={styles.modalScrollView}
-                contentContainerStyle={styles.modalScrollContent}
+                style={{ flex: 1 }}
+                contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 20 }}
                 showsVerticalScrollIndicator={true}
+                nestedScrollEnabled={true}
               >
                 {/* CR Info */}
                 {crInfo && (
@@ -746,44 +899,72 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
                   </View>
                 )}
 
-                {/* Subjects List */}
+                {/* Subjects Dropdown */}
                 <Text style={styles.label}>Select Subject *</Text>
-                <View style={styles.dropdownContainer}>
-                  <ScrollView 
-                    style={styles.dropdownScrollView}
-                    nestedScrollEnabled={true}
-                    showsVerticalScrollIndicator={true}
-                  >
-                    {subjects.map((subject) => (
-                      <TouchableOpacity
-                        key={subject.subject_code}
-                        style={[
-                          styles.dropdownItem,
-                          selectedSubject === subject.subject_code && styles.dropdownItemSelected
-                        ]}
-                        onPress={() => setSelectedSubject(subject.subject_code)}
-                      >
-                        <Text style={[
-                          styles.dropdownItemText,
-                          selectedSubject === subject.subject_code && styles.dropdownItemTextSelected
-                        ]}>
-                          {subject.subject_name} ({subject.subject_type})
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
+                <TouchableOpacity 
+                  style={styles.dropdownButton}
+                  onPress={() => setShowSubjectDropdown(!showSubjectDropdown)}
+                >
+                  <Text style={selectedSubject ? styles.dropdownButtonTextSelected : styles.dropdownButtonTextPlaceholder}>
+                    {selectedSubject 
+                      ? `${subjects.find(s => s.subject_code === selectedSubject)?.subject_name} (${subjects.find(s => s.subject_code === selectedSubject)?.subject_type})`
+                      : 'Select a subject'}
+                  </Text>
+                  <Icon name={showSubjectDropdown ? "chevron-up" : "chevron-down"} size={20} color="#757575" />
+                </TouchableOpacity>
+                
+                {showSubjectDropdown && (
+                  <View style={styles.dropdownList}>
+                    <ScrollView 
+                      style={{ maxHeight: 200 }}
+                      nestedScrollEnabled={true}
+                      showsVerticalScrollIndicator={true}
+                    >
+                      {subjects.map((subject) => (
+                        <TouchableOpacity
+                          key={subject.subject_code}
+                          style={[
+                            styles.dropdownItem,
+                            selectedSubject === subject.subject_code && styles.dropdownItemSelected
+                          ]}
+                          onPress={() => {
+                            setSelectedSubject(subject.subject_code);
+                            setShowSubjectDropdown(false);
+                          }}
+                        >
+                          <Text style={[
+                            styles.dropdownItemText,
+                            selectedSubject === subject.subject_code && styles.dropdownItemTextSelected
+                          ]}>
+                            {subject.subject_name} ({subject.subject_type})
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
 
-                {/* Time Slots List - Filtered based on subject type */}
+                {/* Time Slots Dropdown - Filtered based on subject type */}
                 <Text style={styles.label}>Time Slot *</Text>
-                <View style={styles.dropdownContainer}>
-                  <ScrollView 
-                    style={styles.dropdownScrollView}
-                    nestedScrollEnabled={true}
-                    showsVerticalScrollIndicator={true}
-                  >
-                    {selectedSubject ? (
-                      getFilteredTimeSlots(
+                <TouchableOpacity 
+                  style={[styles.dropdownButton, !selectedSubject && styles.dropdownButtonDisabled]}
+                  onPress={() => selectedSubject && setShowTimeSlotDropdown(!showTimeSlotDropdown)}
+                  disabled={!selectedSubject}
+                >
+                  <Text style={selectedTimeSlot ? styles.dropdownButtonTextSelected : styles.dropdownButtonTextPlaceholder}>
+                    {selectedTimeSlot || 'Select a time slot'}
+                  </Text>
+                  <Icon name={showTimeSlotDropdown ? "chevron-up" : "chevron-down"} size={20} color="#757575" />
+                </TouchableOpacity>
+                
+                {showTimeSlotDropdown && selectedSubject && (
+                  <View style={styles.dropdownList}>
+                    <ScrollView 
+                      style={{ maxHeight: 200 }}
+                      nestedScrollEnabled={true}
+                      showsVerticalScrollIndicator={true}
+                    >
+                      {getFilteredTimeSlots(
                         subjects.find(sub => sub.subject_code === selectedSubject)?.subject_type || ''
                       ).map((slot, index) => (
                         <TouchableOpacity
@@ -792,7 +973,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
                             styles.dropdownItem,
                             selectedTimeSlot === slot.label && styles.dropdownItemSelected
                           ]}
-                          onPress={() => setSelectedTimeSlot(slot.label)}
+                          onPress={() => {
+                            setSelectedTimeSlot(slot.label);
+                            setShowTimeSlotDropdown(false);
+                          }}
                         >
                           <Text style={[
                             styles.dropdownItemText,
@@ -801,12 +985,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
                             {slot.label} ({slot.type})
                           </Text>
                         </TouchableOpacity>
-                      ))
-                    ) : (
-                      <Text style={styles.disabledText}>Please select a subject first</Text>
-                    )}
-                  </ScrollView>
-                </View>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
 
                 {/* Venue Input */}
                 <Text style={styles.label}>Venue *</Text>
@@ -829,17 +1011,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
                   {schedulingLoading ? (
                     <ActivityIndicator size="small" color="#FFF" />
                   ) : (
-                    <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Schedule Class</Text>
+                    <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 15 }}>Schedule Class</Text>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity 
-                  style={[styles.modalButton, { backgroundColor: 'red' }]} 
+                  style={[styles.modalButton, { backgroundColor: '#757575' }]} 
                   onPress={() => {
                     setModalVisible(false);
                     resetModal();
                   }}
                 >
-                  <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Cancel</Text>
+                  <Text style={{ color: '#FFF', fontWeight: '600' }}>Cancel</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -847,95 +1029,131 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
         </Modal>
       )}
 
-      {/* Edit Modal remains the same */}
+      {/* Edit Modal */}
       {isCR && (
-        <Modal visible={editModalVisible} animationType="slide" transparent={true}>
+        <Modal 
+          visible={editModalVisible} 
+          animationType="slide" 
+          transparent={true}
+          onRequestClose={() => setEditModalVisible(false)}
+        >
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
-              <ScrollView contentContainerStyle={styles.modalScrollContent}>
-                <Text style={styles.modalTitle}>Edit Class Venue</Text>
-                
-                {editingSchedule && (
-                  <View style={styles.crInfoContainer}>
-                    <Text style={styles.crInfoText}>
-                      Subject: {editingSchedule.subject}
-                    </Text>
-                    <Text style={styles.crInfoText}>
-                      Date: {editingSchedule.date}
-                    </Text>
-                    <Text style={styles.crInfoText}>
-                      Time: {editingSchedule.time}
-                    </Text>
-                    <Text style={styles.crInfoText}>
-                      Current Venue: {editingSchedule.location}
-                    </Text>
-                  </View>
-                )}
+              {/* Title Header */}
+              <Text style={styles.modalTitle}>Edit Class Venue</Text>
+              
+              {/* Scrollable Content */}
+              <ScrollView 
+                showsVerticalScrollIndicator={true}
+                nestedScrollEnabled={true}
+              >
+                <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 20 }}>
+                  {editingSchedule && (
+                    <View style={styles.crInfoContainer}>
+                      <Text style={styles.crInfoText}>
+                        Subject: {editingSchedule.subject}
+                      </Text>
+                      <Text style={styles.crInfoText}>
+                        Date: {editingSchedule.date}
+                      </Text>
+                      <Text style={styles.crInfoText}>
+                        Time: {editingSchedule.time}
+                      </Text>
+                      <Text style={styles.crInfoText}>
+                        Current Venue: {editingSchedule.location}
+                      </Text>
+                    </View>
+                  )}
 
-                <Text style={styles.label}>New Venue *</Text>
-                <TextInput
-                  placeholder="Enter new venue (e.g., Room 101, Lab 201)"
-                  placeholderTextColor="#999"
-                  value={editVenue}
-                  onChangeText={setEditVenue}
-                  style={styles.input}
-                />
-
-                <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 20 }}>
-                  <TouchableOpacity 
-                    style={[styles.modalButton, editLoading && styles.disabledButton]} 
-                    onPress={updateClass}
-                    disabled={editLoading}
-                  >
-                    {editLoading ? (
-                      <ActivityIndicator size="small" color="#FFF" />
-                    ) : (
-                      <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Update Venue</Text>
-                    )}
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={[styles.modalButton, { backgroundColor: 'red' }]} 
-                    onPress={() => {
-                      setEditModalVisible(false);
-                      resetEditModal();
-                    }}
-                  >
-                    <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Cancel</Text>
-                  </TouchableOpacity>
+                  <Text style={styles.label}>New Venue *</Text>
+                  <TextInput
+                    placeholder="Enter new venue (e.g., Room 101, Lab 201)"
+                    placeholderTextColor="#999"
+                    onChangeText={setEditVenue}
+                    style={styles.input}
+                  />
                 </View>
               </ScrollView>
+
+              {/* Buttons outside ScrollView */}
+              <View style={styles.modalFooter}>
+                <TouchableOpacity 
+                  style={[styles.modalButton, editLoading && styles.disabledButton]} 
+                  onPress={updateClass}
+                  disabled={editLoading}
+                >
+                  {editLoading ? (
+                    <ActivityIndicator size="small" color="#FFF" />
+                  ) : (
+                    <Text style={{ color: '#FFF', fontWeight: '600', fontSize: 15 }}>Update Venue</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.modalButton, { backgroundColor: '#757575' }]} 
+                  onPress={() => {
+                    setEditModalVisible(false);
+                    resetEditModal();
+                  }}
+                >
+                  <Text style={{ color: '#FFF', fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </Modal>
       )}
-    </View>
+    </LinearGradient>
   );
 };
 
 
 // Styles remain the same...
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#600202", paddingHorizontal: 20, paddingTop: 20 },
-  greetingContainer: { marginTop: 20 },
-  greetingHello: { color: "#FFF", fontSize: 28 },
-  greetingName: { color: "#FFF", fontSize: 32, fontWeight: "bold" },
+  container: { 
+    flex: 1, 
+    backgroundColor: "#600202", 
+    paddingHorizontal: 16, 
+    paddingTop: 6 
+  },
+  greetingContainer: { 
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  greetingHello: { 
+    color: "rgba(255, 255, 255, 0.85)", 
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  greetingName: { 
+    color: "#FFF", 
+    fontSize: 24, 
+    fontWeight: "700",
+    marginTop: 2,
+  },
   
   calendarNav: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 20,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 25,
-    padding: 5,
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    gap: 10,
   },
   dateButton: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
-    borderRadius: 20,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   dateButtonActive: {
     backgroundColor: '#FFF',
+    borderColor: '#FFF',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   slotInfo: {
     fontSize: 14,
@@ -945,23 +1163,37 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   dateButtonText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   dateButtonTextActive: {
-    color: '#600202',
+    color: '#900a02',
+    fontWeight: '700',
   },
   
-  scheduleTitle: { color: "#FFF", fontSize: 24, fontWeight: "bold", marginBottom: 15, textDecorationLine: "underline" },
-  listContainer: { paddingBottom: 20 },
+  scheduleTitle: { 
+    color: "#FFF", 
+    fontSize: 18, 
+    fontWeight: "700", 
+    marginBottom: 12,
+    letterSpacing: 0.5,
+  },
+  listContainer: { 
+    paddingBottom: 20 
+  },
   card: { 
-    flexDirection: "row", 
-    alignItems: "center", 
     marginBottom: 12, 
-    padding: 10, 
-    backgroundColor: "rgba(255,255,255,0.1)", 
-    borderRadius: 15 
+    backgroundColor: "#FFF", 
+    borderRadius: 10,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    overflow: 'hidden',
+    minHeight: 180,
   },
   dropdownContainer: {
   maxHeight: 180,
@@ -970,171 +1202,320 @@ const styles = StyleSheet.create({
   borderRadius: 8,
   marginBottom: 10,
 },
-expiredText: {
-  color: '#FF6B6B',
-  fontSize: 12,
-  marginTop: 5,
-  fontStyle: 'italic',
-},
 expiredButton: {
-  backgroundColor: '#6c757d',
-  paddingVertical: 4,
-  paddingHorizontal: 6,
-  borderRadius: 12,
-  justifyContent: "center",
-  alignItems: "center",
-  minHeight: 35,
-  marginLeft: 5,
-  opacity: 0.7,
+  backgroundColor: '#E0E0E0',
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  borderRadius: 8,
+  flexDirection: 'row',
+  alignItems: 'center',
+  flex: 1,
+  justifyContent: 'center',
+},
+expiredText: {
+  color: '#D32F2F',
+  fontSize: 13,
+  fontWeight: '500',
+  flex: 1,
 },
   subjectCircle: { 
-    width: 90, 
-    height: 75, 
-    borderRadius: 35, 
-    justifyContent: "center", 
-    alignItems: "center", 
-    marginRight: 10 
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    backgroundColor: '#FAFAFA',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  subjectBadge: {
+    width: 95,
+    height: 70,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  subjectInitial: {
+    fontSize: 22,
+    fontWeight: '700',
+    textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+  subjectType: {
+    fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 3,
+  },
+  subjectText: { 
+    color: "#212121", 
+    fontWeight: "700", 
+    fontSize: 17,
+  },
+  subjectMeta: {
+    color: "#757575",
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  statusBadge: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusBadgeTopRight: {
+    position: 'absolute',
+    top: 8,
+    right: 10,
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    zIndex: 10,
+  },
+  statusBadgeText: {
+    color: '#2E7D32',
+    fontSize: 10,
+    fontWeight: '600',
   },
   waitingOTPContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 5,
+    backgroundColor: '#FFF3E0',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 8,
   },
   waitingOTPText: {
-    color: '#FF9F43',
-    fontSize: 12,
-    marginLeft: 5,
-    fontStyle: 'italic',
+    color: '#E65100',
+    fontSize: 13,
+    marginLeft: 8,
+    fontWeight: '500',
+    flex: 1,
   },
   waitingButton: {
-    backgroundColor: '#FF9F43',
-    paddingVertical: 4,
-    paddingHorizontal: 6,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: 35,
-    marginLeft: 5,
+    backgroundColor: '#FF9800',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
     flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 2,
+    flex: 1,
+    justifyContent: 'center',
   },
   waitingButtonText: {
     color: "#FFF",
-    fontWeight: "bold",
-    fontSize: 12,
-    textAlign: "center",
-    marginLeft: 4,
+    fontWeight: "600",
+    fontSize: 13,
+    marginLeft: 8,
   },
   attendanceStatusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 5,
+    backgroundColor: '#E0F2F1',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 8,
   },
   attendanceMarkedText: {
-    color: '#4ECDC4',
-    fontSize: 12,
-    marginLeft: 5,
-    fontWeight: 'bold',
+    color: '#00796B',
+    fontSize: 13,
+    marginLeft: 8,
+    fontWeight: '600',
+    flex: 1,
   },
   pendingAttendanceText: {
-    color: '#FECA57',
-    fontSize: 12,
-    marginTop: 5,
-    fontStyle: 'italic',
+    color: '#F57F17',
+    fontSize: 13,
+    fontWeight: '500',
+    flex: 1,
   },
   attendanceButtonDisabled: {
-    backgroundColor: '#6c757d',
-    paddingVertical: 4,
-    paddingHorizontal: 6,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: 35,
-    marginLeft: 5,
-    opacity: 0.7,
-  },
-  buttonTextDisabled: {
-    color: '#CCC',
-    fontWeight: "bold",
-    fontSize: 12,
-    textAlign: "center",
-  },
-  subjectText: { 
-    color: "#FFF", 
-    fontWeight: "bold", 
-    fontSize: 16,
-    marginLeft: 8,
-    textAlign: 'center'
-  },
-  classText: { color: "#FFF", fontSize: 12 },
-  statusText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    marginTop: 2,
-  },
-  cardDetails: { flex: 1 },
-  detailText: { color: "#FFF", fontSize: 14 },
-  actionButtons: {
+    backgroundColor: '#E0E0E0',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  buttonTextDisabled: {
+    color: '#757575',
+    fontWeight: "600",
+    fontSize: 13,
+  },
+  classText: { 
+    color: "rgba(255, 255, 255, 0.85)", 
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '700',
+    marginLeft: 8,
+  },
+  cardDetails: { 
+    padding: 12,
+  },
+  detailText: { 
+    color: "#424242", 
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '600',
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E3F2FD',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  infoText: {
+    color: '#1565C0',
+    fontSize: 13,
+    marginLeft: 8,
+    fontWeight: '500',
+    flex: 1,
+  },
+  expiredContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFEBEE',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    flexWrap: 'wrap',
   },
   editButton: { 
-    backgroundColor: "#FFA500", 
-    padding: 6, 
-    borderRadius: 8, 
-    marginRight: 5 
+    backgroundColor: "#4CAF50", 
+    padding: 6,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 30,
+    height: 30,
+    elevation: 2,
   },
   deleteButton: { 
-    backgroundColor: "red", 
-    padding: 6, 
-    borderRadius: 8, 
-    marginRight: 5 
+    backgroundColor: "#F44336", 
+    padding: 6,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 30,
+    height: 30,
+    elevation: 2,
   },
   attendanceButton: { 
-    backgroundColor: "#28a745", 
-    paddingVertical: 4, 
-    paddingHorizontal: 6, 
-    borderRadius: 12, 
-    justifyContent: "center", 
-    alignItems: "center", 
-    minHeight: 35, 
-    marginLeft: 5 
+    backgroundColor: "#2196F3", 
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 2,
+    flex: 1,
+    justifyContent: 'center',
   },
-  buttonText: { color: "#FFF", fontWeight: "bold", fontSize: 12, textAlign: "center" },
+  buttonText: { 
+    color: "#FFF", 
+    fontWeight: "600", 
+    fontSize: 14,
+  },
   
     
   // CR Info Styles
   crInfoContainer: {
-    backgroundColor: '#f0f0f0',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 15,
+    backgroundColor: '#F5F5F5',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#600202',
   },
   crInfoText: {
     fontSize: 14,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#600202',
-    marginBottom: 2,
+    fontWeight: '500',
+    color: '#424242',
+    marginBottom: 6,
   },
   
   // Form Styles
   label: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    marginTop: 10,
-    color: '#333',
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 8,
+    marginTop: 12,
+    color: '#424242',
   },
   input: {
+    borderWidth: 1.5,
+    borderColor: "#E0E0E0",
+    color: '#424242',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 16,
+    fontSize: 15,
+    backgroundColor: '#FAFAFA',
+  },
+  
+  // Dropdown Styles
+  dropdownButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: "#E0E0E0",
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 12,
+    backgroundColor: '#FAFAFA',
+  },
+  dropdownButtonDisabled: {
+    backgroundColor: '#F5F5F5',
+    opacity: 0.6,
+  },
+  dropdownButtonTextSelected: {
+    fontSize: 15,
+    color: '#424242',
+    fontWeight: '500',
+  },
+  dropdownButtonTextPlaceholder: {
+    fontSize: 15,
+    color: '#999',
+  },
+  dropdownList: {
     borderWidth: 1,
-    borderColor: "#CCC",
-    color: '#333',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 10,
-    fontSize: 16,
-    
-
+    borderColor: "#E0E0E0",
+    borderRadius: 10,
+    marginBottom: 16,
+    backgroundColor: '#FFF',
+    maxHeight: 200,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
 
   dropdownItem: {
@@ -1160,12 +1541,13 @@ expiredButton: {
     fontStyle: 'italic',
   },
   modalButton: {
-    backgroundColor: "#28a745",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
+    backgroundColor: "#600202",
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 10,
     minWidth: 120,
     alignItems: 'center',
+    elevation: 2,
   },
   disabledButton: {
     backgroundColor: '#CCC',
@@ -1176,39 +1558,52 @@ expiredButton: {
     flex: 1, 
     justifyContent: "center", 
     alignItems: "center",
-    marginTop: 50,
+    marginTop: 100,
+    paddingHorizontal: 40,
   },
   emptyText: { 
-    color: '#FFF', 
+    color: 'rgba(255, 255, 255, 0.9)', 
     fontSize: 16,
-    marginBottom: 20,
+    marginBottom: 24,
+    textAlign: 'center',
+    fontWeight: '600',
   },
   refreshButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 24,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   refreshText: {
-    color: '#600202',
+    color: '#900a02',
     marginLeft: 8,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    fontSize: 15,
   },
    modalContainer: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
   },
   modalContent: {
     width: "100%",
-    height: "80%", // Fixed height instead of maxHeight
+    maxHeight: "85%",
     backgroundColor: "#FFF",
-    borderRadius: 12,
-    overflow: 'hidden', // Important to prevent content overflow
+    borderRadius: 16,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   
 
@@ -1217,11 +1612,11 @@ expiredButton: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 15,
+    paddingVertical: 16,
     paddingHorizontal: 20,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-    backgroundColor: '#FFF', // Ensure background color
+    borderTopColor: '#E0E0E0',
+    backgroundColor: '#FFF',
   },
   
   // Dropdown styles - make them scrollable
@@ -1230,19 +1625,21 @@ expiredButton: {
   // Ensure proper spacing for modal title
   modalTitle: { 
     fontSize: 20, 
-    fontWeight: "bold", 
-    marginBottom: 15, 
+    fontWeight: "700", 
     textAlign: "center",
-    paddingTop: 15,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    backgroundColor: '#600202',
+    color: '#FFF',
   },
   modalScrollView: {
-  flex: 1,
-},
-modalScrollContent: {
-  paddingHorizontal: 20,
-  paddingTop: 10,
-  paddingBottom: 20,
-},
+    flex: 1,
+  },
+  modalScrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
+  },
 dropdownScrollView: {
   maxHeight: 120, // Limits height of each dropdown
   marginBottom: 10,
@@ -1253,7 +1650,23 @@ dropdown: {
   borderColor: "#CCC",
   borderRadius: 8,
   zIndex: 1, // Ensure dropdown appears above other content
-}
+},
+upcomingPlaceholder: {
+  backgroundColor: '#F5F5F5',
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  borderRadius: 8,
+  flexDirection: 'row',
+  alignItems: 'center',
+  flex: 1,
+  justifyContent: 'center',
+},
+upcomingPlaceholderText: {
+  color: '#9E9E9E',
+  fontSize: 13,
+  fontWeight: '500',
+  marginLeft: 8,
+},
 });
 
 export default HomeScreen;

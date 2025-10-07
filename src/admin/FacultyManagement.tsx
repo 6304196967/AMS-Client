@@ -550,7 +550,12 @@ const handleAddFaculty = async () => {
       )}
 
       {/* Filter Modal */}
-      <Modal visible={isFilterModalVisible} animationType="slide" transparent>
+      <Modal 
+        visible={isFilterModalVisible} 
+        animationType="slide" 
+        transparent
+        onRequestClose={() => setIsFilterModalVisible(false)}
+      >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
@@ -579,7 +584,12 @@ const handleAddFaculty = async () => {
       </Modal>
 
       {/* Add Faculty Modal */}
-      <Modal visible={isAddModalVisible} animationType="slide" transparent>
+      <Modal 
+        visible={isAddModalVisible} 
+        animationType="slide" 
+        transparent
+        onRequestClose={() => !isSubmitting && resetAddForm()}
+      >
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
@@ -617,7 +627,12 @@ const handleAddFaculty = async () => {
       </Modal>
 
       {/* Edit Faculty Modal */}
-      <Modal visible={isEditModalVisible} animationType="slide" transparent>
+      <Modal 
+        visible={isEditModalVisible} 
+        animationType="slide" 
+        transparent
+        onRequestClose={() => !isSubmitting && resetEditForm()}
+      >
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
@@ -659,7 +674,12 @@ const handleAddFaculty = async () => {
       </Modal>
 
       {/* Upload Excel Modal */}
-      <Modal visible={isUploadModalVisible} animationType="slide" transparent>
+      <Modal 
+        visible={isUploadModalVisible} 
+        animationType="slide" 
+        transparent
+        onRequestClose={() => !isUploading && setIsUploadModalVisible(false)}
+      >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>

@@ -31,7 +31,7 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ user }) => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/student/attendance/R210002`);
+      const response = await fetch(`${API_BASE_URL}/student/attendance/${user.email.replace('@rguktrkv.ac.in','').toUpperCase()}`);
       const data = await response.json();
 
       console.log("Fetched data:", data);

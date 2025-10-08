@@ -21,7 +21,7 @@ import LinearGradient from "react-native-linear-gradient";
 import SendNotificationModal from './SendNotificationModal';
 import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 
-const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
+const API_BASE_URL = 'http://10.144.89.102:5000';
 
 // Type for schedule
 type ScheduleItem = {
@@ -56,9 +56,6 @@ type Subject = {
   subject_type: string;
 };
 
-// Card Component
-// Card Component
-// Card Component
 const ClassScheduleCard = ({
   item,
   onDelete,
@@ -72,8 +69,7 @@ const ClassScheduleCard = ({
   isCR: boolean;
   onMarkAttendance: (classEndTime: number, item: ScheduleItem) => void;
 }) => {
-  // Get subject color based on subject name
-  const getSubjectColor = (subject: string) => {
+   const getSubjectColor = (subject: string) => {
     const colors = {
       // CS/IT subjects - Blue tones
       'Data Structures': { bg: '#1976D2', text: '#FFF' },
@@ -144,94 +140,291 @@ const ClassScheduleCard = ({
 
   const subjectColor = getSubjectColor(item.subject);
   
-  // Check if current time is between start time and end time + 30 minutes
-  const isWaitingForOTP = () => {
+  
+  // FIXED: Improved date parsing with timezone handling
+  const parseDateTime = (dateStr: string, timeStr: string) => {
+    try {
+      if (!dateStr || !timeStr) return new Date();
+      
+      // Parse date and time properly
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      
+      // Create date in local timezone
+      const localDate = new Date(year, month - 1, day, hours, minutes, 0);
+      
+      // Debug logging
+      console.log('📅 Date Parsing:', {
+        input: { dateStr, timeStr },
+        output: localDate.toLocaleString(),
+        timestamp: localDate.getTime()
+      });
+      
+      return localDate;
+    } catch (error) {
+      console.error('Error parsing date:', error);
+      return new Date();
+    }
+  };
+
+  // FIXED: Check if class is upcoming
+  const isUpcoming = () => {
+    if (!item.date || !item.start_time) return false;
+    
+    try {
+      const classStartDateTime = parseDateTime(item.date, item.start_time);
+      const currentDateTime = new Date();
+      
+      const isUpcoming = currentDateTime < classStartDateTime;
+      
+      console.log('⏰ Upcoming Check:', {
+        subject: item.subject,
+        classStart: classStartDateTime.toLocaleString(),
+        current: currentDateTime.toLocaleString(),
+        isUpcoming
+      });
+      
+      return isUpcoming;
+    } catch (error) {
+      console.error('Error checking upcoming status:', error);
+      return false;
+    }
+  };
+
+  // FIXED: Check if class is ongoing
+  const isOngoing = () => {
     if (!item.date || !item.start_time || !item.end_time) return false;
     
     try {
-      const classStartDateTime = new Date(item.date + 'T' + item.start_time);
-      const classEndDateTime = new Date(item.date + 'T' + item.end_time);
+      const classStartDateTime = parseDateTime(item.date, item.start_time);
+      const classEndDateTime = parseDateTime(item.date, item.end_time);
       const currentDateTime = new Date();
       
-      // Add 30 minutes buffer to end time
+      // Add 30 minutes buffer to end time for OTP submission
       const bufferMs = 30 * 60 * 1000;
       const classEndWithBuffer = new Date(classEndDateTime.getTime() + bufferMs);
       
-      return (
-        currentDateTime.getTime() >= classStartDateTime.getTime() && 
-        currentDateTime.getTime() <= classEndWithBuffer.getTime()
+      const isOngoing = (
+        currentDateTime >= classStartDateTime && 
+        currentDateTime <= classEndWithBuffer
       );
+      
+      console.log('🔄 Ongoing Check:', {
+        subject: item.subject,
+        classStart: classStartDateTime.toLocaleString(),
+        classEnd: classEndDateTime.toLocaleString(),
+        classEndWithBuffer: classEndWithBuffer.toLocaleString(),
+        current: currentDateTime.toLocaleString(),
+        isOngoing
+      });
+      
+      return isOngoing;
     } catch (error) {
-      console.error('Error checking OTP waiting period:', error);
+      console.error('Error checking ongoing status:', error);
       return false;
     }
   };
 
-  // Only show Mark Attendance button when:
-  // - Class is completed (status = true) AND OTP is available AND attendance is NOT marked
-  const canMarkAttendance = item.status && item.otp && !item.attendance_marked;
-  
-  // Calculate if class time has passed
-  const isClassTimePassed = () => {
+  // FIXED: Check if class time has completely passed
+  const isExpired = () => {
     if (!item.date || !item.end_time) return false;
     
     try {
-      const classEndDateTime = new Date(item.date + 'T' + item.end_time);
+      const classEndDateTime = parseDateTime(item.date, item.end_time);
       const currentDateTime = new Date();
       
-      // Add buffer of 5 minutes to account for potential time sync issues
-      const bufferMs = 5 * 60 * 1000;
+      // Add buffer of 30 minutes to account for OTP waiting period
+      const bufferMs = 30 * 60 * 1000;
+      const classEndWithBuffer = new Date(classEndDateTime.getTime() + bufferMs);
       
-      return classEndDateTime.getTime() + bufferMs < currentDateTime.getTime();
+      const isExpired = currentDateTime > classEndWithBuffer;
+      
+      console.log('⏳ Expired Check:', {
+        subject: item.subject,
+        classEnd: classEndDateTime.toLocaleString(),
+        classEndWithBuffer: classEndWithBuffer.toLocaleString(),
+        current: currentDateTime.toLocaleString(),
+        isExpired
+      });
+      
+      return isExpired;
     } catch (error) {
-      console.error('Error comparing dates:', error);
+      console.error('Error checking expired status:', error);
       return false;
     }
   };
+  // FIXED: Check if attendance is marked (based on backend data)
+  const isAttendanceMarked = () => {
+  // Check if we have attendance_status from backend
+  if (item.attendance_status !== undefined) {
+    return item.attendance_status;
+  }
+  
+  // Fallback: if status is true and we have OTP, consider attendance can be marked
+  if (item.status === true && item.otp) {
+    return false; // OTP available but not marked yet
+  }
+  
+  return false;
+};
+const attendanceMarked = isAttendanceMarked();
 
-  const waitingForOTP = isWaitingForOTP();
-  const isExpired = !item.status && isClassTimePassed() && !waitingForOTP;
-  const isCompleted = item.status;
-  const isUpcoming = !item.status && !isExpired && !waitingForOTP;
+  // FIXED: IMPROVED Priority Logic with better debugging
+  const getClassStatus = () => {
+    const upcoming = isUpcoming();
+    const ongoing = isOngoing();
+    const expired = isExpired();
+    const attendanceMarked = isAttendanceMarked();
 
-  const getStatusText = () => {
-    if (isCompleted) return { text: 'Completed', color: '#4ECDC4' };
-    if (waitingForOTP) return { text: 'Waiting for OTP', color: '#FF9F43' };
-    if (isExpired) return { text: 'Expired', color: '#FF6B6B' };
-    if (isUpcoming) return { text: 'Upcoming', color: '#FECA57' };
-    return { text: '', color: '' };
+    console.log('🔍 CLASS STATUS ANALYSIS:', {
+      subject: item.subject,
+      date: item.date,
+      start_time: item.start_time,
+      end_time: item.end_time,
+      backend_status: item.status,
+      otp: item.otp,
+      attendance_status: item.attendance_status,
+      calculated: {
+        upcoming,
+        ongoing, 
+        expired,
+        attendanceMarked
+      },
+      currentTime: new Date().toLocaleString()
+    });
+
+    // Priority 1: Check if attendance is already marked
+    if (attendanceMarked) {
+      console.log('✅ Attendance already marked');
+      return {
+        status: 'completed',
+        badge: { text: 'Attendance Marked', color: '#4ECDC4', bgColor: '#E8F5E9' },
+        message: '✓ Attendance marked successfully',
+        showMarkAttendance: false,
+        showWaitingForOTP: false
+      };
+    }
+
+    // Priority 2: Check if class is completed (status = true from backend)
+    if (item.status === true) {
+      if (item.otp) {
+        console.log('🔐 Class completed with OTP available');
+        return {
+          status: 'completed',
+          badge: { text: 'OTP Available', color: '#2196F3', bgColor: '#E3F2FD' },
+          message: 'Class completed - OTP available for attendance',
+          showMarkAttendance: true,
+          showWaitingForOTP: false
+        };
+      } else {
+        console.log('❌ Class completed without OTP');
+        return {
+          status: 'completed',
+          badge: { text: 'Absent', color: '#FF6B6B', bgColor: '#FFEBEE' },
+          message: 'Class completed - Attendance not marked',
+          showMarkAttendance: false,
+          showWaitingForOTP: false
+        };
+      }
+    }
+
+    // Priority 3: Check if ongoing
+    if (ongoing) {
+      if (item.otp) {
+        console.log('🎯 Ongoing class with OTP ready');
+        return {
+          status: 'ongoing',
+          badge: { text: 'Ongoing - OTP Ready', color: '#4ECDC4', bgColor: '#E8F5E9' },
+          message: 'Class in progress - OTP available for attendance',
+          showMarkAttendance: true,
+          showWaitingForOTP: false
+        };
+      } else {
+        console.log('⏳ Ongoing class waiting for OTP');
+        return {
+          status: 'ongoing',
+          badge: { text: 'Ongoing', color: '#FF9F43', bgColor: '#FFF3E0' },
+          message: 'Class in progress - Waiting for faculty to generate OTP',
+          showMarkAttendance: false,
+          showWaitingForOTP: true
+        };
+      }
+    }
+
+    // Priority 4: Check if upcoming
+    if (upcoming) {
+      console.log('📅 Class is upcoming');
+      return {
+        status: 'upcoming',
+        badge: { text: 'Upcoming', color: '#FECA57', bgColor: '#FFF8E1' },
+        message: 'Class is scheduled - Not started yet',
+        showMarkAttendance: false,
+        showWaitingForOTP: false
+      };
+    }
+
+    // Priority 5: Check if expired
+    if (expired) {
+      console.log('💀 Class expired');
+      return {
+        status: 'expired',
+        badge: { text: 'Expired', color: '#FF6B6B', bgColor: '#FFEBEE' },
+        message: 'Class time passed - Attendance not marked',
+        showMarkAttendance: false,
+        showWaitingForOTP: false
+      };
+    }
+
+    // Default case - should rarely happen
+    console.log('❓ Unknown status - falling back to default');
+    return {
+      status: 'unknown',
+      badge: { text: 'Scheduled', color: '#9E9E9E', bgColor: '#F5F5F5' },
+      message: 'Class is scheduled',
+      showMarkAttendance: false,
+      showWaitingForOTP: false
+    };
   };
 
-  const status = getStatusText();
+  const classStatus = getClassStatus();
+  const upcoming = isUpcoming();
+
+  // Final debug log
+  console.log('🎯 FINAL CLASS STATUS:', {
+    subject: item.subject,
+    finalStatus: classStatus.status,
+    badgeText: classStatus.badge.text,
+    showMarkAttendance: classStatus.showMarkAttendance,
+    showWaitingForOTP: classStatus.showWaitingForOTP
+  });
 
   return (
     <View style={styles.card}>
       {/* Status badge - top right corner */}
-      {status.text && (
-        <View style={styles.statusBadgeTopRight}>
-          <Text style={styles.statusBadgeText}>
-            {status.text}
+      {classStatus.badge.text ? (
+        <View style={[styles.statusBadgeTopRight, { backgroundColor: classStatus.badge.bgColor }]}>
+          <Text style={[styles.statusBadgeText, { color: classStatus.badge.color }]}>
+            {classStatus.badge.text}
           </Text>
         </View>
-      )}
+      ) : null}
       
       {/* Subject Header with colored badge */}
       <View style={styles.subjectCircle}>
-        {/* Circular/Rounded subject badge */}
         <View style={[styles.subjectBadge, { backgroundColor: subjectColor.bg }]}>
           <Text style={[styles.subjectInitial, { color: subjectColor.text }]} numberOfLines={1} adjustsFontSizeToFit>
-            {item.subject_mnemonic}
+            {item.subject_mnemonic || item.subject.charAt(0)}
           </Text>
         </View>
         
-        <View style={{ flex: 1, marginLeft: spacing(14), paddingRight: isCR && isUpcoming ? 0 : 90 }}>
+        <View style={{ flex: 1, marginLeft: spacing(14), paddingRight: isCR && upcoming ? 0 : 90 }}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-            <Text style={[styles.subjectText, { flex: 1, paddingRight: isCR && isUpcoming ? 8 : 0 }]} numberOfLines={2}>
+            <Text style={[styles.subjectText, { flex: 1, paddingRight: isCR && upcoming ? 8 : 0 }]} numberOfLines={2}>
               {item.subject}
             </Text>
             
             {/* Edit/Delete buttons next to subject name for CR users with upcoming classes */}
-            {isCR && isUpcoming && (
+            {isCR && upcoming && (
               <View style={{ flexDirection: 'row', gap: 8, flexShrink: 0, marginTop: spacing(15) }}>
                 <TouchableOpacity
                   style={styles.editButton}
@@ -282,62 +475,36 @@ const ClassScheduleCard = ({
           </View>
         </View>
         
-        {/* Contextual Status Messages */}
-        {isUpcoming && !item.attendance_marked && (
-          <View style={styles.infoContainer}>
-            <Icon name="calendar-clock" size={fontSize(16)} color="#1976D2" />
-            <Text style={styles.infoText}>
-              Class is scheduled - Not started yet
+        {/* Status Messages based on priority logic */}
+        {classStatus.message && (
+          <View style={[
+            styles.infoContainer,
+            { backgroundColor: classStatus.badge.bgColor }
+          ]}>
+            <Icon 
+              name={
+                classStatus.status === 'completed' && attendanceMarked ? "check-circle" :
+                classStatus.status === 'completed' && classStatus.showMarkAttendance ? "lock-open-outline" :
+                classStatus.status === 'completed' ? "close-circle-outline" :
+                classStatus.status === 'ongoing' && classStatus.showMarkAttendance ? "play-circle-outline" :
+                classStatus.status === 'ongoing' ? "clock-alert-outline" :
+                classStatus.status === 'expired' ? "close-circle-outline" :
+                "calendar-clock"
+              } 
+              size={fontSize(16)} 
+              color={classStatus.badge.color}
+            />
+            <Text style={[styles.infoText, { color: classStatus.badge.color }]}>
+              {classStatus.message}
             </Text>
           </View>
         )}
-        
-        {/* Show waiting for OTP message */}
-        {waitingForOTP && !item.otp && (
-          <View style={styles.waitingOTPContainer}>
-            <Icon name="clock-alert-outline" size={fontSize(16)} color="#F57C00" />
-            <Text style={styles.waitingOTPText}>
-              Class in progress - Waiting for faculty to generate OTP
-            </Text>
-          </View>
-        )}
-        
-        {/* Show attendance status */}
-        {item.attendance_marked ? (
-          <View style={styles.attendanceStatusContainer}>
-            <Icon name="check-circle" size={fontSize(16)} color="#00796B" />
-            <Text style={styles.attendanceMarkedText}>
-              ✓ Attendance marked successfully
-            </Text>
-          </View>
-        ) : isCompleted && item.otp ? (
-          <View style={{ backgroundColor: '#FFF8E1', padding: spacing(10), borderRadius: 8, marginTop: SPACING.sm, flexDirection: 'row', alignItems: 'center' }}>
-            <Icon name="alert-circle-outline" size={fontSize(16)} color="#F57F17" />
-            <Text style={[styles.pendingAttendanceText, { marginTop: spacing(0), marginLeft: SPACING.sm, fontSize: fontSize(13) }]}>
-              Class completed - Attendance available to mark
-            </Text>
-          </View>
-        ) : isCompleted && !item.otp && !item.attendance_marked ? (
-          <View style={{ backgroundColor: '#FFF3E0', padding: spacing(10), borderRadius: 8, marginTop: SPACING.sm, flexDirection: 'row', alignItems: 'center' }}>
-            <Icon name="information-outline" size={fontSize(16)} color="#F57C00" />
-            <Text style={[styles.pendingAttendanceText, { marginTop: spacing(0), marginLeft: SPACING.sm, fontSize: fontSize(13) }]}>
-              Class completed - Waiting for faculty to generate OTP
-            </Text>
-          </View>
-        ) : isExpired && !item.attendance_marked ? (
-          <View style={styles.expiredContainer}>
-            <Icon name="close-circle-outline" size={fontSize(16)} color="#D32F2F" />
-            <Text style={[styles.expiredText, { marginTop: spacing(0), marginLeft: SPACING.sm }]}>
-              Class time passed - Attendance not marked
-            </Text>
-          </View>
-        ) : null}
       </View>
 
-      {/* Action Buttons Section - Always show to maintain consistent card height */}
+      {/* Action Buttons Section */}
       <View style={styles.actionButtons}>
-        {/* Show Mark Attendance button when class is completed AND has OTP AND attendance is NOT marked */}
-        {canMarkAttendance && (
+        {/* Mark Attendance Button - Show when OTP is available */}
+        {classStatus.showMarkAttendance && (
           <TouchableOpacity
             style={styles.attendanceButton}
             onPress={() => {
@@ -350,30 +517,39 @@ const ClassScheduleCard = ({
           </TouchableOpacity>
         )}
 
-        {/* Show waiting status when class is in OTP waiting period */}
-        {waitingForOTP && !item.otp && !isCR && !canMarkAttendance && !item.attendance_marked && (
+        {/* Waiting for OTP Button - Show when ongoing but no OTP */}
+        {classStatus.showWaitingForOTP && !isCR && (
           <TouchableOpacity style={styles.waitingButton} disabled>
             <Icon name="clock-outline" size={fontSize(18)} color="#FFF" />
             <Text style={styles.waitingButtonText}>Waiting for OTP</Text>
           </TouchableOpacity>
         )}
 
-        {/* If attendance is already marked, show a disabled state */}
-        {item.attendance_marked && !isCR && (
-          <TouchableOpacity style={styles.attendanceButtonDisabled} disabled>
-            <Icon name="check-all" size={fontSize(18)} color="#757575" />
-            <Text style={[styles.buttonTextDisabled, { marginLeft: spacing(6) }]}>Already Marked</Text>
-          </TouchableOpacity>
-        )}
+        {/* Already Marked - Show when attendance is already marked */}
+        {attendanceMarked && !isCR && (
+  <TouchableOpacity style={styles.attendanceButtonDisabled} disabled>
+    <Icon name="check-all" size={fontSize(18)} color="#757575" />
+    <Text style={[styles.buttonTextDisabled, { marginLeft: spacing(6) }]}>Already Marked</Text>
+  </TouchableOpacity>
+)}
 
-        {/* Show placeholder for upcoming classes (non-CR students) */}
-        {!isCR && isUpcoming && !canMarkAttendance && !item.attendance_marked && (
+
+        {/* Upcoming Placeholder - Show for upcoming classes */}
+        {!isCR && upcoming && (
           <View style={styles.upcomingPlaceholder}>
             <Icon name="calendar-clock" size={fontSize(16)} color="#9E9E9E" />
             <Text style={styles.upcomingPlaceholderText}>
               Class scheduled
             </Text>
           </View>
+        )}
+
+        {/* Expired Placeholder - Show for expired classes */}
+        {classStatus.status === 'expired' && !attendanceMarked && !isCR && (
+          <TouchableOpacity style={styles.attendanceButtonDisabled} disabled>
+            <Icon name="close-circle-outline" size={fontSize(18)} color="#757575" />
+            <Text style={[styles.buttonTextDisabled, { marginLeft: spacing(6) }]}>Time Expired</Text>
+          </TouchableOpacity>
         )}
       </View>
     </View>
@@ -497,17 +673,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
   };
 
   const fetchSchedule = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/student/schedule?email=${encodeURIComponent(user.email)}`);
+  try {
+    setLoading(true);
+    const response = await fetch(`${API_BASE_URL}/api/student/schedule?email=${encodeURIComponent(user.email)}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch schedule');
+    }
+    
+    const data = await response.json();
+    
+    console.log('📦 RAW API RESPONSE:', data); // Debug log
+    
+    const transformedTodaySchedule = data.today_schedule?.map((item: any) => {
+      console.log('🔍 Processing schedule item:', item); // Debug each item
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch schedule');
-      }
-      
-      const data = await response.json();
-      
-      const transformedTodaySchedule = data.today_schedule?.map((item: any) => ({
+      return {
         id: item.id,
         subject: item.subject,
         time: item.time,
@@ -518,55 +699,61 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
         attendance_marked: item.attendance_marked,
         attendance_status: item.attendance_status,
         color: generateColorForSubject(item.subject_code || item.subject),
-        start_time: item.start_time,
-        end_time: item.end_time,
-        date: item.date,
-      })) || [];
-      
-      const transformedTomorrowSchedule = data.tomorrow_schedule?.map((item: any) => ({
-        id: item.id,
-        subject: item.subject,
-        time: item.time,
-        location: item.location,
-        status: item.status,
-        otp: item.otp,
-        attendance_marked: item.attendance_marked,
-        attendance_status: item.attendance_status,
-        color: generateColorForSubject(item.subject_code || item.subject),
-        start_time: item.start_time,
-        end_time: item.end_time,
-        date: item.date,
-      })) || [];
-      
-      setSchedule(transformedTodaySchedule);
-      setTomorrowSchedule(transformedTomorrowSchedule);
-      
-      await AsyncStorage.setItem(`schedule_${user.email}`, JSON.stringify({
-        today: transformedTodaySchedule,
-        tomorrow: transformedTomorrowSchedule
-      }));
-      
-    } catch (error) {
-      console.error("Failed to fetch schedule from API:", error);
-      try {
-        const storedSchedule = await AsyncStorage.getItem(`schedule_${user.email}`);
-        if (storedSchedule) {
-          const parsed = JSON.parse(storedSchedule);
-          setSchedule(parsed.today || []);
-          setTomorrowSchedule(parsed.tomorrow || []);
-        } else {
-          setSchedule([]);
-          setTomorrowSchedule([]);
-        }
-      } catch (storageError) {
-        console.error("Failed to fetch schedule from storage:", storageError);
+        // FIX: Ensure these fields are properly mapped
+        start_time: item.start_time, // Should be "08:30" format
+        end_time: item.end_time,     // Should be "09:30" format  
+        date: item.date,             // Should be "2024-01-15" format
+      };
+    }) || [];
+    
+    const transformedTomorrowSchedule = data.tomorrow_schedule?.map((item: any) => ({
+      id: item.id,
+      subject: item.subject,
+      time: item.time,
+      location: item.location,
+      status: item.status,
+      otp: item.otp,
+      attendance_marked: item.attendance_marked,
+      attendance_status: item.attendance_status,
+      color: generateColorForSubject(item.subject_code || item.subject),
+      // FIX: Ensure these fields are properly mapped
+      start_time: item.start_time,
+      end_time: item.end_time,
+      date: item.date,
+    })) || [];
+    
+    console.log('🔄 TRANSFORMED TODAY:', transformedTodaySchedule); // Debug transformed data
+    console.log('🔄 TRANSFORMED TOMORROW:', transformedTomorrowSchedule);
+    
+    setSchedule(transformedTodaySchedule);
+    setTomorrowSchedule(transformedTomorrowSchedule);
+    
+    await AsyncStorage.setItem(`schedule_${user.email}`, JSON.stringify({
+      today: transformedTodaySchedule,
+      tomorrow: transformedTomorrowSchedule
+    }));
+    
+  } catch (error) {
+    console.error("Failed to fetch schedule from API:", error);
+    try {
+      const storedSchedule = await AsyncStorage.getItem(`schedule_${user.email}`);
+      if (storedSchedule) {
+        const parsed = JSON.parse(storedSchedule);
+        setSchedule(parsed.today || []);
+        setTomorrowSchedule(parsed.tomorrow || []);
+      } else {
         setSchedule([]);
         setTomorrowSchedule([]);
       }
-    } finally {
-      setLoading(false);
+    } catch (storageError) {
+      console.error("Failed to fetch schedule from storage:", storageError);
+      setSchedule([]);
+      setTomorrowSchedule([]);
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   const generateColorForSubject = (subjectCode: string) => {
     const colors = [

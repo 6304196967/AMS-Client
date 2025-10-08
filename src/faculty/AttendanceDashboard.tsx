@@ -17,7 +17,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { ClassAssignment } from 'src/services/Interfaces';
+import { ClassAssignment } from '../services/Interfaces';
 import { spacing, fontSize, FONT_SIZES, SPACING } from '../utils/responsive';
 
 type RootStackParamList = {
@@ -27,7 +27,7 @@ type RootStackParamList = {
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
-const API_BASE_URL = 'http://10.182.66.80:5000';
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
 // Define props interface for the component
 interface AttendanceDashboardProps {

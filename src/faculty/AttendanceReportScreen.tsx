@@ -22,7 +22,7 @@ type RootStackParamList = {
 
 type AttendanceReportRouteProp = RouteProp<RootStackParamList, 'AttendanceReport'>;
 
-const API_BASE_URL = 'http://10.182.66.80:5000';
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
 // Interface for report data
 interface StudentReport {

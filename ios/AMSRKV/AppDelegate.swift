@@ -6,6 +6,7 @@ import ReactAppDependencyProvider
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
   var window: UIWindow?
+  var blurView: UIVisualEffectView?
 
   var reactNativeDelegate: ReactNativeDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
@@ -30,6 +31,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     )
 
     return true
+  }
+
+  // SECURITY: Hide screen content when app goes to background (prevents preview in app switcher)
+  func applicationWillResignActive(_ application: UIApplication) {
+    guard let window = window else { return }
+    
+    let blurEffect = UIBlurEffect(style: .light)
+    let effectView = UIVisualEffectView(effect: blurEffect)
+    effectView.frame = window.bounds
+    effectView.tag = 999 // Tag to identify the blur view
+    
+    window.addSubview(effectView)
+    blurView = effectView
+  }
+
+  // SECURITY: Remove blur when app becomes active again
+  func applicationDidBecomeActive(_ application: UIApplication) {
+    blurView?.removeFromSuperview()
+    blurView = nil
+    
+    // Also remove by tag if needed
+    window?.viewWithTag(999)?.removeFromSuperview()
   }
 }
 

@@ -7,6 +7,9 @@ const guidelineBaseHeight = 812;
 // Get device dimensions
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+// Debug: Log screen dimensions
+console.log('📱 RESPONSIVE UTILS - Screen Width:', SCREEN_WIDTH, 'Height:', SCREEN_HEIGHT);
+
 /**
  * Width percentage to pixel
  * Usage: wp('50%') returns 50% of screen width in pixels
@@ -54,6 +57,16 @@ export const verticalScale = (size: number): number => {
  * @param factor - scaling factor (default: 0.5)
  */
 export const moderateScale = (size: number, factor: number = 0.5): number => {
+  // For very small devices (< 365px), use reduced scaling
+  if (SCREEN_WIDTH < 365) {
+    const ratio = SCREEN_WIDTH / 390; // Scale relative to 390px baseline
+    const minScale = size * ratio;
+    return Math.max(minScale, size * 0.85); // Limit downscaling to 85% of base
+  }
+  // For devices 365-375px, use slightly reduced size
+  if (SCREEN_WIDTH < 375) {
+    return size * 0.95; // 95% of base size
+  }
   return size + (scale(size) - size) * factor;
 };
 
@@ -61,14 +74,38 @@ export const moderateScale = (size: number, factor: number = 0.5): number => {
  * Font size scaler - ensures readable text on all devices
  */
 export const fontSize = (size: number): number => {
-  return moderateScale(size, 0.3);
+  // For very small devices (< 365px), scale down to fit
+  if (SCREEN_WIDTH < 365) {
+    const ratio = SCREEN_WIDTH / 390; // Scale relative to 390px
+    const scaled = size * Math.max(ratio, 0.80); // Max 20% reduction
+    return scaled;
+  }
+  // For devices 365-375px, use slightly reduced size
+  if (SCREEN_WIDTH < 375) {
+    const scaled = size * 0.88; // 12% reduction (increased from 8%)
+    return scaled;
+  }
+  const result = moderateScale(size, 0.3);
+  return result;
 };
 
 /**
  * Spacing scaler - for consistent margins and paddings
  */
 export const spacing = (size: number): number => {
-  return moderateScale(size, 0.4);
+  // For very small devices (< 365px), scale down more aggressively
+  if (SCREEN_WIDTH < 365) {
+    const ratio = SCREEN_WIDTH / 390;
+    const scaled = size * Math.max(ratio, 0.78); // Max 22% reduction for spacing
+    return scaled;
+  }
+  // For devices 365-375px, use reduced size
+  if (SCREEN_WIDTH < 375) {
+    const scaled = size * 0.82; // 18% reduction (increased from 12%)
+    return scaled;
+  }
+  const result = moderateScale(size, 0.4);
+  return result;
 };
 
 /**
@@ -107,7 +144,19 @@ export const DEVICE = {
 // Helper for inline calculations
 const getModerateScale = (size: number, factor: number = 0.5): number => {
   const scaleValue = (SCREEN_WIDTH / guidelineBaseWidth) * size;
-  return size + (scaleValue - size) * factor;
+  // For very small devices (< 365px), use reduced scaling
+  if (SCREEN_WIDTH < 365) {
+    const ratio = SCREEN_WIDTH / 390;
+    const scaled = size * Math.max(ratio, 0.82); // Max 18% reduction
+    return scaled;
+  }
+  // For devices 365-375px, use slightly reduced size
+  if (SCREEN_WIDTH < 375) {
+    const scaled = size * 0.85; // 15% reduction (increased from 10%)
+    return scaled;
+  }
+  const result = size + (scaleValue - size) * factor;
+  return result;
 };
 
 // Common spacing values - calculated directly
@@ -120,6 +169,7 @@ export const SPACING = {
   xxl: getModerateScale(24, 0.4),
   xxxl: getModerateScale(32, 0.4),
 };
+
 
 // Common font sizes - calculated directly
 export const FONT_SIZES = {

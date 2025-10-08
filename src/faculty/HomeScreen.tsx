@@ -59,7 +59,7 @@ type Subject = {
     subject_type: string;
 };
 
-const API_BASE_URL ='http://10.89.226.102:5000';
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
 const ClassScheduleCard = ({
   item,

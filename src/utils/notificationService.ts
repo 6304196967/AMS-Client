@@ -2,8 +2,8 @@ import messaging from '@react-native-firebase/messaging';
 import { Platform, PermissionsAndroid, AppState, AppStateStatus } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
-const API_BASE_URL = 'http://10.182.66.80:5000';
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
+// const API_BASE_URL = 'http://10.182.66.80:5000';
 
 /**
  * Check if notification permission is currently granted

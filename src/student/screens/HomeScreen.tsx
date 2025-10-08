@@ -289,7 +289,7 @@ const ClassScheduleCard = ({
     if (upcoming) {
       return {
         status: 'upcoming',
-        badge: { text: 'Upcoming', color: '#FECA57', bgColor: '#FFF8E1' },
+        badge: { text: 'Upcoming', color: '#15d2f8ff', bgColor: '#e1fffeff' },
         message: 'Class is scheduled - Not started yet',
         showMarkAttendance: false,
         showWaitingForOTP: false
@@ -435,30 +435,6 @@ const ClassScheduleCard = ({
           >
             <Icon name="check-circle-outline" size={fontSize(20)} color="#FFF" />
             <Text style={[styles.buttonText, { marginLeft: SPACING.sm }]}>Mark Attendance</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Already Marked */}
-        {!isScheduleViolated && attendanceMarked && (
-          <TouchableOpacity style={styles.attendanceButtonDisabled} disabled>
-            <Icon name="check-all" size={fontSize(18)} color="#757575" />
-            <Text style={[styles.buttonTextDisabled, { marginLeft: spacing(6) }]}>Already Marked</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Waiting for OTP */}
-        {!isScheduleViolated && classStatus.showWaitingForOTP && !isCR && (
-          <TouchableOpacity style={styles.waitingButton} disabled>
-            <Icon name="clock-outline" size={fontSize(18)} color="#FFF" />
-            <Text style={styles.waitingButtonText}>Waiting for OTP</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Expired/No OTP */}
-        {!isScheduleViolated && classStatus.status === 'expired' && !attendanceMarked && !isCR && (
-          <TouchableOpacity style={styles.attendanceButtonDisabled} disabled>
-            <Icon name="close-circle-outline" size={fontSize(18)} color="#757575" />
-            <Text style={[styles.buttonTextDisabled, { marginLeft: spacing(6) }]}>Time Expired</Text>
           </TouchableOpacity>
         )}
 
@@ -628,6 +604,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
         location: item.location,
         status: item.status,
         otp: item.otp,
+        subject_mnemonic: item.subject_mnemonic,
         attendance_marked: item.attendance_marked,
         attendance_status: item.attendance_status,
         color: generateColorForSubject(item.subject_code || item.subject),

@@ -288,11 +288,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
         const gracePeriod = 30; // Grace period for marking attendance after class
         
         if (currentTime < startTimeInMinutes) {
-            return 'Ongoing';
+            return 'Upcoming';
         } else if (currentTime >= startTimeInMinutes && currentTime <= endTimeInMinutes + gracePeriod) {
             return 'Ongoing';
         } else {
-            return 'Ongoing';
+            return 'Expired';
         }
     }
 };

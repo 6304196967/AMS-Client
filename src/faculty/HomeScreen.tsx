@@ -62,6 +62,8 @@ type ServerTimeData = {
     timezone: string;
 };
 
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
+
 const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn, setUser }) => {
     const [actualFacultyId, setActualFacultyId] = useState<string>('');
     const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
@@ -95,8 +97,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
         end_time: '',
         subject_code: ''
     });
-
-    const API_BASE_URL = 'http://10.182.66.80:5000';
 
     useEffect(() => {
         if (user?.email) {
@@ -288,11 +288,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
         const gracePeriod = 30; // Grace period for marking attendance after class
         
         if (currentTime < startTimeInMinutes) {
-            return 'Upcoming';
+            return 'Ongoing';
         } else if (currentTime >= startTimeInMinutes && currentTime <= endTimeInMinutes + gracePeriod) {
             return 'Ongoing';
         } else {
-            return 'Expired';
+            return 'Ongoing';
         }
     }
 };
@@ -380,6 +380,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                     schedule_id: selectedSchedule.id,
                     faculty_id: actualFacultyId,
                     otp: shuffledOTP,
+                    otp_created_at: new Date().toISOString(),
                     topic_discussed: attendanceReason.trim() // Send the reason to backend
                 })
             });

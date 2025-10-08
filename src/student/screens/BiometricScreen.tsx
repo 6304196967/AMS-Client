@@ -57,13 +57,19 @@ const BiometricScreen: React.FC<Props> = ({ navigation, route }) => {
             Alert.alert(
               "Attendance Marked!", 
               "You have successfully marked attendance.",
-              [{ text: "OK", onPress: () => navigation.popToTop() }]
+              [{ text: "OK", onPress: () => {
+                // Navigate back to Tabs (Home screen)
+                navigation.navigate('Tabs' as never);
+              }}]
             );
           } else {
             Alert.alert(
               "Error", 
               `Failed to mark attendance: ${attendanceResult.error}`,
-              [{ text: "OK", onPress: () => navigation.popToTop() }]
+              [{ text: "OK", onPress: () => {
+                // Navigate back to Tabs (Home screen)
+                navigation.navigate('Tabs' as never);
+              }}]
             );
           }
         } else {

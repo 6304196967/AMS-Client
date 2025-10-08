@@ -21,14 +21,15 @@ import DeviceInfoScreen from "../screens/DeviceInfoScreen";
 export type StackParamList = {
   Tabs: undefined;
   Otp: { 
-    scheduleId: string;      // FIXED: Changed from generatedOTP to scheduleId
+    scheduleId: string;
     classEndTime: number; 
-    userEmail: string;      // FIXED: Added userEmail
+    userEmail: string;
+    otpExpiryTime?: number;  // OTP expiry timestamp from backend (45s validity)
   };
   Biometric: { 
     classEndTime: number;
     scheduleId: string;
-    userEmail: string;      // FIXED: Added scheduleId
+    userEmail: string;
   };
   Blocked: { classEndTime: number };
 };

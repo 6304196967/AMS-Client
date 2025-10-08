@@ -13,7 +13,7 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform, Dimensions } from 'react-native';
 import { getUniqueId, getManufacturer } from 'react-native-device-info';
-import { registerFCMToken } from './utils/notificationService';
+import { registerFCMToken, requestNotificationPermission } from './utils/notificationService';
 import { wp, hp, fontSize, spacing, FONT_SIZES, SPACING } from './utils/responsive';
 
 const amsLogo = require("../assets/images/rgukt_w.png");
@@ -88,10 +88,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ setIsLoggedIn, setUser }) => 
       await AsyncStorage.setItem("user", JSON.stringify({ name: userInfo?.data?.user?.familyName || "", email: userEmail }));
       await AsyncStorage.setItem("isLoggedIn", "true");
 
-      // Register FCM token for push notifications
+      // Request notification permission and register FCM token
       try {
-        await registerFCMToken(userEmail);
-        console.log('✅ FCM token registration initiated');
+        console.log('📱 Requesting notification permission...');
+        const permissionGranted = await requestNotificationPermission();
+        
+        if (permissionGranted) {
+          console.log('✅ Permission granted, registering FCM token');
+          await registerFCMToken(userEmail);
+        } else {
+          console.log('⚠️ Permission denied, will retry when user grants it');
+          // registerFCMToken will store email for retry
+          await registerFCMToken(userEmail);
+        }
       } catch (error) {
         console.error('⚠️ Failed to register FCM token:', error);
         // Don't block login if FCM registration fails

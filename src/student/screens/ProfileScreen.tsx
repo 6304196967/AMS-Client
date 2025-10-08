@@ -17,6 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { launchImageLibrary } from 'react-native-image-picker';
 import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
+import { cleanupFCMOnLogout } from '../../utils/notificationService';
 
 // Configuration
 const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
@@ -122,6 +123,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   const handleLogout = async () => {
     if (logoutInput.trim() === "I want to logout") {
+      // Cleanup FCM token before logout
+      try {
+        await cleanupFCMOnLogout(user.email);
+      } catch (error) {
+        console.error('Error during FCM cleanup:', error);
+        // Continue with logout even if cleanup fails
+      }
+      
       await AsyncStorage.clear();
       setIsLoggedIn(false);
       setUser(null);

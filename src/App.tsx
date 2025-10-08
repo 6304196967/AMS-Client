@@ -9,7 +9,7 @@ import AdminNavigator from "./Navigators/AdminNavigator";
 import StudentNavigator from "./student/Navigators/StudentNavigator";
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import FacultyNavigator from "./Navigators/FacultyNavigator";
-import { setupForegroundNotificationHandler, setupNotificationOpenedHandler } from './utils/notificationService';
+import { setupForegroundNotificationHandler, setupNotificationOpenedHandler, setupPermissionMonitoring } from './utils/notificationService';
 
 // Type
 type UserInfo = { name: string; email: string };
@@ -67,6 +67,18 @@ const App: React.FC = () => {
       unsubscribeOpened();
     };
   }, []);
+
+  // Setup permission monitoring for logged-in users
+  useEffect(() => {
+    if (user?.email) {
+      console.log('📱 Setting up permission monitoring for:', user.email);
+      const cleanup = setupPermissionMonitoring(user.email);
+      
+      return () => {
+        cleanup();
+      };
+    }
+  }, [user?.email]);
 
   if (loading) return null;
 

@@ -11,10 +11,13 @@ import {
   Modal,
   TextInput,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  StatusBar,
+  RefreshControl
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { spacing, fontSize, FONT_SIZES, SPACING } from '../utils/responsive';
+import LinearGradient from 'react-native-linear-gradient';
 
 type HomeScreenProps = {
     userEmail: string;
@@ -37,6 +40,7 @@ type ScheduleItem = {
     end_time: string;
     status: boolean;
     subject_code: string;
+    subject_mnemonic?: string;
 };
 
 type ScheduleData = {
@@ -55,19 +59,392 @@ type Subject = {
     subject_type: string;
 };
 
-type ServerTimeData = {
-    datetime: string;
-    date: string;
-    time: string;
-    timezone: string;
-};
-
 const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
+const ClassScheduleCard = ({
+  item,
+  onCancel,
+  onMarkAttendance,
+  scheduleDate,
+}: {
+  item: ScheduleItem;
+  onCancel?: (item: ScheduleItem) => void;
+  onMarkAttendance?: (item: ScheduleItem) => void;
+  scheduleDate: Date;
+}) => {
+  const getSubjectColor = (subject: string) => {
+    const colors = {
+      'Data Structures': { bg: '#1976D2', text: '#FFF' },
+      'Algorithms': { bg: '#1565C0', text: '#FFF' },
+      'Database': { bg: '#0277BD', text: '#FFF' },
+      'DBMS': { bg: '#0277BD', text: '#FFF' },
+      'OS': { bg: '#01579B', text: '#FFF' },
+      'Operating System': { bg: '#01579B', text: '#FFF' },
+      'Networks': { bg: '#0288D1', text: '#FFF' },
+      'Computer Networks': { bg: '#0288D1', text: '#FFF' },
+      'Software Engineering': { bg: '#0097A7', text: '#FFF' },
+      'SE': { bg: '#0097A7', text: '#FFF' },
+      'Java': { bg: '#6A1B9A', text: '#FFF' },
+      'Python': { bg: '#7B1FA2', text: '#FFF' },
+      'C': { bg: '#4A148C', text: '#FFF' },
+      'C++': { bg: '#6200EA', text: '#FFF' },
+      'Web Development': { bg: '#5E35B1', text: '#FFF' },
+      'Mathematics': { bg: '#00796B', text: '#FFF' },
+      'Maths': { bg: '#00796B', text: '#FFF' },
+      'Discrete Mathematics': { bg: '#00897B', text: '#FFF' },
+      'Linear Algebra': { bg: '#00695C', text: '#FFF' },
+      'Probability': { bg: '#009688', text: '#FFF' },
+      'Digital Logic': { bg: '#E65100', text: '#FFF' },
+      'COA': { bg: '#EF6C00', text: '#FFF' },
+      'Computer Organization': { bg: '#EF6C00', text: '#FFF' },
+      'Microprocessors': { bg: '#F57C00', text: '#FFF' },
+      'Theory of Computation': { bg: '#512DA8', text: '#FFF' },
+      'TOC': { bg: '#512DA8', text: '#FFF' },
+      'Compiler Design': { bg: '#4527A0', text: '#FFF' },
+      'Machine Learning': { bg: '#C2185B', text: '#FFF' },
+      'ML': { bg: '#C2185B', text: '#FFF' },
+      'AI': { bg: '#AD1457', text: '#FFF' },
+      'Artificial Intelligence': { bg: '#AD1457', text: '#FFF' },
+      'Data Mining': { bg: '#880E4F', text: '#FFF' },
+      'Electronics': { bg: '#388E3C', text: '#FFF' },
+      'Digital Electronics': { bg: '#2E7D32', text: '#FFF' },
+      'Signals': { bg: '#43A047', text: '#FFF' },
+      'Management': { bg: '#303F9F', text: '#FFF' },
+      'Economics': { bg: '#3949AB', text: '#FFF' },
+      'Communication': { bg: '#3F51B5', text: '#FFF' },
+      'default': { bg: '#546E7A', text: '#FFF' }
+    };
+
+    for (const [key, color] of Object.entries(colors)) {
+      if (subject.toLowerCase().includes(key.toLowerCase())) {
+        return color;
+      }
+    }
+    return colors.default;
+  };
+
+  const subjectColor = getSubjectColor(item.subject_name);
+  
+  // ✅ FIX: Use local date formatting instead of toISOString()
+  const formatDateForComparison = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const parseDateTime = (dateStr: string, timeStr: string) => {
+    try {
+      if (!dateStr || !timeStr) return new Date();
+      
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      
+      const localDate = new Date(year, month - 1, day, hours, minutes, 0);
+      
+      if (isNaN(localDate.getTime())) {
+        return new Date();
+      }
+      
+      return localDate;
+    } catch (error) {
+      return new Date();
+    }
+  };
+
+  // Helper function to compare dates (ignoring time)
+  const isSameDate = (date1: Date, date2: Date) => {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  };
+
+  // ✅ FIX: Use local date formatting for comparisons
+  const isUpcoming = () => {
+    const currentDateTime = new Date();
+    const scheduleDateStr = formatDateForComparison(scheduleDate);
+    const classStartDateTime = parseDateTime(scheduleDateStr, item.start_time);
+    
+    // If it's not today, it's always upcoming
+    if (!isSameDate(currentDateTime, scheduleDate)) {
+      return true;
+    }
+    
+    // If it's today, check if current time is before class start time
+    return currentDateTime < classStartDateTime;
+  };
+
+  const isOngoing = () => {
+    const currentDateTime = new Date();
+    
+    // Can only be ongoing if it's today
+    if (!isSameDate(currentDateTime, scheduleDate)) {
+      return false;
+    }
+    
+    const scheduleDateStr = formatDateForComparison(scheduleDate);
+    const classStartDateTime = parseDateTime(scheduleDateStr, item.start_time);
+    const classEndDateTime = parseDateTime(scheduleDateStr, item.end_time);
+    
+    const bufferMs = 30 * 60 * 1000;
+    const classEndWithBuffer = new Date(classEndDateTime.getTime() + bufferMs);
+    
+    return (
+      currentDateTime >= classStartDateTime && 
+      currentDateTime <= classEndWithBuffer
+    );
+  };
+
+  const isExpired = () => {
+    const currentDateTime = new Date();
+    
+    // If it's a past date, it's expired
+    if (scheduleDate < new Date(currentDateTime.getFullYear(), currentDateTime.getMonth(), currentDateTime.getDate())) {
+      return true;
+    }
+    
+    // If it's today, check if class end time has passed (with buffer)
+    if (isSameDate(currentDateTime, scheduleDate)) {
+      const scheduleDateStr = formatDateForComparison(scheduleDate);
+      const classEndDateTime = parseDateTime(scheduleDateStr, item.end_time);
+      const bufferMs = 30 * 60 * 1000;
+      const classEndWithBuffer = new Date(classEndDateTime.getTime() + bufferMs);
+      
+      return currentDateTime > classEndWithBuffer;
+    }
+    
+    return false;
+  };
+
+  const isCompleted = () => {
+    return item.status === true;
+  };
+
+  const getClassStatus = () => {
+    const completed = isCompleted();
+    const ongoing = isOngoing();
+    const upcoming = isUpcoming();
+    const expired = isExpired();
+
+    // PRIORITY 1: Completed classes (highest priority)
+    if (completed) {
+      return {
+        status: 'completed',
+        badge: { text: 'Completed', color: '#4ECDC4', bgColor: '#E8F5E9' },
+        message: '✓ Attendance marked successfully',
+        showMarkAttendance: false,
+        showCancel: false
+      };
+    }
+
+    // PRIORITY 2: Class is ongoing (can mark attendance)
+    if (ongoing) {
+      return {
+        status: 'ongoing',
+        badge: { text: 'Ongoing', color: '#4ECDC4', bgColor: '#E8F5E9' },
+        message: 'Class in progress - Ready for attendance',
+        showMarkAttendance: true,
+        showCancel: true
+      };
+    }
+
+    // PRIORITY 3: Upcoming class
+    if (upcoming) {
+      return {
+        status: 'upcoming',
+        badge: { text: 'Upcoming', color: '#15d2f8ff', bgColor: '#e1fffeff' },
+        message: 'Class is scheduled - Not started yet',
+        showMarkAttendance: false,
+        showCancel: true
+      };
+    }
+
+    // PRIORITY 4: Expired class (missed attendance)
+    if (expired) {
+      return {
+        status: 'expired',
+        badge: { text: 'Expired', color: '#FF6B6B', bgColor: '#FFEBEE' },
+        message: 'Class completed - Attendance not marked',
+        showMarkAttendance: false,
+        showCancel: false
+      };
+    }
+
+    // Default case
+    return {
+      status: 'scheduled',
+      badge: { text: 'Scheduled', color: '#9E9E9E', bgColor: '#F5F5F5' },
+      message: 'Class is scheduled',
+      showMarkAttendance: false,
+      showCancel: true
+    };
+  };
+
+  const formatTime = (timeStr: string): string => {
+    if (!timeStr) return '';
+    const [hours, minutes] = timeStr.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const formattedHour = hour % 12 || 12;
+    return `${formattedHour}:${minutes} ${ampm}`;
+  };
+
+  const classStatus = getClassStatus();
+  const upcoming = isUpcoming();
+
+  // Generate subject mnemonic from subject name
+  const getSubjectMnemonic = (subjectName: string): string => {
+    if (item.subject_mnemonic) return item.subject_mnemonic;
+    
+    // Extract first letters of major words
+    const words = subjectName.split(' ');
+    if (words.length === 1) {
+      return subjectName.substring(0, 3).toUpperCase();
+    }
+    
+    // Take first letter of each word (max 3 letters)
+    return words
+      .slice(0, 3)
+      .map(word => word.charAt(0).toUpperCase())
+      .join('');
+  };
+
+  const subjectMnemonic = getSubjectMnemonic(item.subject_name);
+
+  return (
+    <View style={styles.card}>
+      {/* Status badge - top right corner */}
+      {classStatus.badge.text ? (
+        <View style={[styles.statusBadgeTopRight, { backgroundColor: classStatus.badge.bgColor }]}>
+          <Text style={[styles.statusBadgeText, { color: classStatus.badge.color }]}>
+            {classStatus.badge.text}
+          </Text>
+        </View>
+      ) : null}
+      
+      {/* Subject Header with colored badge and Cancel button */}
+      <View style={styles.subjectCircle}>
+        <View style={[styles.subjectBadge, { backgroundColor: subjectColor.bg }]}>
+          <Text style={[styles.subjectInitial, { color: subjectColor.text }]} numberOfLines={1} adjustsFontSizeToFit>
+            {subjectMnemonic}
+          </Text>
+        </View>
+        
+        <View style={{ flex: 1, marginLeft: spacing(14) }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <Text style={[styles.subjectText, { flex: 1, paddingRight: 8 }]} numberOfLines={2}>
+              {item.subject_name}
+            </Text>
+            
+            {/* Cancel Button - Clean design in header */}
+            {classStatus.showCancel && (
+              <TouchableOpacity
+                style={styles.cancelButtonHeader}
+                onPress={() => onCancel && onCancel(item)}
+              >
+                <Icon name="close-circle-outline" size={fontSize(30)} color="#F44336" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </View>
+
+      {/* Class Details */}
+      <View style={styles.cardDetails}>
+        {/* Timing and Venue */}
+        <View style={{ marginBottom: SPACING.md }}>
+          {/* Time */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.sm }}>
+            <Icon name="clock-outline" size={fontSize(20)} color="#1976D2" style={{ marginRight: SPACING.sm }} />
+            <Text 
+              style={[styles.detailText, { fontSize: FONT_SIZES.lg, fontWeight: '600' }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {formatTime(item.start_time)} - {formatTime(item.end_time)}
+            </Text>
+          </View>
+          {/* Location */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.sm }}>
+            <Icon name="map-marker" size={fontSize(20)} color="#E65100" style={{ marginRight: SPACING.sm }} />
+            <Text 
+              style={[styles.detailText, { fontSize: FONT_SIZES.lg, fontWeight: '600', flex: 1 }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {item.venue || 'Venue not specified'}
+            </Text>
+          </View>
+          {/* Class Info */}
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Icon name="school" size={fontSize(20)} color="#600202" style={{ marginRight: SPACING.sm }} />
+            <Text 
+              style={[styles.detailText, { fontSize: FONT_SIZES.lg, fontWeight: '600', flex: 1 }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              E{item.year} {item.department} - {item.section}
+            </Text>
+          </View>
+        </View>
+        
+        {/* Status Messages */}
+        {classStatus.message && (
+          <View style={[
+            styles.infoContainer,
+            { backgroundColor: classStatus.badge.bgColor }
+          ]}>
+            <Icon 
+              name={
+                classStatus.status === 'completed' ? "check-circle" :
+                classStatus.status === 'ongoing' ? "play-circle-outline" :
+                classStatus.status === 'upcoming' ? "calendar-clock" :
+                "close-circle-outline"
+              } 
+              size={fontSize(16)} 
+              color={classStatus.badge.color}
+            />
+            <Text style={[styles.infoText, { color: classStatus.badge.color }]}>
+              {classStatus.message}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Action Buttons */}
+      <View style={styles.actionButtons}>
+        {/* Mark Attendance Button */}
+        {classStatus.showMarkAttendance && (
+          <TouchableOpacity
+            style={styles.attendanceButton}
+            onPress={() => onMarkAttendance && onMarkAttendance(item)}
+          >
+            <Icon name="check-circle-outline" size={fontSize(20)} color="#FFF" />
+            <Text style={[styles.buttonText, { marginLeft: SPACING.sm }]}>Mark Attendance</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Upcoming Placeholder */}
+        {!classStatus.showMarkAttendance && !classStatus.showCancel && upcoming && (
+          <View style={styles.upcomingPlaceholder}>
+            <Icon name="calendar-clock" size={fontSize(16)} color="#9E9E9E" />
+            <Text style={styles.upcomingPlaceholderText}>
+              Class scheduled
+            </Text>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+};
 const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn, setUser }) => {
     const [actualFacultyId, setActualFacultyId] = useState<string>('');
-    const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
+    const [todaySchedule, setTodaySchedule] = useState<ScheduleItem[]>([]);
+    const [tomorrowSchedule, setTomorrowSchedule] = useState<ScheduleItem[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const [refreshing, setRefreshing] = useState<boolean>(false);
     const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
     const [showAttendanceModal, setShowAttendanceModal] = useState<boolean>(false);
     const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
@@ -76,12 +453,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
     const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
     const [generatedOTP, setGeneratedOTP] = useState<string>('');
     const [isGeneratingOTP, setIsGeneratingOTP] = useState<boolean>(false);
-    const [serverTime, setServerTime] = useState<Date>(new Date());
-    const [timeLoading, setTimeLoading] = useState<boolean>(true);
     const [attendanceReason, setAttendanceReason] = useState<string>('');
     
-    // Initialize with local time (will be synced with server time)
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [selectedDate, setSelectedDate] = useState<'today' | 'tomorrow'>('today');
 
     // Filter options
     const yearOptions = ['E1', 'E2', 'E3', 'E4'];
@@ -105,196 +479,187 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
     }, [user]);
 
     useEffect(() => {
-        fetchServerTime();
-    }, []);
-
-    // 🔥 ADD THIS: Sync selectedDate with server time when it loads
-    useEffect(() => {
-        if (!timeLoading && serverTime) {
-            console.log('🔄 Syncing selectedDate with server time:', serverTime.toDateString());
-            setSelectedDate(new Date(serverTime));
+        if (actualFacultyId) {
+            fetchSchedules();
         }
-    }, [timeLoading, serverTime]);
+    }, [actualFacultyId]);
 
-    useEffect(() => {
-        if (actualFacultyId && !timeLoading) {
-            fetchScheduleForDate(selectedDate);
-        }
-    }, [selectedDate, actualFacultyId, timeLoading]);
-
-    // ... rest of your functions remain the same
-
-    const fetchServerTime = async () => {
-        try {
-            setTimeLoading(true);
-            const response = await fetch(`${API_BASE_URL}/time`);
-            
-            if (!response.ok) {
-                throw new Error('Failed to fetch server time');
-            }
-            
-            const data: ServerTimeData = await response.json();
-            const serverDateTime = new Date(data.datetime);
-            setServerTime(serverDateTime);
-            console.log('Fetched server time:', serverDateTime);
-        } catch (err) {
-            console.error('Fetch server time error:', err);
-            // Fallback to system time if API fails
-            setServerTime(new Date());
-            Alert.alert('Info', 'Using system time as fallback');
-        } finally {
-            setTimeLoading(false);
-        }
+    // Helper function to get date strings
+    // ✅ FIX: Uses local date methods
+const getDateStrings = () => {
+    const now = new Date();
+    
+    // Get current date in local timezone
+    const today = new Date(now);
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // Format dates as YYYY-MM-DD (local timezone)
+    const formatDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     };
+    
+    const todayStr = formatDate(today);
+    const tomorrowStr = formatDate(tomorrow);
+    
+    console.log('📅 Date strings:', { todayStr, tomorrowStr, currentTime: now.toLocaleString() });
+    
+    return { todayStr, tomorrowStr };
+};
 
-    const fetchScheduleForDate = async (date: Date) => {
-    if (!actualFacultyId || timeLoading) return;
+    // ✅ FIX: Comprehensive logging for debugging
+const fetchSchedules = async () => {
+    if (!actualFacultyId) return;
 
     try {
         setLoading(true);
-        // Use server timezone for consistent date formatting
-        const dateStr = date.toISOString().split('T')[0];
         
-        console.log('📅 Fetching schedule for:', {
-            facultyId: actualFacultyId,
-            date: dateStr,
-            selectedDate: date.toDateString(),
-            serverDate: serverTime.toDateString(),
-            url: `${API_BASE_URL}/faculty/${actualFacultyId}/schedule?date=${dateStr}`
+        const { todayStr, tomorrowStr } = getDateStrings();
+        
+        console.log('🔄 Fetching schedules for faculty:', actualFacultyId);
+        console.log('📅 Dates:', { today: todayStr, tomorrow: tomorrowStr });
+        
+        const [todayResponse, tomorrowResponse] = await Promise.all([
+            fetch(`${API_BASE_URL}/faculty/${actualFacultyId}/schedule?date=${todayStr}`),
+            fetch(`${API_BASE_URL}/faculty/${actualFacultyId}/schedule?date=${tomorrowStr}`)
+        ]);
+        
+        console.log('📊 Response statuses:', {
+            today: todayResponse.status,
+            tomorrow: tomorrowResponse.status
         });
         
-        const response = await fetch(
-            `${API_BASE_URL}/faculty/${actualFacultyId}/schedule?date=${dateStr}`
-        );
-        
-        console.log('📊 Response status:', response.status);
-        
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error('❌ API Error:', errorData);
-            throw new Error(errorData.error || 'Failed to fetch schedule');
+        // Process today's schedule
+        if (todayResponse.ok) {
+            const todayData: ScheduleData = await todayResponse.json();
+            console.log('✅ Today schedule:', {
+                faculty: todayData.faculty_name,
+                count: todayData.schedules?.length || 0,
+                schedules: todayData.schedules
+            });
+            setTodaySchedule(todayData.schedules || []);
+        } else {
+            const errorText = await todayResponse.text();
+            console.log('❌ Today schedule fetch failed:', errorText);
+            setTodaySchedule([]);
         }
         
-        const data: ScheduleData = await response.json();
-        console.log('✅ Schedule data received:', data);
-        setScheduleData(data);
+        // Process tomorrow's schedule
+        if (tomorrowResponse.ok) {
+            const tomorrowData: ScheduleData = await tomorrowResponse.json();
+            console.log('✅ Tomorrow schedule:', {
+                faculty: tomorrowData.faculty_name,
+                count: tomorrowData.schedules?.length || 0,
+                schedules: tomorrowData.schedules
+            });
+            setTomorrowSchedule(tomorrowData.schedules || []);
+        } else {
+            const errorText = await tomorrowResponse.text();
+            console.log('❌ Tomorrow schedule fetch failed:', errorText);
+            setTomorrowSchedule([]);
+        }
+        
     } catch (err) {
-        console.error('❌ Fetch schedule error:', err);
-        Alert.alert('Error', (err as Error).message);
+        console.error('❌ Fetch schedules error:', err);
+        Alert.alert('Error', 'Failed to fetch schedules. Please check your connection.');
+        setTodaySchedule([]);
+        setTomorrowSchedule([]);
     } finally {
         setLoading(false);
     }
 };
 
-    const fetchFacultySubjects = async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/faculty/${actualFacultyId}/subjects`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch subjects');
+    // ✅ FIX: Better error handling
+const onRefresh = async () => {
+    try {
+        setRefreshing(true);
+        await fetchSchedules();
+    } catch (error) {
+        console.error("Error during refresh:", error);
+        Alert.alert('Error', 'Failed to refresh schedules');
+    } finally {
+        setRefreshing(false);
+    }
+};
+
+    // Enhanced sorting function that prioritizes ongoing classes
+    const sortSchedule = (schedule: ScheduleItem[], scheduleDate: Date) => {
+        return schedule.sort((a, b) => {
+            // Helper function to determine class priority
+            const getClassPriority = (item: ScheduleItem) => {
+                const parseDateTime = (timeStr: string) => {
+                    const [hours, minutes] = timeStr.split(':').map(Number);
+                    const date = new Date(scheduleDate);
+                    date.setHours(hours, minutes, 0, 0);
+                    return date;
+                };
+
+                const currentTime = new Date();
+                const startTime = parseDateTime(item.start_time);
+                const endTime = parseDateTime(item.end_time);
+                const bufferMs = 30 * 60 * 1000;
+                const endTimeWithBuffer = new Date(endTime.getTime() + bufferMs);
+
+                // Priority 1: Ongoing classes (highest priority)
+                if (currentTime >= startTime && currentTime <= endTimeWithBuffer && !item.status) {
+                    return 1;
+                }
+                // Priority 2: Upcoming classes
+                else if (currentTime < startTime && !item.status) {
+                    return 2;
+                }
+                // Priority 3: Completed classes
+                else if (item.status) {
+                    return 3;
+                }
+                // Priority 4: Expired classes
+                else {
+                    return 4;
+                }
+            };
+
+            const priorityA = getClassPriority(a);
+            const priorityB = getClassPriority(b);
+
+            // If same priority, sort by start time
+            if (priorityA === priorityB) {
+                const [aHours, aMinutes] = a.start_time.split(':').map(Number);
+                const [bHours, bMinutes] = b.start_time.split(':').map(Number);
+                return (aHours * 60 + aMinutes) - (bHours * 60 + bMinutes);
             }
-            const data = await response.json();
-            setSubjects(data.subjects || []);
-        } catch (err) {
-            console.error('Fetch subjects error:', err);
-            Alert.alert('Error', 'Failed to fetch subjects');
-        }
+
+            // Sort by priority (ongoing first, then upcoming, then completed, then expired)
+            return priorityA - priorityB;
+        });
     };
 
-    const navigateDate = (days: number) => {
-  // Create new date based on the CURRENT selectedDate
-  const newDate = new Date(selectedDate);
-  newDate.setDate(selectedDate.getDate() + days);
-  
-  // Optional: Still restrict navigation based on server time if needed
-  const today = new Date(serverTime);
-  const tomorrow = new Date(serverTime);
-  tomorrow.setDate(serverTime.getDate() + 1);
-  const yesterday = new Date(serverTime);
-  yesterday.setDate(serverTime.getDate() - 1);
-  
-  const allowedDates = [today, yesterday, tomorrow];
-  const isAllowed = allowedDates.some(date => 
-      date.toDateString() === newDate.toDateString()
-  );
-  
-  if (isAllowed) {
-      setSelectedDate(newDate);
-  }
-};
-    const getDateDisplayText = (): string => {
-    if (timeLoading) return 'Loading...';
+    // ✅ FIX: Better logging and consistent dates
+const getCurrentSchedule = () => {
+    const schedule = selectedDate === 'today' ? todaySchedule : tomorrowSchedule;
+    const now = new Date();
+    const scheduleDate = selectedDate === 'today' ? now : new Date(now.setDate(now.getDate() + 1));
     
-    const today = new Date(serverTime);
-    const tomorrow = new Date(serverTime);
-    tomorrow.setDate(serverTime.getDate() + 1);
-    const yesterday = new Date(serverTime);
-    yesterday.setDate(serverTime.getDate() - 1);
-
-    if (selectedDate.toDateString() === today.toDateString()) {
-        return "Today's Schedule";
-    } else if (selectedDate.toDateString() === tomorrow.toDateString()) {
-        return "Tomorrow's Schedule";
-    } else if (selectedDate.toDateString() === yesterday.toDateString()) {
-        return "Yesterday's Schedule";
-    } else {
-        return "Invalid Date";
-    }
-};
-    const getGreeting = (): string => {
-    if (timeLoading) return 'Loading...';
+    console.log(`📋 Current schedule (${selectedDate}):`, {
+        date: scheduleDate.toLocaleDateString(),
+        count: schedule.length,
+        items: schedule.map(s => ({ subject: s.subject_name, time: s.start_time }))
+    });
     
-    // Use SERVER time hour
-    const hour = serverTime.getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 15) return 'Good Afternoon';
-    return 'Good Evening';
+    return sortSchedule([...schedule], scheduleDate);
 };
 
-    const formatTime = (timeStr: string): string => {
-        if (!timeStr) return '';
-        const [hours, minutes] = timeStr.split(':');
-        const hour = parseInt(hours);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        const formattedHour = hour % 12 || 12;
-        return `${formattedHour}:${minutes} ${ampm}`;
-    };
-
-    const getCurrentTimeStatus = (startTime: string, endTime: string): string => {
-    if (timeLoading) return 'Loading...';
+    // ✅ FIX: Shows actual dates for clarity
+const getScheduleTitle = () => {
+    const now = new Date();
+    const today = now.toLocaleDateString();
+    const tomorrow = new Date(now.setDate(now.getDate() + 1)).toLocaleDateString();
     
-    // Use SERVER time for all comparisons
-    const currentDate = new Date(serverTime);
-    const scheduleDate = new Date(selectedDate);
-    
-    // Reset time parts for date comparison only (using server time)
-    const currentDateOnly = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-    const scheduleDateOnly = new Date(scheduleDate.getFullYear(), scheduleDate.getMonth(), scheduleDate.getDate());
-    
-    // Compare dates using SERVER time
-    if (scheduleDateOnly < currentDateOnly) {
-        return 'Expired';
-    } else if (scheduleDateOnly > currentDateOnly) {
-        return 'Upcoming';
-    } else {
-        // This is for today - check the time using SERVER time
-        const currentTime = currentDate.getHours() * 60 + currentDate.getMinutes();
-        
-        const [startHour, startMinute] = startTime.split(':').map(Number);
-        const [endHour, endMinute] = endTime.split(':').map(Number);
-        
-        const startTimeInMinutes = startHour * 60 + startMinute;
-        const endTimeInMinutes = endHour * 60 + endMinute;
-        
-        const gracePeriod = 30; // Grace period for marking attendance after class
-        
-        if (currentTime < startTimeInMinutes) {
-            return 'Upcoming';
-        } else if (currentTime >= startTimeInMinutes && currentTime <= endTimeInMinutes + gracePeriod) {
-            return 'Ongoing';
-        } else {
-            return 'Expired';
-        }
-    }
+    return selectedDate === 'today' 
+        ? `Today's Schedule ` 
+        : `Tomorrow's Schedule`;
 };
 
     const handleCancelSchedule = (schedule: ScheduleItem) => {
@@ -324,7 +689,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
             }
             
             Alert.alert('Success', 'Class cancelled successfully');
-            fetchScheduleForDate(selectedDate);
+            fetchSchedules();
         } catch (err) {
             console.error('Cancel schedule error:', err);
             Alert.alert('Error', (err as Error).message);
@@ -335,13 +700,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
         setSelectedSchedule(schedule);
         setShowAttendanceModal(true);
         setGeneratedOTP('');
-        setAttendanceReason(''); // Reset reason when opening modal
+        setAttendanceReason('');
     };
 
     const generateOTP = async () => {
         if (!selectedSchedule) return;
 
-        // Validate attendance reason
         if (!attendanceReason.trim()) {
             Alert.alert('Error', 'Please provide a reason for marking attendance');
             return;
@@ -363,14 +727,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                 getRandomChar(digits) +
                 getRandomChar(capitals) +
                 getRandomChar(digits) + 
-                getRandomChar(smalls); 
-                
-               
+                getRandomChar(smalls);
             
-            // Shuffle the OTP
             const shuffledOTP = otp.split('').sort(() => 0.5 - Math.random()).join('');
             
-            // Call backend to store OTP with attendance reason
             const response = await fetch(`${API_BASE_URL}/generate-otp`, {
                 method: 'POST',
                 headers: {
@@ -381,7 +741,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                     faculty_id: actualFacultyId,
                     otp: shuffledOTP,
                     otp_created_at: new Date().toISOString(),
-                    topic_discussed: attendanceReason.trim() // Send the reason to backend
+                    topic_discussed: attendanceReason.trim()
                 })
             });
 
@@ -405,6 +765,20 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
         fetchFacultySubjects();
     };
 
+    const fetchFacultySubjects = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/faculty/${actualFacultyId}/subjects`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch subjects');
+            }
+            const data = await response.json();
+            setSubjects(data.subjects || []);
+        } catch (err) {
+            console.error('Fetch subjects error:', err);
+            Alert.alert('Error', 'Failed to fetch subjects');
+        }
+    };
+
     const fetchAvailableSlots = async () => {
         if (!newSchedule.year || !newSchedule.department || !newSchedule.section || !newSchedule.subject_code) {
             Alert.alert('Error', 'Please select Year, Department, Section and Subject first');
@@ -413,7 +787,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
 
         try {
             setFetchingSlots(true);
-            const dateStr = selectedDate.toISOString().split('T')[0];
+            const { todayStr, tomorrowStr } = getDateStrings();
+            const dateStr = selectedDate === 'today' ? todayStr : tomorrowStr;
             
             const selectedSubject = subjects.find(sub => sub.subject_code === newSchedule.subject_code);
             const subjectType = selectedSubject?.subject_type || 'normal';
@@ -454,7 +829,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
         }
 
         try {
-            const dateStr = selectedDate.toISOString().split('T')[0];
+            const { todayStr, tomorrowStr } = getDateStrings();
+            const dateStr = selectedDate === 'today' ? todayStr : tomorrowStr;
+            
             const payload = {
                 faculty_id: actualFacultyId,
                 date: dateStr,
@@ -484,7 +861,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
             Alert.alert('Success', 'Schedule created successfully');
             setShowCreateModal(false);
             resetNewSchedule();
-            fetchScheduleForDate(selectedDate);
+            fetchSchedules();
         } catch (err) {
             console.error('Create schedule error:', err);
             Alert.alert('Error', (err as Error).message);
@@ -504,378 +881,300 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
         setAvailableSlots([]);
     };
 
-    const renderFilterButtons = (options: string[], selectedValue: string, setValue: (value: string) => void, title: string) => (
-        <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>{title}:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={styles.filterButtonsContainer}>
-                    {options.map((option) => (
-                        <TouchableOpacity
-                            key={option}
-                            style={[
-                                styles.filterButton,
-                                selectedValue === option && styles.filterButtonSelected
-                            ]}
-                            onPress={() => {
-                                setValue(option);
-                                if (availableSlots.length > 0) {
-                                    setAvailableSlots([]);
-                                }
-                            }}
-                        >
-                            <Text style={[
-                                styles.filterButtonText,
-                                selectedValue === option && styles.filterButtonTextSelected
-                            ]}>
-                                {option}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            </ScrollView>
-        </View>
-    );
-
-    const renderScheduleCard = ({ item }: { item: ScheduleItem }) => {
-    const timeStatus = getCurrentTimeStatus(item.start_time, item.end_time);
-    const isCompleted = item.status === true;
-    const isOngoing = timeStatus === 'Ongoing' && !item.status;
-    const isExpired = timeStatus === 'Expired' && !item.status;
-    const isScheduled = timeStatus === 'Upcoming' && !item.status;
-    
-    // Determine badge text and style
-    let badgeText = 'Loading...';
-    let badgeStyle = styles.loadingBadge;
-    
-    if (!timeLoading) {
-        if (isCompleted) {
-            badgeText = 'Completed';
-            badgeStyle = styles.completedBadge;
-        } else if (isOngoing) {
-            badgeText = 'Ongoing';
-            badgeStyle = styles.ongoingBadge;
-        } else if (isExpired) {
-            badgeText = 'Expired';
-            badgeStyle = styles.expiredBadge;
-        } else if (isScheduled) {
-            badgeText = 'Scheduled';
-            badgeStyle = styles.scheduledBadge;
-        }
-    }
-    
-    return (
-        <View style={styles.scheduleCard}>
-            <View style={styles.scheduleInfo}>
-                <View style={styles.scheduleHeader}>
-                    <Text style={styles.subjectName}>{item.subject_name}</Text>
-                    <View style={[styles.timeStatusBadge, badgeStyle]}>
-                        <Text style={styles.timeStatusText}>{badgeText}</Text>
-                    </View>
-                </View>
-                <View style={styles.scheduleDetailsContainer}>
-                    <View style={styles.detailRow}>
-                        <Icon name="school" size={fontSize(14)} color="#600202" />
-                        <Text style={styles.scheduleDetails}>
-                            E-{item.year} ,{item.department} - {item.section}
-                        </Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                        <Icon name="access-time" size={fontSize(14)} color="#600202" />
-                        <Text style={styles.scheduleDetails}>
-                            {formatTime(item.start_time)} - {formatTime(item.end_time)}
-                        </Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                        <Icon name="location-on" size={fontSize(14)} color="#600202" />
-                        <Text style={styles.scheduleDetails}>
-                            {item.venue || 'Venue not specified'}
-                        </Text>
-                    </View>
-                    <View style={styles.detailRow}>
-                        <Icon name="info" size={fontSize(14)} color="#600202" />
-                        <Text style={styles.scheduleDetails}>
-                            Status: {item.status ? 'Completed' : 'Scheduled'}
-                        </Text>
-                    </View>
-                </View>
-            </View>
-            
-            <View style={styles.actionButtons}>
-                {isOngoing && !item.status && (
-                    <TouchableOpacity 
-                        style={styles.attendanceButton}
-                        onPress={() => handleMarkAttendance(item)}
+    const renderFilterButtons = (options: string[], selectedValue: string, setValue: (value: string) => void) => (
+    <View style={styles.filterSection}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.filterButtonsContainer}>
+                {options.map((option) => (
+                    <TouchableOpacity
+                        key={option}
+                        style={[
+                            styles.filterButton,
+                            selectedValue === option && styles.filterButtonSelected
+                        ]}
+                        onPress={() => {
+                            setValue(option);
+                            if (availableSlots.length > 0) {
+                                setAvailableSlots([]);
+                            }
+                        }}
                     >
-                        <Icon name="how-to-reg" size={fontSize(16)} color="#FFF" />
-                        <Text style={styles.attendanceButtonText}>Mark Attendance</Text>
+                        <Text style={[
+                            styles.filterButtonText,
+                            selectedValue === option && styles.filterButtonTextSelected
+                        ]}>
+                            {option}
+                        </Text>
                     </TouchableOpacity>
-                )}
-                {!isCompleted && !item.status && timeStatus !== 'Loading...' && (
-                    <TouchableOpacity 
-                        style={styles.cancelButton}
-                        onPress={() => handleCancelSchedule(item)}
-                    >
-                        <Icon name="close" size={fontSize(16)} color="#FFF" />
-                    </TouchableOpacity>
-                )}
+                ))}
             </View>
-        </View>
-    );
-};
-
-    // Show loading if faculty ID is not available yet or time is loading
-    if ((!actualFacultyId && user?.email) || timeLoading) {
+        </ScrollView>
+    </View>
+);
+    if (!actualFacultyId && user?.email) {
         return (
-            <View style={styles.container}>
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#f5f5f5" />
-                    <Text style={styles.loadingText}>
-                        {timeLoading ? 'Fetching Server Time...' : 'Loading Faculty Data...'}
-                    </Text>
-                </View>
-            </View>
+            <LinearGradient colors={["#900a02", "#600202"]} style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+                <ActivityIndicator size="large" color="#FFF" />
+                <Text style={{ color: "#FFF", marginTop: spacing(10) }}>Loading today's schedule...</Text>
+            </LinearGradient>
         );
     }
 
+    const currentSchedule = getCurrentSchedule();
+
     return (
-        <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.greeting}>
-                    {getGreeting()}, {user?.name || scheduleData?.faculty_name || 'Faculty'}!
-                </Text>    
-                {/* Calendar Navigation */}
-                {/* Calendar Navigation */}
-<View style={styles.calendarNav}>
-    <TouchableOpacity 
-        style={styles.navButton}
-        onPress={() => navigateDate(-1)}
-    >
-        <Icon name="chevron-left" size={fontSize(24)} color="#FFFFFF" />
-    </TouchableOpacity>
-    
-    <View style={styles.dateDisplay}>
-        <Text style={styles.dateTitle}>{getDateDisplayText()}</Text>
-        <Text style={styles.dateSubText}>
-            {selectedDate.toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            })}
-        </Text>
-    </View>
-    
-    <TouchableOpacity 
-        style={styles.navButton}
-        onPress={() => navigateDate(1)}
-    >
-        <Icon name="chevron-right" size={fontSize(24)} color="#FFFFFF" />
-    </TouchableOpacity>
-</View>
+        <LinearGradient
+            colors={["#900a02", "#600202"]}
+            style={styles.container}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+        >
+            <StatusBar barStyle="light-content" />
+
+            <View style={styles.greetingContainer}>
+                <Text style={styles.greetingHello}>Hello,</Text>
+                <Text style={styles.greetingName}>{user?.name || 'Faculty'}!</Text>
             </View>
 
-            {/* Stats Bar */}
-            <View style={styles.statsContainer}>
-                <Text style={styles.statsText}>
-                    {scheduleData?.schedules?.length || 0} class{scheduleData?.schedules?.length !== 1 ? 'es' : ''} scheduled
-                </Text>
+            <View style={styles.calendarNav}>
+                <TouchableOpacity 
+                    style={[
+                        styles.dateButton, 
+                        selectedDate === 'today' && styles.dateButtonActive
+                    ]}
+                    onPress={() => setSelectedDate('today')}
+                >
+                    <Text style={[
+                        styles.dateButtonText,
+                        selectedDate === 'today' && styles.dateButtonTextActive
+                    ]}>
+                        Today
+                    </Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                    style={[
+                        styles.dateButton, 
+                        selectedDate === 'tomorrow' && styles.dateButtonActive
+                    ]}
+                    onPress={() => setSelectedDate('tomorrow')}
+                >
+                    <Text style={[
+                        styles.dateButtonText,
+                        selectedDate === 'tomorrow' && styles.dateButtonTextActive
+                    ]}>
+                        Tomorrow
+                    </Text>
+                </TouchableOpacity>
             </View>
 
-            {/* Schedule List */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: spacing(14) }}>
+                <Text style={styles.scheduleTitle}>{getScheduleTitle()}</Text>
+
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <TouchableOpacity style={{ marginRight: spacing(15) }} onPress={handleCreateSchedule}>
+                        <Icon name="plus-circle" size={fontSize(32)} color="#FFF" />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
             {loading ? (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#f5f5f5" />
-                    <Text style={styles.loadingText}>Loading Schedule...</Text>
+                <ActivityIndicator size="large" color="#FFF" style={{ marginTop: SPACING.xl }} />
+            ) : currentSchedule.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No classes scheduled.</Text>
+                    <TouchableOpacity onPress={onRefresh} style={styles.refreshButton}>
+                        <Icon name="refresh" size={fontSize(20)} color="#600202" />
+                        <Text style={styles.refreshText}>Pull down to refresh</Text>
+                    </TouchableOpacity>
                 </View>
             ) : (
-                <FlatList
-                    data={(scheduleData?.schedules || []).sort(
-                        (a, b) => {
-                            const [ah, am] = a.start_time.split(':').map(Number);
-                            const [bh, bm] = b.start_time.split(':').map(Number);
-                            return ah * 60 + am - (bh * 60 + bm);
-                        }
-                    )}
-                    renderItem={renderScheduleCard}
-                    keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
-                    contentContainerStyle={styles.listContainer}
-                    ListEmptyComponent={
-                        <View style={styles.emptyContainer}>
-                            <Icon name="event-busy" size={fontSize(60)} color="#f5f5f5" />
-                            <Text style={styles.emptyText}>No Classes Scheduled</Text>
-                            <Text style={styles.emptySubText}>
-                                No classes scheduled for {getDateDisplayText().toLowerCase()}
-                            </Text>
-                        </View>
-                    }
-                    ListFooterComponent={
-                        <View style={styles.footerContainer}>
-                            <TouchableOpacity 
-                                style={styles.createScheduleButton}
-                                onPress={handleCreateSchedule}
-                            >
-                                <Icon name="add" size={fontSize(20)} color="#FFF" />
-                                <Text style={styles.createScheduleButtonText}>
-                                    Schedule New Class
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    }
-                />
+               // ✅ FIX: Consistent date creation
+<FlatList
+  data={currentSchedule}
+  renderItem={({ item }) => {
+    const now = new Date();
+    const scheduleDate = selectedDate === 'today' 
+      ? now 
+      : new Date(now.setDate(now.getDate() + 1));
+    
+    return (
+      <ClassScheduleCard
+        item={item}
+        scheduleDate={scheduleDate}
+        onCancel={handleCancelSchedule}
+        onMarkAttendance={handleMarkAttendance}
+      />
+    );
+  }}
+
+  keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
+  contentContainerStyle={styles.listContainer}
+  refreshControl={
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      colors={["#FFF"]}
+      tintColor="#FFF"
+      title="Refreshing..."
+      titleColor="#FFF"
+    />
+  }
+  showsVerticalScrollIndicator={false}
+/>
             )}
 
-            {/* Create Schedule Modal */}
-            <Modal
-                visible={showCreateModal}
-                animationType="slide"
-                transparent={true}
-                onRequestClose={() => {
-                    setShowCreateModal(false);
-                    resetNewSchedule();
-                }}
+           <Modal
+    visible={showCreateModal}
+    animationType="slide"
+    transparent={true}
+    onRequestClose={() => {
+        setShowCreateModal(false);
+        resetNewSchedule();
+    }}
+>
+    <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        style={styles.modalContainer}
+    >
+        <View style={[styles.modalContent, { height: '80%' }]}>
+            <View>
+                <Text style={styles.modalTitle}>Schedule New Class</Text>
+            </View>
+            
+            <ScrollView 
+                style={{ flex: 1 }}
+                contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingTop: SPACING.lg, paddingBottom: SPACING.xl }}
+                showsVerticalScrollIndicator={true}
+                nestedScrollEnabled={true}
             >
-                <KeyboardAvoidingView 
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-                    style={styles.modalContainer}
-                >
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Schedule New Class</Text>
-                            <TouchableOpacity onPress={() => {
-                                setShowCreateModal(false);
-                                resetNewSchedule();
-                            }}>
-                                <Icon name="close" size={fontSize(24)} color="#600202" />
-                            </TouchableOpacity>
-                        </View>
-                        
-                        <ScrollView style={styles.formContainer}>
-                            {/* Filter Sections */}
-                            {renderFilterButtons(yearOptions, newSchedule.year, 
-                                (value) => setNewSchedule({...newSchedule, year: value}),'Academic Year')}
-                            
-                            {renderFilterButtons(departmentOptions, newSchedule.department, 
-                                (value) => setNewSchedule({...newSchedule, department: value}), 'Department')}
-                            
-                            {renderFilterButtons(sectionOptions, newSchedule.section, 
-                                (value) => setNewSchedule({...newSchedule, section: value}), 'Section')}
+                <Text style={styles.label}>Academic Year *</Text>
+                {renderFilterButtons(yearOptions, newSchedule.year, 
+                    (value) => setNewSchedule({...newSchedule, year: value}))}
+                
+                <Text style={styles.label}>Department *</Text>
+                {renderFilterButtons(departmentOptions, newSchedule.department, 
+                    (value) => setNewSchedule({...newSchedule, department: value}))}
+                
+                <Text style={styles.label}>Section *</Text>
+                {renderFilterButtons(sectionOptions, newSchedule.section, 
+                    (value) => setNewSchedule({...newSchedule, section: value}))}
 
-                            {/* Subject Dropdown */}
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Subject *</Text>
-                                <ScrollView style={styles.subjectDropdown}>
-                                    {subjects.map((subject) => (
-                                        <TouchableOpacity
-                                            key={subject.subject_code}
-                                            style={[
-                                                styles.subjectItem,
-                                                newSchedule.subject_code === subject.subject_code && styles.subjectItemSelected
-                                            ]}
-                                            onPress={() => setNewSchedule({
-                                                ...newSchedule, 
-                                                subject_code: subject.subject_code
-                                            })}
-                                        >
-                                            <Text style={styles.subjectText}>
-                                                {subject.subject_code} - {subject.subject_name}
-                                            </Text>
-                                            <Text style={styles.subjectType}>
-                                                ({subject.subject_type})
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </ScrollView>
-                            </View>
-
-                            {/* Fetch Time Slots Button */}
-                            {newSchedule.year && newSchedule.department && newSchedule.section && newSchedule.subject_code && (
-                                <TouchableOpacity 
-                                    style={[styles.fetchSlotsButton, fetchingSlots && styles.buttonDisabled]}
-                                    onPress={fetchAvailableSlots}
-                                    disabled={fetchingSlots}
-                                >
-                                    {fetchingSlots ? (
-                                        <ActivityIndicator size="small" color="#FFFFFF" />
-                                    ) : (
-                                        <>
-                                            <Icon name="search" size={fontSize(20)} color="#FFF" />
-                                            <Text style={styles.fetchSlotsButtonText}>
-                                                Fetch Available Time Slots
-                                            </Text>
-                                        </>
-                                    )}
-                                </TouchableOpacity>
-                            )}
-
-                            {/* Available Time Slots */}
-                            {availableSlots.length > 0 && (
-                                <View style={styles.slotsSection}>
-                                    <Text style={styles.slotsTitle}>Available Time Slots:</Text>
-                                    {availableSlots.map((slot, index) => (
-                                        <TouchableOpacity
-                                            key={index}
-                                            style={[
-                                                styles.slotItem,
-                                                newSchedule.start_time === slot.start_time && styles.slotItemSelected
-                                            ]}
-                                            onPress={() => setNewSchedule({
-                                                ...newSchedule,
-                                                start_time: slot.start_time,
-                                                end_time: slot.end_time
-                                            })}
-                                        >
-                                            <Text style={styles.slotText}>
-                                                {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                            )}
-
-                            {/* Venue Input */}
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Venue (Optional)</Text>
-                                <TextInput
-                                    style={styles.textInput}
-                                    placeholder="Enter venue"
-                                    value={newSchedule.venue}
-                                    onChangeText={(text) => setNewSchedule({...newSchedule, venue: text})}
-                                    placeholderTextColor="#999"
-                                />
-                            </View>
-
-                            {/* Selected Time Display */}
-                            {newSchedule.start_time && (
-                                <View style={styles.selectedTimeContainer}>
-                                    <Text style={styles.selectedTime}>
-                                        Selected: {formatTime(newSchedule.start_time)} - {formatTime(newSchedule.end_time)}
-                                    </Text>
-                                </View>
-                            )}
-                        </ScrollView>
-
-                        <View style={styles.modalFooter}>
-                            <TouchableOpacity 
-                                style={[styles.modalCancelButton, styles.modalButton]}
-                                onPress={() => {
-                                    setShowCreateModal(false);
-                                    resetNewSchedule();
-                                }}
+                {/* Rest of your modal content remains the same */}
+                {/* Subject Dropdown */}
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Subject *</Text>
+                    <ScrollView style={styles.subjectDropdown}>
+                        {subjects.map((subject) => (
+                            <TouchableOpacity
+                                key={subject.subject_code}
+                                style={[
+                                    styles.subjectItem,
+                                    newSchedule.subject_code === subject.subject_code && styles.subjectItemSelected
+                                ]}
+                                onPress={() => setNewSchedule({
+                                    ...newSchedule, 
+                                    subject_code: subject.subject_code
+                                })}
                             >
-                                <Text style={styles.modalCancelButtonText}>Cancel</Text>
+                                <Text style={styles.subjectText}>
+                                    {subject.subject_code} - {subject.subject_name}
+                                </Text>
+                                <Text style={styles.subjectType}>
+                                    ({subject.subject_type})
+                                </Text>
                             </TouchableOpacity>
-                            <TouchableOpacity 
-                                style={[styles.modalSubmitButton, styles.modalButton, (!newSchedule.start_time) && styles.modalSubmitButtonDisabled]}
-                                onPress={handleCreateSubmit}
-                                disabled={!newSchedule.start_time}
+                        ))}
+                    </ScrollView>
+                </View>
+
+                {/* Fetch Time Slots Button */}
+                {newSchedule.year && newSchedule.department && newSchedule.section && newSchedule.subject_code && (
+                    <TouchableOpacity 
+                        style={[styles.fetchSlotsButton, fetchingSlots && styles.buttonDisabled]}
+                        onPress={fetchAvailableSlots}
+                        disabled={fetchingSlots}
+                    >
+                        {fetchingSlots ? (
+                            <ActivityIndicator size="small" color="#FFF" />
+                        ) : (
+                            <>
+                                <Text style={styles.fetchSlotsButtonText}>
+                                    Fetch Available Time Slots
+                                </Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
+                )}
+
+                {/* Available Time Slots */}
+                {availableSlots.length > 0 && (
+                    <View style={styles.slotsSection}>
+                        <Text style={styles.slotsTitle}>Available Time Slots</Text>
+                        {availableSlots.map((slot, index) => (
+                            <TouchableOpacity
+                                key={index}
+                                style={[
+                                    styles.slotItem,
+                                    newSchedule.start_time === slot.start_time && styles.slotItemSelected
+                                ]}
+                                onPress={() => setNewSchedule({
+                                    ...newSchedule,
+                                    start_time: slot.start_time,
+                                    end_time: slot.end_time
+                                })}
                             >
-                                <Text style={styles.modalSubmitButtonText}>Schedule Class</Text>
+                                <Text style={styles.slotText}>
+                                    {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                                </Text>
                             </TouchableOpacity>
-                        </View>
+                        ))}
                     </View>
-                </KeyboardAvoidingView>
-            </Modal>
+                )}
+
+                {/* Venue Input */}
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Venue (Optional)</Text>
+                    <TextInput
+                        style={styles.textInput}
+                        placeholder="Enter venue"
+                        value={newSchedule.venue}
+                        onChangeText={(text) => setNewSchedule({...newSchedule, venue: text})}
+                        placeholderTextColor="#999"
+                    />
+                </View>
+
+                {/* Selected Time Display */}
+                {newSchedule.start_time && (
+                    <View style={styles.selectedTimeContainer}>
+                        <Text style={styles.selectedTime}>
+                            Selected: {formatTime(newSchedule.start_time)} - {formatTime(newSchedule.end_time)}
+                        </Text>
+                    </View>
+                )}
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+                <TouchableOpacity 
+                    style={[styles.modalCancelButton, styles.modalButton]}
+                    onPress={() => {
+                        setShowCreateModal(false);
+                        resetNewSchedule();
+                    }}
+                >
+                    <Text style={styles.modalCancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                    style={[styles.modalSubmitButton, styles.modalButton, (!newSchedule.start_time) && styles.modalSubmitButtonDisabled]}
+                    onPress={handleCreateSubmit}
+                    disabled={!newSchedule.start_time}
+                >
+                    <Text style={styles.modalSubmitButtonText}>Schedule Class</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    </KeyboardAvoidingView>
+</Modal>
 
             {/* Mark Attendance Modal */}
             <Modal
@@ -926,23 +1225,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                                             {formatTime(selectedSchedule.start_time)} - {formatTime(selectedSchedule.end_time)}
                                         </Text>
                                     </View>
-                                    <View style={styles.classDetailRow}>
-                                        <Text style={styles.classDetailLabel}>Venue:</Text>
-                                        <Text style={styles.classDetailValue}>
-                                            {selectedSchedule.venue || 'Not specified'}
-                                        </Text>
-                                    </View>
-                                    <View style={styles.classDetailRow}>
-                                        <Text style={styles.classDetailLabel}>Current Server Time:</Text>
-                                        <Text style={styles.classDetailValue}>
-                                            {serverTime.toLocaleTimeString('en-US', {
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                                second: '2-digit',
-                                                hour12: true
-                                            })}
-                                        </Text>
-                                    </View>
                                 </View>
                             )}
 
@@ -964,9 +1246,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                             {/* OTP Generation Section */}
                             <View style={styles.otpSection}>
                                 <Text style={styles.otpTitle}>Generate OTP for Attendance</Text>
-                                <Text style={styles.otpDescription}>
-                                    Generate a one-time password to share with students
-                                </Text>
                                 
                                 <TouchableOpacity 
                                     style={[styles.generateOtpButton, isGeneratingOTP && styles.buttonDisabled]}
@@ -974,7 +1253,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                                     disabled={isGeneratingOTP}
                                 >
                                     {isGeneratingOTP ? (
-                                        <ActivityIndicator size="small" color="#FFFFFF" />
+                                        <ActivityIndicator size="small" color="#FFF" />
                                     ) : (
                                         <>
                                             <Icon name="vpn-key" size={fontSize(20)} color="#FFF" />
@@ -999,188 +1278,285 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userEmail, user, setIsLoggedIn,
                     </View>
                 </KeyboardAvoidingView>
             </Modal>
-        </View>
+        </LinearGradient>
     );
 };
 
+// Helper function for formatting time
+const formatTime = (timeStr: string): string => {
+    if (!timeStr) return '';
+    const [hours, minutes] = timeStr.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const formattedHour = hour % 12 || 12;
+    return `${formattedHour}:${minutes} ${ampm}`;
+};
+
+// Use the exact same styles from the student app
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#600202',
+    container: { 
+        flex: 1, 
+        backgroundColor: "#600202", 
+        paddingHorizontal: SPACING.lg, 
+        paddingTop: spacing(6) 
     },
-    header: {
-        padding: SPACING.xl,
-        paddingBottom: spacing(10),
+    greetingContainer: { 
+        marginTop: SPACING.lg,
+        marginBottom: SPACING.md,
     },
-    greeting: {
-        fontSize: FONT_SIZES.xxxl,
-        fontWeight: 'bold',
-        color: '#FFFFFF',
-        marginBottom: SPACING.lg,
-        textAlign: 'center',
+    greetingHello: { 
+        color: "rgba(255, 255, 255, 0.85)", 
+        fontSize: fontSize(15),
+        fontWeight: '500',
+    },
+    greetingName: { 
+        color: "#FFF", 
+        fontSize: FONT_SIZES.xxxl, 
+        fontWeight: "700",
+        marginTop: spacing(2),
     },
     calendarNav: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        borderRadius: 15,
-        padding: spacing(10),
-        marginHorizontal: spacing(10),
+        marginBottom: SPACING.lg,
+        gap: 10,
     },
-    navButton: {
-        paddingHorizontal: spacing(15),
-        paddingVertical: SPACING.sm,
-        borderRadius: 10,
-    },
-    dateDisplay: {
+    dateButton: {
         flex: 1,
+        paddingVertical: SPACING.md,
         alignItems: 'center',
+        borderRadius: 14,
+        backgroundColor: 'rgba(255, 255, 255, 0.12)',
+        borderWidth: 1.5,
+        borderColor: 'rgba(255, 255, 255, 0.15)',
     },
-    dateTitle: {
-        fontSize: FONT_SIZES.lg,
+    dateButtonActive: {
+        backgroundColor: '#FFF',
+        borderColor: '#FFF',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+    },
+    dateButtonText: {
+        color: 'rgba(255, 255, 255, 0.9)',
+        fontSize: fontSize(15),
         fontWeight: '600',
-        color: '#FFFFFF',
+        letterSpacing: 0.3,
     },
-    statsContainer: {
-        paddingHorizontal: SPACING.xl,
-        paddingVertical: SPACING.sm,
+    dateButtonTextActive: {
+        color: '#900a02',
+        fontWeight: '700',
     },
-    statsText: {
-        color: '#f5f5f5',
-        fontSize: FONT_SIZES.sm,
-        opacity: 0.9,
+    scheduleTitle: { 
+        color: "#FFF", 
+        fontSize: FONT_SIZES.xl, 
+        fontWeight: "700", 
+        marginBottom: SPACING.md,
+        letterSpacing: 0.5,
     },
-    loadingContainer: {
-        flex: 1,
+    listContainer: { 
+        paddingBottom: SPACING.xl 
+    },
+    card: { 
+        marginBottom: SPACING.md, 
+        backgroundColor: "#FFF", 
+        borderRadius: 10,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 3,
+        overflow: 'hidden',
+        minHeight: 180,
+    },
+    subjectCircle: { 
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: spacing(14),
+        paddingHorizontal: spacing(14),
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 10,
+        backgroundColor: '#FAFAFA',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E0E0E0',
+    },
+    subjectBadge: {
+        width: 95,
+        height: 70,
+        borderRadius: 14,
         justifyContent: 'center',
         alignItems: 'center',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
     },
-    loadingText: {
-        color: '#f5f5f5',
-        marginTop: spacing(10),
+    subjectInitial: {
+        fontSize: fontSize(22),
+        fontWeight: '700',
+        textAlign: 'center',
+        letterSpacing: 0.5,
     },
-    listContainer: {
-        padding: spacing(10),
-        paddingBottom: SPACING.xl,
+    subjectText: { 
+        color: "#212121", 
+        fontWeight: "700", 
+        fontSize: fontSize(17),
     },
-    scheduleCard: {
-        flexDirection: 'row',
-        backgroundColor: '#f5f5f5',
+    statusBadgeTopRight: {
+        position: 'absolute',
+        top: 8,
+        right: 10,
+        backgroundColor: '#E8F5E9',
+        paddingHorizontal: spacing(10),
+        paddingVertical: spacing(5),
         borderRadius: 12,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.15,
+        shadowRadius: 2,
+        zIndex: 10,
+    },
+    statusBadgeText: {
+        color: '#2E7D32',
+        fontSize: FONT_SIZES.xs,
+        fontWeight: '600',
+    },
+    cardDetails: { 
         padding: SPACING.md,
-        marginBottom: SPACING.sm,
-        marginHorizontal: spacing(10),
-        alignItems: 'center',
-        borderLeftWidth: 6,
-        borderLeftColor: '#dd5e5eff',
     },
-    scheduleInfo: {
-        flex: 1,
+    detailText: { 
+        color: "#424242", 
+        fontSize: FONT_SIZES.md,
+        lineHeight: 20,
+        fontWeight: '600',
     },
-    scheduleHeader: {
+    infoContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: SPACING.sm,
+        backgroundColor: '#E3F2FD',
+        padding: spacing(10),
+        borderRadius: 8,
+        marginTop: SPACING.sm,
     },
-    subjectName: {
-        color: '#600202',
-        fontSize: FONT_SIZES.lg,
-        fontWeight: 'bold',
+    infoText: {
+        color: '#1565C0',
+        fontSize: fontSize(13),
+        marginLeft: SPACING.sm,
+        fontWeight: '500',
         flex: 1,
-    },
-    dateSubText: {
-    fontSize: FONT_SIZES.md,
-    color: '#FFFFFF',
-    opacity: 0.9,
-    textAlign: 'center',
-    marginTop: spacing(2),
-},
-   
-    scheduleDetailsContainer: {},
-    detailRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: spacing(2),
-    },
-    scheduleDetails: {
-        color: '#600202',
-        fontSize: FONT_SIZES.sm,
-        marginLeft: spacing(6),
     },
     actionButtons: {
         flexDirection: 'row',
-        gap: 8,
-    },
-    attendanceButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#28a745',
+        gap: 6,
         paddingHorizontal: SPACING.md,
-        paddingVertical: SPACING.sm,
-        borderRadius: 6,
-        gap: 4,
+        paddingBottom: SPACING.md,
+        flexWrap: 'wrap',
     },
-    attendanceButtonText: {
-        color: '#FFF',
-        fontSize: FONT_SIZES.sm,
-        fontWeight: '600',
-    },
-    cancelButton: {
-        backgroundColor: '#dc3545',
-        padding: SPACING.sm,
-        borderRadius: 6,
-    },
-    emptyContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: spacing(40),
-        marginTop: SPACING.xl,
-    },
-    emptyText: {
-        color: '#f5f5f5',
-        fontSize: FONT_SIZES.xl,
-        fontWeight: '600',
-        marginTop: SPACING.md,
-    },
-    emptySubText: {
-        color: 'rgba(245, 245, 245, 0.7)',
-        fontSize: FONT_SIZES.md,
-        marginTop: spacing(6),
-        textAlign: 'center',
-    },
-    footerContainer: {
-        padding: SPACING.xl,
-        alignItems: 'center',
-    },
-    createScheduleButton: {
+    attendanceButton: { 
+        backgroundColor: "#2196F3", 
+        paddingVertical: spacing(10),
+        paddingHorizontal: SPACING.xl,
+        borderRadius: 8,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#28a745',
-        paddingHorizontal: SPACING.xl,
-        paddingVertical: SPACING.md,
-        borderRadius: 10,
-        marginBottom: SPACING.xl,
-        justifyContent: 'center',
-    },
-    createScheduleButtonText: {
-        color: '#FFF',
-        fontWeight: '600',
-        fontSize: FONT_SIZES.lg,
-        marginLeft: SPACING.sm,
-    },
-    // Modal Styles
-    modalContainer: {
+        elevation: 2,
         flex: 1,
         justifyContent: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    buttonText: { 
+        color: "#FFF", 
+        fontWeight: "600", 
+        fontSize: FONT_SIZES.md,
+    },
+    cancelButton: { 
+        backgroundColor: "#F44336", 
+        padding: spacing(6),
+        borderRadius: 6,
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 40,
+        height: 40,
+        elevation: 2,
+    },
+    upcomingPlaceholder: {
+        backgroundColor: '#F5F5F5',
+        paddingVertical: spacing(10),
+        paddingHorizontal: SPACING.xl,
+        borderRadius: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+    },
+    upcomingPlaceholderText: {
+        color: '#9E9E9E',
+        fontSize: fontSize(13),
+        fontWeight: '500',
+        marginLeft: SPACING.sm,
+    },
+    emptyContainer: { 
+        flex: 1, 
+        justifyContent: "center", 
+        alignItems: "center",
+        marginTop: spacing(100),
+        paddingHorizontal: spacing(40),
+    },
+    emptyText: { 
+        color: 'rgba(255, 255, 255, 0.9)', 
+        fontSize: FONT_SIZES.lg,
+        marginBottom: SPACING.xxl,
+        textAlign: 'center',
+        fontWeight: '600',
+    },
+    refreshButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFF',
+        paddingHorizontal: SPACING.xxl,
+        paddingVertical: spacing(14),
+        borderRadius: 24,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+    },
+    refreshText: {
+        color: '#900a02',
+        marginLeft: SPACING.sm,
+        fontWeight: '700',
+        fontSize: fontSize(15),
+    },
+    modalContainer: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.6)",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: SPACING.xl,
     },
     modalContent: {
-        backgroundColor: '#FFF',
-        margin: SPACING.xl,
-        borderRadius: 15,
-        maxHeight: '80%',
+        width: "100%",
+        maxHeight: "85%",
+        backgroundColor: "#FFF",
+        borderRadius: 16,
+        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+    },
+    modalTitle: { 
+        fontSize: FONT_SIZES.xxl, 
+        fontWeight: "700", 
+        textAlign: "center",
+        paddingVertical: spacing(18),
+        paddingHorizontal: SPACING.xl,
+        backgroundColor: '#600202',
+        color: '#FFF',
     },
     modalHeader: {
         flexDirection: 'row',
@@ -1189,11 +1565,6 @@ const styles = StyleSheet.create({
         padding: SPACING.xl,
         borderBottomWidth: 1,
         borderBottomColor: '#e9ecef',
-    },
-    modalTitle: {
-        fontSize: FONT_SIZES.xxl,
-        fontWeight: 'bold',
-        color: '#600202',
     },
     formContainer: {
         padding: SPACING.xl,
@@ -1232,10 +1603,10 @@ const styles = StyleSheet.create({
         fontSize: FONT_SIZES.md,
     },
     filterButtonTextSelected: {
-        color: '#f5f5f5',
+        color: '#FFF',
         fontWeight: '600',
     },
-    // Subject Dropdown
+    // Input Groups
     inputGroup: {
         marginBottom: SPACING.xl,
     },
@@ -1262,17 +1633,12 @@ const styles = StyleSheet.create({
         borderLeftWidth: 4,
         borderLeftColor: '#28A745',
     },
-    subjectText: {
-        fontSize: FONT_SIZES.md,
-        color: '#600202',
-        fontWeight: '500',
-    },
+    
     subjectType: {
         fontSize: FONT_SIZES.sm,
         color: '#6C757D',
         marginTop: spacing(2),
     },
-    // Text Area Styles
     textArea: {
         borderWidth: 1,
         borderColor: '#ddd',
@@ -1295,7 +1661,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     fetchSlotsButtonText: {
-        color: '#FFFFFF',
+        color: '#FFF',
         fontSize: FONT_SIZES.lg,
         fontWeight: '600',
     },
@@ -1315,7 +1681,7 @@ const styles = StyleSheet.create({
     },
     slotItem: {
         padding: SPACING.md,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#FFF',
         borderRadius: 8,
         marginBottom: SPACING.sm,
         borderWidth: 1,
@@ -1353,20 +1719,25 @@ const styles = StyleSheet.create({
     },
     modalFooter: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: SPACING.xl,
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        paddingVertical: SPACING.lg,
+        paddingHorizontal: SPACING.xl,
         borderTopWidth: 1,
-        borderTopColor: '#e9ecef',
+        borderTopColor: '#E0E0E0',
+        backgroundColor: '#FFF',
     },
     modalButton: {
-        flex: 1,
-        padding: spacing(15),
+        backgroundColor: "#600202",
+        paddingVertical: spacing(14),
+        paddingHorizontal: SPACING.xxxl,
         borderRadius: 10,
+        minWidth: 120,
         alignItems: 'center',
-        marginHorizontal: SPACING.sm,
+        elevation: 2,
     },
     modalCancelButton: {
-        backgroundColor: '#6c757d',
+        backgroundColor: '#757575',
     },
     modalSubmitButton: {
         backgroundColor: '#28a745',
@@ -1387,7 +1758,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         fontSize: FONT_SIZES.lg,
     },
-    // Attendance Modal Styles
     classInfoContainer: {
         backgroundColor: '#F8F9FA',
         padding: spacing(15),
@@ -1431,12 +1801,6 @@ const styles = StyleSheet.create({
         color: '#28A745',
         marginBottom: spacing(5),
     },
-    otpDescription: {
-        fontSize: FONT_SIZES.md,
-        color: '#495057',
-        marginBottom: spacing(15),
-        lineHeight: 20,
-    },
     generateOtpButton: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -1449,12 +1813,12 @@ const styles = StyleSheet.create({
         marginBottom: spacing(10),
     },
     generateOtpButtonText: {
-        color: '#FFFFFF',
+        color: '#FFF',
         fontSize: FONT_SIZES.lg,
         fontWeight: '600',
     },
     generatedOtpContainer: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#FFF',
         padding: spacing(15),
         borderRadius: 8,
         borderWidth: 1,
@@ -1480,39 +1844,12 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
         textAlign: 'center',
     },
-   
-    loadingBadgeText: {
-        color: '#FFFFFF',
-        fontSize: FONT_SIZES.xs,
-        fontWeight: 'bold',
+    cancelButtonHeader: { 
+        position: 'absolute',
+        top: spacing(10), 
+        right: spacing(13),
+       
     },
-    timeStatusBadge: {
-        paddingHorizontal: SPACING.sm,
-        paddingVertical: SPACING.xs,
-        borderRadius: 6,
-        marginLeft: SPACING.sm,
-    },
-    ongoingBadge: {
-        backgroundColor: '#28a745', // Green for ongoing
-    },
-    completedBadge: {
-        backgroundColor: '#007bff', // Blue for completed
-    },
-    expiredBadge: {
-        backgroundColor: '#f40e25ff', // Red for expired
-    },
-    scheduledBadge: {
-        backgroundColor: '#ffc107', // Yellow for scheduled/upcoming
-    },
-    loadingBadge: {
-        backgroundColor: '#6c757d', // Gray for loading
-    },
-    timeStatusText: {
-        color: '#FFFFFF',
-        fontSize: FONT_SIZES.xs,
-        fontWeight: 'bold',
-    },
-
 });
 
 export default HomeScreen;

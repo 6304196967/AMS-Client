@@ -41,6 +41,7 @@ type ScheduleItem = {
     status: boolean;
     subject_code: string;
     subject_mnemonic?: string;
+    otp?: string; // Add OTP field
 };
 
 type ScheduleData = {
@@ -352,65 +353,82 @@ const ClassScheduleCard = ({
       </View>
 
       {/* Class Details */}
-      <View style={styles.cardDetails}>
-        {/* Timing and Venue */}
-        <View style={{ marginBottom: SPACING.md }}>
-          {/* Time */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.sm }}>
-            <Icon name="clock-outline" size={fontSize(20)} color="#1976D2" style={{ marginRight: SPACING.sm }} />
-            <Text 
-              style={[styles.detailText, { fontSize: FONT_SIZES.lg, fontWeight: '600' }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {formatTime(item.start_time)} - {formatTime(item.end_time)}
-            </Text>
-          </View>
-          {/* Location */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.sm }}>
-            <Icon name="map-marker" size={fontSize(20)} color="#E65100" style={{ marginRight: SPACING.sm }} />
-            <Text 
-              style={[styles.detailText, { fontSize: FONT_SIZES.lg, fontWeight: '600', flex: 1 }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {item.venue || 'Venue not specified'}
-            </Text>
-          </View>
-          {/* Class Info */}
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Icon name="school" size={fontSize(20)} color="#600202" style={{ marginRight: SPACING.sm }} />
-            <Text 
-              style={[styles.detailText, { fontSize: FONT_SIZES.lg, fontWeight: '600', flex: 1 }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              E{item.year} {item.department} - {item.section}
-            </Text>
-          </View>
-        </View>
+      {/* Class Details */}
+<View style={styles.cardDetails}>
+  {/* Timing and Venue */}
+  <View style={{ marginBottom: SPACING.md }}>
+    {/* Time */}
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.sm }}>
+      <Icon name="clock-outline" size={fontSize(20)} color="#1976D2" style={{ marginRight: SPACING.sm }} />
+      <Text 
+        style={[styles.detailText, { fontSize: FONT_SIZES.lg, fontWeight: '600' }]}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {formatTime(item.start_time)} - {formatTime(item.end_time)}
+      </Text>
+    </View>
+    
+    {/* Location */}
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.sm }}>
+      <Icon name="map-marker" size={fontSize(20)} color="#E65100" style={{ marginRight: SPACING.sm }} />
+      <Text 
+        style={[styles.detailText, { fontSize: FONT_SIZES.lg, fontWeight: '600', flex: 1 }]}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {item.venue || 'Venue not specified'}
+      </Text>
+    </View>
+    
+    {/* Class Info */}
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.sm }}>
+      <Icon name="school" size={fontSize(20)} color="#600202" style={{ marginRight: SPACING.sm }} />
+      <Text 
+        style={[styles.detailText, { fontSize: FONT_SIZES.lg, fontWeight: '600', flex: 1 }]}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        E{item.year} {item.department} - {item.section}
+      </Text>
+    </View>
+
+    {/* OTP Display - Show alongside other details */}
+    {item.otp && (
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Icon name="key" size={fontSize(20)} color="#4CAF50" style={{ marginRight: SPACING.sm }} />
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.detailText, { fontSize: FONT_SIZES.lg, fontWeight: '600', color: '#4CAF50' }]}>
+            OTP: {item.otp}
+          </Text>
+          
         
-        {/* Status Messages */}
-        {classStatus.message && (
-          <View style={[
-            styles.infoContainer,
-            { backgroundColor: classStatus.badge.bgColor }
-          ]}>
-            <Icon 
-              name={
-                classStatus.status === 'completed' ? "check-circle" :
-                classStatus.status === 'ongoing' ? "play-circle-outline" :
-                classStatus.status === 'upcoming' ? "calendar-clock" :
-                "close-circle-outline"
-              } 
-              size={fontSize(16)} 
-              color={classStatus.badge.color}
-            />
-            <Text style={[styles.infoText, { color: classStatus.badge.color }]}>
-              {classStatus.message}
-            </Text>
-          </View>
-        )}
+        </View>
+      </View>
+    )}
+  </View>
+  
+  {/* Status Messages */}
+  {classStatus.message && (
+    <View style={[
+      styles.infoContainer,
+      { backgroundColor: classStatus.badge.bgColor }
+    ]}>
+      <Icon 
+        name={
+          classStatus.status === 'completed' ? "check-circle" :
+          classStatus.status === 'ongoing' ? "play-circle-outline" :
+          classStatus.status === 'upcoming' ? "calendar-clock" :
+          "close-circle-outline"
+        } 
+        size={fontSize(16)} 
+        color={classStatus.badge.color}
+      />
+      <Text style={[styles.infoText, { color: classStatus.badge.color }]}>
+        {classStatus.message}
+      </Text>
+    </View>
+  )}
       </View>
 
       {/* Action Buttons */}
@@ -426,15 +444,7 @@ const ClassScheduleCard = ({
           </TouchableOpacity>
         )}
 
-        {/* Upcoming Placeholder */}
-        {!classStatus.showMarkAttendance && !classStatus.showCancel && upcoming && (
-          <View style={styles.upcomingPlaceholder}>
-            <Icon name="calendar-clock" size={fontSize(16)} color="#9E9E9E" />
-            <Text style={styles.upcomingPlaceholderText}>
-              Class scheduled
-            </Text>
-          </View>
-        )}
+
       </View>
     </View>
   );
@@ -505,7 +515,6 @@ const getDateStrings = () => {
     const todayStr = formatDate(today);
     const tomorrowStr = formatDate(tomorrow);
     
-    console.log('📅 Date strings:', { todayStr, tomorrowStr, currentTime: now.toLocaleString() });
     
     return { todayStr, tomorrowStr };
 };
@@ -519,46 +528,32 @@ const fetchSchedules = async () => {
         
         const { todayStr, tomorrowStr } = getDateStrings();
         
-        console.log('🔄 Fetching schedules for faculty:', actualFacultyId);
-        console.log('📅 Dates:', { today: todayStr, tomorrow: tomorrowStr });
+
         
         const [todayResponse, tomorrowResponse] = await Promise.all([
             fetch(`${API_BASE_URL}/faculty/${actualFacultyId}/schedule?date=${todayStr}`),
             fetch(`${API_BASE_URL}/faculty/${actualFacultyId}/schedule?date=${tomorrowStr}`)
         ]);
         
-        console.log('📊 Response statuses:', {
-            today: todayResponse.status,
-            tomorrow: tomorrowResponse.status
-        });
+        
         
         // Process today's schedule
         if (todayResponse.ok) {
             const todayData: ScheduleData = await todayResponse.json();
-            console.log('✅ Today schedule:', {
-                faculty: todayData.faculty_name,
-                count: todayData.schedules?.length || 0,
-                schedules: todayData.schedules
-            });
+            
             setTodaySchedule(todayData.schedules || []);
         } else {
             const errorText = await todayResponse.text();
-            console.log('❌ Today schedule fetch failed:', errorText);
             setTodaySchedule([]);
         }
         
         // Process tomorrow's schedule
         if (tomorrowResponse.ok) {
             const tomorrowData: ScheduleData = await tomorrowResponse.json();
-            console.log('✅ Tomorrow schedule:', {
-                faculty: tomorrowData.faculty_name,
-                count: tomorrowData.schedules?.length || 0,
-                schedules: tomorrowData.schedules
-            });
+            
             setTomorrowSchedule(tomorrowData.schedules || []);
         } else {
             const errorText = await tomorrowResponse.text();
-            console.log('❌ Tomorrow schedule fetch failed:', errorText);
             setTomorrowSchedule([]);
         }
         
@@ -642,11 +637,6 @@ const getCurrentSchedule = () => {
     const now = new Date();
     const scheduleDate = selectedDate === 'today' ? now : new Date(now.setDate(now.getDate() + 1));
     
-    console.log(`📋 Current schedule (${selectedDate}):`, {
-        date: scheduleDate.toLocaleDateString(),
-        count: schedule.length,
-        items: schedule.map(s => ({ subject: s.subject_name, time: s.start_time }))
-    });
     
     return sortSchedule([...schedule], scheduleDate);
 };
@@ -707,7 +697,7 @@ const getScheduleTitle = () => {
         if (!selectedSchedule) return;
 
         if (!attendanceReason.trim()) {
-            Alert.alert('Error', 'Please provide a reason for marking attendance');
+            Alert.alert('Error', 'Please enter topic for marking attendance');
             return;
         }
 
@@ -750,7 +740,8 @@ const getScheduleTitle = () => {
             }
 
             setGeneratedOTP(shuffledOTP);
-            Alert.alert('Success', `OTP generated: ${shuffledOTP}`);
+                    await fetchSchedules();
+
         } catch (err) {
             console.error('Generate OTP error:', err);
             Alert.alert('Error', 'Failed to generate OTP');
@@ -858,7 +849,6 @@ const getScheduleTitle = () => {
                 throw new Error(result.error || 'Failed to create schedule');
             }
             
-            Alert.alert('Success', 'Schedule created successfully');
             setShowCreateModal(false);
             resetNewSchedule();
             fetchSchedules();
@@ -923,12 +913,7 @@ const getScheduleTitle = () => {
     const currentSchedule = getCurrentSchedule();
 
     return (
-        <LinearGradient
-            colors={["#900a02", "#600202"]}
-            style={styles.container}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-        >
+        <View style={styles.container}>
             <StatusBar barStyle="light-content" />
 
             <View style={styles.greetingContainer}>
@@ -1176,109 +1161,137 @@ const getScheduleTitle = () => {
     </KeyboardAvoidingView>
 </Modal>
 
-            {/* Mark Attendance Modal */}
-            <Modal
-                visible={showAttendanceModal}
-                animationType="slide"
-                transparent={true}
-                onRequestClose={() => {
-                    setShowAttendanceModal(false);
-                    setSelectedSchedule(null);
-                    setGeneratedOTP('');
-                    setAttendanceReason('');
-                }}
+    {/* Mark Attendance Modal */}
+<Modal
+    visible={showAttendanceModal}
+    animationType="slide"
+    transparent={true}
+    onRequestClose={() => {
+        setShowAttendanceModal(false);
+        setSelectedSchedule(null);
+        setGeneratedOTP('');
+        setAttendanceReason('');
+    }}
+>
+    <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        style={styles.modalContainer}
+    >
+        <View style={[styles.modalContent, { height: '80%' }]}>
+            {/* Updated Header - Same as Schedule New Class */}
+            <View>
+                <Text style={styles.modalTitle}>Mark Attendance</Text>
+            </View>
+            
+            <ScrollView 
+                style={{ flex: 1 }}
+                contentContainerStyle={{ paddingHorizontal: SPACING.xl, paddingTop: SPACING.lg, paddingBottom: SPACING.xl }}
+                showsVerticalScrollIndicator={true}
+                nestedScrollEnabled={true}
             >
-                <KeyboardAvoidingView 
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-                    style={styles.modalContainer}
-                >
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Mark Attendance</Text>
-                            <TouchableOpacity onPress={() => {
-                                setShowAttendanceModal(false);
-                                setSelectedSchedule(null);
-                                setGeneratedOTP('');
-                                setAttendanceReason('');
-                            }}>
-                                <Icon name="close" size={fontSize(24)} color="#600202" />
-                            </TouchableOpacity>
+                {selectedSchedule && (
+                    <View style={styles.classInfoContainer}>
+                        <Text style={styles.classInfoTitle}>Class Details</Text>
+                        <View style={styles.classDetailRow}>
+                            <Text style={styles.classDetailLabel}>Subject:</Text>
+                            <Text style={styles.classDetailValue}>{selectedSchedule.subject_name}</Text>
                         </View>
-                        
-                        <ScrollView style={styles.formContainer}>
-                            {selectedSchedule && (
-                                <View style={styles.classInfoContainer}>
-                                    <Text style={styles.classInfoTitle}>Class Details</Text>
-                                    <View style={styles.classDetailRow}>
-                                        <Text style={styles.classDetailLabel}>Subject:</Text>
-                                        <Text style={styles.classDetailValue}>{selectedSchedule.subject_name}</Text>
-                                    </View>
-                                    <View style={styles.classDetailRow}>
-                                        <Text style={styles.classDetailLabel}>Class:</Text>
-                                        <Text style={styles.classDetailValue}>
-                                            E-{selectedSchedule.year} {selectedSchedule.department} - {selectedSchedule.section}
-                                        </Text>
-                                    </View>
-                                    <View style={styles.classDetailRow}>
-                                        <Text style={styles.classDetailLabel}>Time:</Text>
-                                        <Text style={styles.classDetailValue}>
-                                            {formatTime(selectedSchedule.start_time)} - {formatTime(selectedSchedule.end_time)}
-                                        </Text>
-                                    </View>
-                                </View>
-                            )}
-
-                            {/* Attendance Reason Input */}
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Topic Discussed:</Text>
-                                <TextInput
-                                    style={styles.textArea}
-                                    placeholder="Enter the topics you have discussed today(e.g.,Discussed about Large Language Models, etc.)"
-                                    value={attendanceReason}
-                                    onChangeText={setAttendanceReason}
-                                    placeholderTextColor="#999"
-                                    multiline={true}
-                                    numberOfLines={4}
-                                    textAlignVertical="top"
-                                />
-                            </View>
-
-                            {/* OTP Generation Section */}
-                            <View style={styles.otpSection}>
-                                <Text style={styles.otpTitle}>Generate OTP for Attendance</Text>
-                                
-                                <TouchableOpacity 
-                                    style={[styles.generateOtpButton, isGeneratingOTP && styles.buttonDisabled]}
-                                    onPress={generateOTP}
-                                    disabled={isGeneratingOTP}
-                                >
-                                    {isGeneratingOTP ? (
-                                        <ActivityIndicator size="small" color="#FFF" />
-                                    ) : (
-                                        <>
-                                            <Icon name="vpn-key" size={fontSize(20)} color="#FFF" />
-                                            <Text style={styles.generateOtpButtonText}>
-                                                {generatedOTP ? 'Regenerate OTP' : 'Generate OTP'}
-                                            </Text>
-                                        </>
-                                    )}
-                                </TouchableOpacity>
-
-                                {generatedOTP && (
-                                    <View style={styles.generatedOtpContainer}>
-                                        <Text style={styles.generatedOtpLabel}>Generated OTP:</Text>
-                                        <Text style={styles.generatedOtpValue}>{generatedOTP}</Text>
-                                        <Text style={styles.otpInstruction}>
-                                            Share this OTP with your students. They need to enter this in their app to mark attendance.
-                                        </Text>
-                                    </View>
-                                )}
-                            </View>
-                        </ScrollView>
+                        <View style={styles.classDetailRow}>
+                            <Text style={styles.classDetailLabel}>Class:</Text>
+                            <Text style={styles.classDetailValue}>
+                                E-{selectedSchedule.year} {selectedSchedule.department} - {selectedSchedule.section}
+                            </Text>
+                        </View>
+                        <View style={styles.classDetailRow}>
+                            <Text style={styles.classDetailLabel}>Time:</Text>
+                            <Text style={styles.classDetailValue}>
+                                {formatTime(selectedSchedule.start_time)} - {formatTime(selectedSchedule.end_time)}
+                            </Text>
+                        </View>
+                        <View style={styles.classDetailRow}>
+                            <Text style={styles.classDetailLabel}>Venue:</Text>
+                            <Text style={styles.classDetailValue}>
+                                {selectedSchedule.venue || 'Not specified'}
+                            </Text>
+                        </View>
                     </View>
-                </KeyboardAvoidingView>
-            </Modal>
-        </LinearGradient>
+                )}
+
+                {/* Attendance Reason Input */}
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Topic Discussed *</Text>
+                    <TextInput
+                        style={styles.textArea}
+                        placeholder="Enter the topics you have discussed today..."
+                        value={attendanceReason}
+                        onChangeText={setAttendanceReason}
+                        placeholderTextColor="#999"
+                        multiline={true}
+                        numberOfLines={4}
+                        textAlignVertical="top"
+                    />
+                </View>
+
+                {/* OTP Display Section */}
+                <View style={styles.otpSection}>
+                    <Text style={styles.otpTitle}>Attendance OTP</Text>
+                    
+                    {/* Show existing OTP if available */}
+                    {selectedSchedule?.otp && (
+                        <View style={styles.existingOtpContainer}>
+                            <Text style={styles.existingOtpLabel}>Current OTP:</Text>
+                            <Text style={styles.existingOtpValue}>{selectedSchedule.otp}</Text>
+                            
+                            <Text style={styles.otpInstruction}>
+                                Share this OTP with your students. They need to enter this in their app to mark attendance.
+                            </Text>
+                        </View>
+                    )}
+
+                    {/* Show newly generated OTP */}
+                    {generatedOTP && (
+                        <View style={styles.generatedOtpContainer}>
+                            <Text style={styles.generatedOtpLabel}>New OTP Generated:</Text>
+                            <Text style={styles.generatedOtpValue}>{generatedOTP}</Text>
+                            <Text style={styles.otpInstruction}>
+                                Share this OTP with your students. They need to enter this in their app to mark attendance.
+                            </Text>
+                        </View>
+                    )}
+                </View>
+            </ScrollView>
+
+            {/* Footer with Action Buttons */}
+            <View style={styles.modalFooter}>
+                <TouchableOpacity 
+                    style={[styles.modalCancelButton, styles.modalButton]}
+                    onPress={() => {
+                        setShowAttendanceModal(false);
+                        setSelectedSchedule(null);
+                        setGeneratedOTP('');
+                        setAttendanceReason('');
+                    }}
+                >
+                    <Text style={styles.modalCancelButtonText}>Close</Text>
+                </TouchableOpacity>
+                {!selectedSchedule?.otp && !generatedOTP && (
+                    <TouchableOpacity 
+                        style={[styles.modalSubmitButton, styles.modalButton, (!attendanceReason.trim()) && styles.modalSubmitButtonDisabled]}
+                        onPress={generateOTP}
+                        disabled={!attendanceReason.trim() || isGeneratingOTP}
+                    >
+                        {isGeneratingOTP ? (
+                            <ActivityIndicator size="small" color="#FFF" />
+                        ) : (
+                            <Text style={styles.modalSubmitButtonText}>Generate OTP</Text>
+                        )}
+                    </TouchableOpacity>
+                )}
+            </View>
+        </View>
+    </KeyboardAvoidingView>
+</Modal>
+        </View>
     );
 };
 
@@ -1339,6 +1352,60 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 4,
     },
+    // Add to your styles object
+noOtpContainer: {
+  backgroundColor: '#F5F5F5',
+  padding: spacing(20),
+  borderRadius: 8,
+  alignItems: 'center',
+  marginBottom: spacing(10),
+  borderWidth: 1,
+  borderColor: '#E0E0E0',
+},
+noOtpText: {
+  fontSize: FONT_SIZES.lg,
+  color: '#757575',
+  fontWeight: '600',
+  marginTop: spacing(10),
+  textAlign: 'center',
+},
+noOtpSubtext: {
+  fontSize: FONT_SIZES.sm,
+  color: '#9E9E9E',
+  textAlign: 'center',
+  marginTop: spacing(5),
+  fontStyle: 'italic',
+},
+// Add these missing styles to your styles object
+existingOtpContainer: {
+    backgroundColor: '#FFF3CD',
+    padding: spacing(15),
+    borderRadius: 8,
+    marginBottom: spacing(10),
+    borderWidth: 1,
+    borderColor: '#FFC107',
+},
+existingOtpLabel: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
+    color: '#856404',
+    marginBottom: spacing(5),
+},
+existingOtpValue: {
+    fontSize: FONT_SIZES.xl,
+    fontWeight: 'bold',
+    color: '#600202',
+    textAlign: 'center',
+    marginVertical: spacing(5),
+    letterSpacing: 2,
+},
+otpTime: {
+    fontSize: FONT_SIZES.sm,
+    color: '#856404',
+    textAlign: 'center',
+    marginBottom: spacing(5),
+    fontStyle: 'italic',
+},
     dateButtonText: {
         color: 'rgba(255, 255, 255, 0.9)',
         fontSize: fontSize(15),
@@ -1349,6 +1416,7 @@ const styles = StyleSheet.create({
         color: '#900a02',
         fontWeight: '700',
     },
+
     scheduleTitle: { 
         color: "#FFF", 
         fontSize: FONT_SIZES.xl, 

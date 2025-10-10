@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { View, TouchableOpacity, StyleSheet, Modal, Text, TextInput, Alert } from "react-native";
+import { View, TouchableOpacity, StyleSheet, Modal, Text, TextInput, Alert, Image } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
@@ -41,6 +41,20 @@ type StudentNavigatorProps = {
   user: { name: string; email: string };
   setIsLoggedIn: (value: boolean) => void;
   setUser: (user: { name: string; email: string } | null) => void;
+};
+
+// Header Logo Component
+const HeaderLogo: React.FC = () => {
+  return (
+    <View style={styles.headerLogoContainer}>
+      <Image 
+        source={require('../../../assets/images/rgukt_w.png')} // Adjust path as needed
+        style={styles.logoImage}
+        resizeMode="contain"
+      />
+      <Text style={styles.headerLogoText}>AMS-RKV</Text>
+    </View>
+  );
 };
 
 // Student Header Profile Component
@@ -119,6 +133,7 @@ const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser })
   <>
   <Tab.Navigator 
     screenOptions={({ route }) => ({
+      headerTitle: () => <HeaderLogo />, // Use HeaderLogo as title instead of left
       headerRight: () => (
         <StudentHeaderProfile 
           user={user}
@@ -149,7 +164,6 @@ const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser })
     <Tab.Screen 
       name="Home" 
       options={{
-        title: 'Today\'s Schedule',
         tabBarIcon: ({ color, size }) => (
           <Icon name="home-variant" size={size} color={color} />
         ),
@@ -168,7 +182,6 @@ const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser })
     <Tab.Screen 
       name="Analytics" 
       options={{
-        title: 'Analytics Dashboard',
         tabBarIcon: ({ color, size }) => (
           <Icon name="chart-bar" size={size} color={color} />
         ),
@@ -180,7 +193,6 @@ const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser })
     <Tab.Screen 
       name="History" 
       options={{
-        title: 'Attendance History',
         tabBarIcon: ({ color, size }) => (
           <Icon name="history" size={size} color={color} />
         ),
@@ -192,7 +204,6 @@ const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser })
     <Tab.Screen 
       name="Profile"
       options={{
-        title: 'Student Profile',
         headerShown: false,
         tabBarIcon: ({ color, size }) => (
           <Icon name="account-circle" size={size} color={color} />
@@ -212,7 +223,6 @@ const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser })
      name="DeviceInfo"
      component={DeviceInfoScreen}
      options={{
-       title: 'Device Info',
        tabBarIcon: ({ color, size }) => (
          <Icon name="cellphone-information" size={size} color={color} />
        ),
@@ -261,17 +271,70 @@ const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser })
 };
 
 const StudentNavigator: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser }) => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator 
+    screenOptions={{ 
+      headerShown: false,
+    }}
+  >
     <Stack.Screen name="Tabs">
       {() => <Tabs user={user} setIsLoggedIn={setIsLoggedIn} setUser={setUser} />}
     </Stack.Screen>
-    <Stack.Screen name="Otp" component={OtpScreen} />
-    <Stack.Screen name="Biometric" component={BiometricScreen} />
-    <Stack.Screen name="Blocked" component={BlockedScreen} />
+    <Stack.Screen 
+      name="Otp" 
+      component={OtpScreen}
+      options={{
+        headerShown: true,
+        headerTitle: () => <HeaderLogo />,
+        headerStyle: {
+          backgroundColor: '#900a02', 
+        },
+        headerTintColor: '#f5f5f5',
+      }}
+    />
+    <Stack.Screen 
+      name="Biometric" 
+      component={BiometricScreen}
+      options={{
+        headerShown: true,
+        headerTitle: () => <HeaderLogo />,
+        headerStyle: {
+          backgroundColor: '#900a02', 
+        },
+        headerTintColor: '#f5f5f5',
+      }}
+    />
+    <Stack.Screen 
+      name="Blocked" 
+      component={BlockedScreen}
+      options={{
+        headerShown: true,
+        headerTitle: () => <HeaderLogo />,
+        headerStyle: {
+          backgroundColor: '#900a02', 
+        },
+        headerTintColor: '#f5f5f5',
+      }}
+    />
   </Stack.Navigator>
 );
 
 const styles = StyleSheet.create({
+  headerLogoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoImage: {
+    width: 32,
+    height: 32,
+    marginRight: SPACING.sm,
+  },
+  headerLogoText: {
+    color: '#f5f5f5',
+    fontSize: FONT_SIZES.lg,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
   profileButton: {
     flexDirection: 'row',
     alignItems: 'center',

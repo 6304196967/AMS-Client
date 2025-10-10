@@ -4,6 +4,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { wp, spacing, fontSize, FONT_SIZES } from '../utils/responsive';
+import { cleanupFCMOnLogout } from '../utils/notificationService';
 
 type ProfileProps = {
   user: {
@@ -24,6 +25,14 @@ const Profile: React.FC<ProfileProps> = ({ user, setIsLoggedIn, setUser }) => {
 
   const handleLogout = async () => {
     try {
+      // Cleanup FCM token before logout
+      try {
+        await cleanupFCMOnLogout(user.email);
+      } catch (error) {
+        console.error('Error during FCM cleanup:', error);
+        // Continue with logout even if cleanup fails
+      }
+      
       await GoogleSignin.signOut();
       await AsyncStorage.removeItem("user");
       await AsyncStorage.removeItem("isLoggedIn");

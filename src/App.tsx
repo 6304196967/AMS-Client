@@ -1,6 +1,6 @@
 // App.tsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
@@ -10,6 +10,7 @@ import StudentNavigator from "./student/Navigators/StudentNavigator";
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import FacultyNavigator from "./Navigators/FacultyNavigator";
 import { setupForegroundNotificationHandler, setupNotificationOpenedHandler, setupPermissionMonitoring } from './utils/notificationService';
+import { NotifierWrapper } from 'react-native-notifier';
 
 // Type
 type UserInfo = { name: string; email: string };
@@ -24,6 +25,7 @@ const App: React.FC = () => {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  const navigationRef = useRef<any>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -45,20 +47,42 @@ const App: React.FC = () => {
 
   // Setup notification handlers when app loads
   useEffect(() => {
-    // Handle foreground notifications
-    const unsubscribeForeground = setupForegroundNotificationHandler((notification) => {
-      // Show alert when notification is received in foreground
-      Alert.alert(
-        notification.notification?.title || 'New Notification',
-        notification.notification?.body || '',
-        [{ text: 'OK' }]
-      );
-    });
+    // Handle foreground notifications with beautiful in-app banner
+    const unsubscribeForeground = setupForegroundNotificationHandler();
 
     // Handle notification when app is opened from notification
     const unsubscribeOpened = setupNotificationOpenedHandler((notification) => {
-      console.log('App opened from notification:', notification);
-      // You can navigate to a specific screen based on notification data
+      console.log('🔔 App opened from notification:', notification);
+      
+      // Navigate to home screen based on user type
+      if (navigationRef.current && user) {
+        const email = user.email;
+        
+        // Determine the home route based on user type
+        let homeRoute = 'Home';
+        
+        if (email === "r210016@rguktrkv.a.in") {
+          // Admin Navigator - has "Home" tab
+          homeRoute = 'Home';
+        } else if (email === "r210387@rguktrkv.ac.in") {
+          // Faculty Navigator - has "Schedule" tab as home
+          homeRoute = 'Schedule';
+        } else if (email.endsWith("rguktrkv.ac.in")) {
+          // Student Navigator - has "Home" tab
+          homeRoute = 'Home';
+        }
+        
+        // Navigate to home screen
+        // Note: This navigates to the first tab in each navigator
+        try {
+          navigationRef.current.navigate(homeRoute);
+          console.log(`✅ Navigated to ${homeRoute} screen`);
+        } catch (error) {
+          console.error('❌ Navigation error:', error);
+          // Fallback: Just open the app, let user see their current screen
+          console.log('ℹ️ App opened, showing current screen');
+        }
+      }
     });
 
     // Cleanup on unmount
@@ -66,12 +90,9 @@ const App: React.FC = () => {
       unsubscribeForeground();
       unsubscribeOpened();
     };
-  }, []);
-
-  // Setup permission monitoring for logged-in users
+  }, [user]);  // Setup permission monitoring for logged-in users
   useEffect(() => {
     if (user?.email) {
-      console.log('📱 Setting up permission monitoring for:', user.email);
       const cleanup = setupPermissionMonitoring(user.email);
       
       return () => {
@@ -132,14 +153,16 @@ const App: React.FC = () => {
   };
 
   return (
-    <NavigationContainer>
-      {isLoggedIn ? renderPortal() : (
-        <LandingPage
-          setIsLoggedIn={setIsLoggedIn}
-          setUser={setUser}
-        />
-      )}
-    </NavigationContainer>
+    <NotifierWrapper>
+      <NavigationContainer ref={navigationRef}>
+        {isLoggedIn ? renderPortal() : (
+          <LandingPage
+            setIsLoggedIn={setIsLoggedIn}
+            setUser={setUser}
+          />
+        )}
+      </NavigationContainer>
+    </NotifierWrapper>
   );
 };
 

@@ -61,7 +61,7 @@ const AttendanceReportScreen = () => {
       setIsLoading(true);
       
       const response = await fetch(
-        `${API_BASE_URL}/faculty/attendance-report/${classData.id}`,
+        `${API_BASE_URL}/faculty/attendance-report/${classData.assignmentId}`,
         {
           method: 'GET',
           headers: {
@@ -275,7 +275,7 @@ ${lowAttendance ? `📉 Needs Improvement:\n${lowAttendance}` : ''}
   // Fetch data on component mount
   useEffect(() => {
     fetchReportData();
-  }, [classData.id]);
+  }, [classData.assignmentId]);
 
   if (isLoading) {
     return (

@@ -9,7 +9,7 @@ import AudioCheckModule from '../../modules/AudioCheckModule';
 
 type Props = NativeStackScreenProps<StackParamList, "Otp">;
 
-const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
+const API_BASE_URL = 'http://10.182.66.80:5000';
 
 const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
   const { scheduleId, classEndTime, userEmail, otpExpiryTime } = route.params;
@@ -39,7 +39,6 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
   const markScheduleAsViolated = async () => {
     try {
       await AsyncStorage.setItem(`violated_${scheduleId}`, Date.now().toString());
-      console.log(`Schedule ${scheduleId} marked as violated`);
     } catch (error) {
       console.error('Error marking schedule as violated:', error);
     }
@@ -72,7 +71,6 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
     const performSecurityChecks = async () => {
       try {
         const initialState = AppState.currentState;
-        console.log('Initial App State on OTP Screen:', initialState);
         
         // Check if app is not active
         if (initialState !== 'active') {
@@ -105,14 +103,6 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
           AudioCheckModule.isAccessibilityServiceEnabled()
         ]);
         
-        console.log('Security Check Results:', {
-          isCallActive,
-          isMicInUse,
-          isScreenMirroring,
-          hasOverlay,
-          isRooted,
-          hasAccessibility
-        });
         
         // Check for active call or microphone usage
         if (isCallActive || isMicInUse) {
@@ -178,8 +168,7 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
   // ===== ULTRA STRICT SECURITY: Monitor App State =====
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
-      console.log('App State Change:', appState.current, '->', nextAppState);
-      
+
       // Detect ANY movement away from active state
       if (appState.current === 'active' && nextAppState !== 'active') {
         leftScreenCount.current += 1;
@@ -244,7 +233,6 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
         ]);
         
         if (isCallActive || isMicInUse) {
-          console.log('Call detected during OTP entry! Call:', isCallActive, 'Mic:', isMicInUse);
           
           setSecurityViolation('Call detected - You cannot be on a call during OTP verification');
           setHasLeftScreen(true);
@@ -261,7 +249,6 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
         }
 
         if (isScreenMirroring) {
-          console.log('Screen mirroring detected during OTP entry!');
           
           setSecurityViolation('Screen mirroring detected - Please disconnect immediately');
           setHasLeftScreen(true);
@@ -294,10 +281,6 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
     const remainingMs = otpExpiryTimeRef.current - now;
     const remainingSec = Math.max(0, Math.floor(remainingMs / 1000));
     
-    console.log('Timer initialized:', {
-      otpExpiryTime: new Date(otpExpiryTimeRef.current).toISOString(),
-      remainingSeconds: remainingSec
-    });
 
     if (remainingSec <= 0) {
       setSecurityViolation('OTP has already expired - Please request a new OTP');
@@ -365,7 +348,6 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
         clearInterval(interval);
         
         // OTP has expired on backend, now navigate to biometric
-        console.log('Backend OTP expired, navigating to biometric');
         
         // Double-check no violation occurred during wait
         if (!hasLeftScreen) {
@@ -375,7 +357,6 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
             userEmail
           });
         } else {
-          console.log('Biometric navigation cancelled - violation detected during wait');
           navigateBackToHome();
         }
       }
@@ -401,7 +382,6 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
       
       // Check if already violated (shouldn't happen, but safety check)
       if (hasLeftScreen) {
-        console.log('OTP verification aborted - security violation detected');
         return;
       }
       
@@ -421,16 +401,12 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
       if (data.success) {
         // Clear violation flag on successful verification
         await AsyncStorage.removeItem(`violated_${scheduleId}`);
-        
-        console.log('OTP verified successfully! Now waiting for backend OTP expiry...');
-        
+                
         // Calculate remaining time until backend OTP expires
         const now = Date.now();
         const remainingMs = otpExpiryTimeRef.current - now;
         const remainingSec = Math.ceil(remainingMs / 1000);
-        
-        console.log(`OTP verified! Waiting ${remainingSec}s until backend OTP expiry before biometric`);
-        
+                
         // Switch to waiting mode - student must wait until OTP expires on backend
         setIsWaitingForExpiry(true);
         setWaitingTimer(remainingSec);

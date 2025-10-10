@@ -35,7 +35,7 @@ const StudentManagement = () => {
         try {
             const pickerResult = await pick({ type: [types.xls, types.xlsx] });
             if (!pickerResult) {
-                console.log('User cancelled file selection.');
+                Alert.alert('File Selection Error', 'Could not select file. Please try again.');
                 return;
             }
             setSelectedFile(pickerResult[0]); // Store the selected file object in state
@@ -62,7 +62,7 @@ const StudentManagement = () => {
             });
             formData.append('year', selectedYear);
             formData.append('department', selectedBranch);
-            console.log(replaceStudents);
+            
             formData.append('replace', String(replaceStudents));
 
             const response = await fetch(`${API_BASE_URL}/students/upload`, {

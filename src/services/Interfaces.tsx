@@ -39,15 +39,18 @@ export interface CR {
 
 // ClassAssignment Interface
 export interface ClassAssignment {
-  id: string;
+  assignmentId: number;
   subjectCode: string;
   subjectName: string;
+  subjectMnemonic?: string;
   section: string;
-  totalClasses: number;
-  attendancePercentage: number;
-  lastClass: string;
   department: string;
-  year: string; 
+  year: string;
+  yearBatch?: string;
+  completedSessions: number;
+  classAttendanceAvg: number;
+  lastClassDate: string | null;
+  lastClassTopic?: string | null;
 }
 
 // Recent Activity Interface

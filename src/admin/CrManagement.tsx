@@ -146,7 +146,7 @@ const CrManagement = () => {
     const formData = new FormData();
 
     // Validation
-    console.log(newCR);
+    
     if (!newCR.id) {
       Alert.alert("Error", "Please enter a student ID");
       return;
@@ -166,7 +166,7 @@ const CrManagement = () => {
     
     try {
       // Send only ID and phone to backend
-      console.log(newCR);
+      
       formData.append('id', newCR.id);
       formData.append('mobile', newCR.phone);
 

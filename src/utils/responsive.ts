@@ -7,8 +7,6 @@ const guidelineBaseHeight = 812;
 // Get device dimensions
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Debug: Log screen dimensions
-console.log('📱 RESPONSIVE UTILS - Screen Width:', SCREEN_WIDTH, 'Height:', SCREEN_HEIGHT);
 
 /**
  * Width percentage to pixel

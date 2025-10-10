@@ -11,9 +11,8 @@ import {
 import LinearGradient from "react-native-linear-gradient";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Platform, Dimensions } from 'react-native';
-import { getUniqueId, getManufacturer } from 'react-native-device-info';
 import { registerFCMToken, requestNotificationPermission } from './utils/notificationService';
+import { validateDeviceBinding } from './utils/deviceBindingService';
 import { wp, hp, fontSize, spacing, FONT_SIZES, SPACING } from './utils/responsive';
 
 const amsLogo = require("../assets/images/rgukt_w.png");
@@ -26,87 +25,97 @@ type LandingPageProps = {
 
 const LandingPage: React.FC<LandingPageProps> = ({ setIsLoggedIn, setUser }) => {
 
-  const generateDeviceFingerprint = async (email: string): Promise<string> => {
-    try {
-      // Get device-specific information
-      const deviceId = await getUniqueId();
-      const manufacturer = await getManufacturer();
-      
-      const deviceInfo = {
-        platform: Platform.OS,
-        platformVersion: Platform.Version,
-        deviceId: deviceId,
-        manufacturer: manufacturer,
-        screenSize: Dimensions.get('screen'),
-        model: Platform.OS === 'ios' ? 'iOS' : 'Android', // You can get more specific if needed
-        email: email.toLowerCase().trim()
-      };
-
-      // Create a hash of the device info
-      const deviceString = JSON.stringify(deviceInfo);
-      
-      // Simple hash function (you might want to use a more secure one)
-      let hash = 0;
-      for (let i = 0; i < deviceString.length; i++) {
-        const char = deviceString.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32-bit integer
-      }
-      
-      return `bind_${Math.abs(hash).toString(16)}_${Date.now()}`;
-    } catch (error) {
-      console.error('Error generating device fingerprint:', error);
-      // Fallback to a simpler fingerprint
-      return `bind_fallback_${Platform.OS}_${email.toLowerCase().trim()}_${Date.now()}`;
-    }
-  };
-
+  /**
+   * ROBUST LOGIN FLOW WITH BACKEND DEVICE BINDING
+   * 
+   * Step 1: Sign out first to force account selection
+   * Step 2: User clicks login → Google account picker appears
+   * Step 3: Check if email ends with @rguktrkv.ac.in
+   * Step 4: Validate device binding with backend
+   *         - Generates hardware-based device fingerprint
+   *         - Checks backend: Is this device bound to any email?
+   *         - If YES: Only allow that email to login
+   *         - If NO: Bind device to current email in backend
+   * Step 5: Save user data and login
+   * Step 6: Register FCM token for notifications (optional, non-blocking)
+   * 
+   * Security: Device binding is stored in backend database
+   *          - Cannot be bypassed by clearing app storage
+   *          - Cannot be bypassed by uninstalling app
+   *          - Uses hardware identifiers (persistent)
+   */
   const handleGoogleLogin = async () => {
     try {
+      // Check if Google Play Services available
       await GoogleSignin.hasPlayServices();
+      
+      // IMPORTANT: Sign out first to force account selection
+      await GoogleSignin.signOut();
+      
+      // Show Google Sign-In (user can choose account)
       const userInfo = await GoogleSignin.signIn();
-      // Extract user email(If userInfo, data and user are not null)
+      
+      // Get user email and name
       const userEmail = userInfo?.data?.user?.email || "";
+      const userName = userInfo?.data?.user?.familyName || "";
 
-      // ✅ Restrict domain
+      // Check college email domain
       if (!userEmail.endsWith("@rguktrkv.ac.in")) {
         Alert.alert(
           "Access Denied",
-          "Please use your College email"
+          "Please use your RGUKT RK Valley College email (@rguktrkv.ac.in)"
         );
         await GoogleSignin.signOut();
-        setIsLoggedIn(false);
-        setUser(null);
-        AsyncStorage.removeItem("user");
-        AsyncStorage.removeItem("isLoggedIn");
         return;
       }
 
-      // Login successful → notify App
+      // Validate device binding with backend
+      const bindingResult = await validateDeviceBinding(userEmail);
+      
+      if (!bindingResult.allowed) {
+        // Device is bound to a different email
+        Alert.alert(
+          "Device Already Registered",
+          bindingResult.message || "This device is registered to another account.",
+          [{ text: "OK" }]
+        );
+        await GoogleSignin.signOut();
+        return;
+      }
+      
+      if (bindingResult.message) {
+        // Warning message (e.g., network error but allowed)
+        console.warn('⚠️', bindingResult.message);
+      }
+
+
+      // Save user data
       setIsLoggedIn(true);
-      setUser({ name: userInfo?.data?.user?.familyName || "", email: userEmail });
-      await AsyncStorage.setItem("user", JSON.stringify({ name: userInfo?.data?.user?.familyName || "", email: userEmail }));
+      setUser({ name: userName, email: userEmail });
+      await AsyncStorage.setItem("user", JSON.stringify({ name: userName, email: userEmail }));
       await AsyncStorage.setItem("isLoggedIn", "true");
 
-      // Request notification permission and register FCM token
+
+
+      // Register FCM token for push notifications (optional)
       try {
-        console.log('📱 Requesting notification permission...');
         const permissionGranted = await requestNotificationPermission();
         
         if (permissionGranted) {
-          console.log('✅ Permission granted, registering FCM token');
           await registerFCMToken(userEmail);
         } else {
-          console.log('⚠️ Permission denied, will retry when user grants it');
-          // registerFCMToken will store email for retry
-          await registerFCMToken(userEmail);
+          await registerFCMToken(userEmail); // Store for retry
         }
-      } catch (error) {
-        console.error('⚠️ Failed to register FCM token:', error);
-        // Don't block login if FCM registration fails
+      } catch (fcmError) {
+        console.error('⚠️ FCM setup failed (non-critical):', fcmError);
+        // Login still succeeds
       }
-    } catch (error) {
-      console.error(error);
+      
+    } catch (error: any) {
+      console.error('❌ Login error:', error);
+      if (error.code === 'SIGN_IN_CANCELLED') {
+        console.error('User cancelled login');
+      }
     }
   };
 

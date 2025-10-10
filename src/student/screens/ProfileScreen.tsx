@@ -20,7 +20,7 @@ import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 import { cleanupFCMOnLogout } from '../../utils/notificationService';
 
 // Configuration
-const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
+const API_BASE_URL = 'http://10.182.66.80:5000';
 
 type ProfileScreenProps = {
   user: { name: string; email: string; role?: string; id?: string; phone?: string };

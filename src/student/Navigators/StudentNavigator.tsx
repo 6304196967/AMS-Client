@@ -7,6 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import { fontSize, spacing, FONT_SIZES, SPACING } from '../../utils/responsive';
+import { cleanupFCMOnLogout } from '../../utils/notificationService';
 
 // Student Screens
 import HomeScreen from "../screens/HomeScreen";
@@ -105,6 +106,14 @@ const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser })
 
   const handleLogout = async () => {
     if (logoutInput.trim() === "I want to logout") {
+      // Cleanup FCM token before logout
+      try {
+        await cleanupFCMOnLogout(user.email);
+      } catch (error) {
+        console.error('Error during FCM cleanup:', error);
+        // Continue with logout even if cleanup fails
+      }
+      
       await AsyncStorage.clear();
       setIsLoggedIn(false);
       setUser(null);

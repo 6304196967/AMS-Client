@@ -94,7 +94,7 @@ const FacultyManagement = () => {
       }
 
       setFacultyList(facultyData);
-      console.log(facultyData);
+      
     } catch (error) {
       Alert.alert("Error", "Failed to fetch faculty list");
       console.error("Error fetching faculty list:", error);

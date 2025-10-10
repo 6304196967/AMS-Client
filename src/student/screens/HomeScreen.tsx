@@ -225,11 +225,6 @@ const ClassScheduleCard = ({
     const ongoing = isOngoing();
     const expired = isExpired();
 
-    console.log('🔍 CLASS STATUS ANALYSIS:', {
-      subject: item.subject,
-      upcoming, ongoing, expired, attendanceMarked
-    });
-
     // PRIORITY 1: Attendance already marked (highest priority)
     if (attendanceMarked) {
       return {
@@ -574,10 +569,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
       
       const data = await response.json();
       
-      console.log('📦 RAW API RESPONSE:', data);
       
       const transformedTodaySchedule = data.today_schedule?.map((item: any) => {
-        console.log('🔍 Processing schedule item:', item);
         
         return {
           id: item.id,
@@ -613,8 +606,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
         date: item.date,
       })) || [];
       
-      console.log('🔄 TRANSFORMED TODAY:', transformedTodaySchedule);
-      console.log('🔄 TRANSFORMED TOMORROW:', transformedTomorrowSchedule);
       
       setSchedule(transformedTodaySchedule);
       setTomorrowSchedule(transformedTomorrowSchedule);
@@ -841,9 +832,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
         return;
       }
       
-      console.log(`OTP created at: ${item.otp_created_at}`);
-      console.log(`OTP expires at: ${new Date(otpExpiryTime).toISOString()}`);
-      console.log(`Remaining time: ${remainingTime} seconds`);
     } else {
       otpExpiryTime = Date.now() + 30000;
       console.warn('OTP creation timestamp not provided by backend, using fallback');
@@ -872,7 +860,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
       const violatedKeys = allKeys.filter(key => key.startsWith('violated_'));
       const violatedIds = violatedKeys.map(key => key.replace('violated_', ''));
       setViolatedSchedules(new Set(violatedIds));
-      console.log('Violated schedule IDs:', violatedIds);
     } catch (error) {
       console.error('Error checking violated schedules:', error);
     }

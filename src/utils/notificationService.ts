@@ -1,8 +1,9 @@
 import messaging from '@react-native-firebase/messaging';
 import { Platform, PermissionsAndroid, AppState, AppStateStatus } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Notifier, NotifierComponents } from 'react-native-notifier';
 
-const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
+const API_BASE_URL = 'http://192.168.241.104:5000';
 // const API_BASE_URL = 'http://10.182.66.80:5000';
 
 /**
@@ -35,7 +36,6 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
       );
       
       if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('Notification permission denied');
         return false;
       }
     }
@@ -47,10 +47,8 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
       authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
     if (enabled) {
-      console.log('✅ Notification permission granted:', authStatus);
       return true;
     } else {
-      console.log('❌ Notification permission denied');
       return false;
     }
   } catch (error) {
@@ -61,6 +59,7 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
 
 /**
  * Get FCM token and register it with the backend
+ * Smart logic: Only register/update if token has changed or doesn't exist
  * @param userEmail - The email of the logged-in user
  * @returns The FCM token if successful, null otherwise
  */
@@ -69,36 +68,24 @@ export const registerFCMToken = async (userEmail: string): Promise<string | null
     // Check if permission is granted
     const hasPermission = await checkNotificationPermission();
     if (!hasPermission) {
-      console.log('⚠️ Notification permission not granted. Will retry when permission is granted.');
       // Store email for retry later
       await AsyncStorage.setItem('pending_fcm_registration', userEmail);
       return null;
     }
 
-    // Get FCM token
+    // Get current FCM token
     const fcmToken = await messaging().getToken();
-    console.log('📱 FCM Token:', fcmToken);
 
-    // ALWAYS remove existing token entry for this email first
-    // This prevents unique constraint errors when user clears storage and logs in again
-    console.log('🧹 Removing existing FCM token entry for this email...');
-    try {
-      await fetch(`${API_BASE_URL}/api/notifications/remove-token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: userEmail,
-          fcm_token: fcmToken,
-        }),
-      });
-      console.log('✅ Cleaned up existing token entry');
-    } catch (error) {
-      console.log('⚠️ Could not remove existing token (may not exist):', error);
+    // Check if we have a previously registered token
+    const lastRegisteredToken = await AsyncStorage.getItem('fcm_last_token');
+    const wasRegistered = await AsyncStorage.getItem('fcm_token_registered');
+    
+    // If token hasn't changed and was already registered, skip registration
+    if (fcmToken === lastRegisteredToken && wasRegistered === 'true') {
+      return fcmToken;
     }
 
-    // Register new token with backend
+    // Try to register/update token with backend
     const response = await fetch(`${API_BASE_URL}/api/notifications/register-token`, {
       method: 'POST',
       headers: {
@@ -114,7 +101,6 @@ export const registerFCMToken = async (userEmail: string): Promise<string | null
     const data = await response.json();
 
     if (data.success) {
-      console.log('✅ FCM token registered with backend:', data.message);
       // Clear pending registration
       await AsyncStorage.removeItem('pending_fcm_registration');
       // Mark token as registered
@@ -122,8 +108,19 @@ export const registerFCMToken = async (userEmail: string): Promise<string | null
       await AsyncStorage.setItem('fcm_last_token', fcmToken);
       return fcmToken;
     } else {
-      console.error('❌ Failed to register FCM token:', data.error);
-      return null;
+      // Check if it's a unique constraint error
+      const errorMessage = data.error || '';
+      if (errorMessage.includes('unique constraint') || errorMessage.includes('already exists')) {
+        // Even though backend returned error, the token IS registered
+        // Just update local storage to match
+        await AsyncStorage.removeItem('pending_fcm_registration');
+        await AsyncStorage.setItem('fcm_token_registered', 'true');
+        await AsyncStorage.setItem('fcm_last_token', fcmToken);
+        return fcmToken;
+      } else {
+        console.error('❌ Failed to register FCM token:', data.error);
+        return null;
+      }
     }
   } catch (error) {
     console.error('Error registering FCM token:', error);
@@ -139,16 +136,14 @@ export const retryPendingFCMRegistration = async (): Promise<void> => {
   try {
     const pendingEmail = await AsyncStorage.getItem('pending_fcm_registration');
     if (!pendingEmail) {
-      console.log('ℹ️ No pending FCM registration found');
       return; // No pending registration
     }
 
     const hasPermission = await checkNotificationPermission();
     if (hasPermission) {
-      console.log('🔄 Retrying FCM token registration for:', pendingEmail);
       await registerFCMToken(pendingEmail);
     } else {
-      console.log('⚠️ Permission still not granted, cannot retry registration');
+      console.error('⚠️ Permission still not granted, cannot retry registration');
     }
   } catch (error) {
     console.error('Error retrying FCM registration:', error);
@@ -162,15 +157,12 @@ export const retryPendingFCMRegistration = async (): Promise<void> => {
  */
 export const forceRegisterFCMToken = async (userEmail: string): Promise<boolean> => {
   try {
-    console.log('🔧 Force registering FCM token for:', userEmail);
     
     const hasPermission = await checkNotificationPermission();
     if (!hasPermission) {
-      console.log('❌ Cannot force register - permission not granted');
       // Request permission
       const granted = await requestNotificationPermission();
       if (!granted) {
-        console.log('❌ User denied permission');
         return false;
       }
     }
@@ -189,19 +181,9 @@ export const forceRegisterFCMToken = async (userEmail: string): Promise<boolean>
  * @returns Success status
  */
 export const removeFCMToken = async (userEmail: string): Promise<boolean> => {
-  try {
-    // Try to get current token (might fail if permission revoked)
-    let fcmToken = null;
-    try {
-      const hasPermission = await checkNotificationPermission();
-      if (hasPermission) {
-        fcmToken = await messaging().getToken();
-      }
-    } catch (error) {
-      console.log('Could not get FCM token for removal:', error);
-    }
-
-    // Call backend to remove token
+  try {    
+    // Call backend to remove token by email and device type
+    // This matches the unique constraint (student_email, device_type)
     const response = await fetch(`${API_BASE_URL}/api/notifications/remove-token`, {
       method: 'POST',
       headers: {
@@ -209,20 +191,18 @@ export const removeFCMToken = async (userEmail: string): Promise<boolean> => {
       },
       body: JSON.stringify({
         email: userEmail,
-        fcm_token: fcmToken, // May be null if permission already revoked
+        device_type: Platform.OS, // Include device_type to match unique constraint
       }),
     });
 
     const data = await response.json();
 
     if (data.success) {
-      console.log('✅ FCM token removed from backend:', data.message);
       // Clear any stored token info
       await AsyncStorage.removeItem('fcm_token_registered');
       await AsyncStorage.removeItem('fcm_last_token');
       // Store email for retry when permission is granted again
       await AsyncStorage.setItem('pending_fcm_registration', userEmail);
-      console.log('💾 Stored email for retry when permission is granted');
       return true;
     } else {
       console.error('❌ Failed to remove FCM token:', data.error);
@@ -243,15 +223,8 @@ export const monitorPermissionChanges = async (userEmail: string): Promise<void>
     const currentPermission = await checkNotificationPermission();
     const wasRegistered = await AsyncStorage.getItem('fcm_token_registered');
     
-    console.log('🔍 Monitoring permission changes:', {
-      currentPermission,
-      wasRegistered,
-      userEmail
-    });
-    
     // Permission revoked after token was registered
     if (!currentPermission && wasRegistered === 'true') {
-      console.log('⚠️ Notification permission revoked - removing FCM token from backend');
       await removeFCMToken(userEmail);
       // Store email for retry when permission is granted again
       await AsyncStorage.setItem('pending_fcm_registration', userEmail);
@@ -259,7 +232,6 @@ export const monitorPermissionChanges = async (userEmail: string): Promise<void>
     
     // Permission granted and token not yet registered
     if (currentPermission && wasRegistered !== 'true') {
-      console.log('✅ Permission granted and token not registered - attempting registration');
       
       // Try to register token directly with current user email
       await registerFCMToken(userEmail);
@@ -267,7 +239,6 @@ export const monitorPermissionChanges = async (userEmail: string): Promise<void>
       // Also check for any pending registration (legacy support)
       const pendingEmail = await AsyncStorage.getItem('pending_fcm_registration');
       if (pendingEmail && pendingEmail !== userEmail) {
-        console.log('📧 Found different pending email, registering for:', pendingEmail);
         await registerFCMToken(pendingEmail);
       }
     }
@@ -339,14 +310,39 @@ export const getNotificationHistory = async (
 
 /**
  * Setup foreground notification handler
- * @param onNotificationReceived - Callback function when notification is received
+ * Shows beautiful in-app notification banner when app is in foreground
+ * @param onNotificationReceived - Optional callback function when notification is received
  */
 export const setupForegroundNotificationHandler = (
-  onNotificationReceived: (notification: any) => void
+  onNotificationReceived?: (notification: any) => void
 ) => {
   const unsubscribe = messaging().onMessage(async (remoteMessage) => {
     console.log('📩 Foreground notification received:', remoteMessage);
-    onNotificationReceived(remoteMessage);
+    
+    // Show beautiful in-app notification banner
+    Notifier.showNotification({
+      title: remoteMessage.notification?.title || 'New Notification',
+      description: remoteMessage.notification?.body || '',
+      duration: 5000,
+      showAnimationDuration: 800,
+      onHidden: () => console.log('Notification hidden'),
+      onPress: () => {
+        console.log('Notification pressed');
+        if (onNotificationReceived) {
+          onNotificationReceived(remoteMessage);
+        }
+      },
+      hideOnPress: true,
+      Component: NotifierComponents.Alert,
+      componentProps: {
+        alertType: 'info',
+      },
+    });
+    
+    // Call optional callback
+    if (onNotificationReceived) {
+      onNotificationReceived(remoteMessage);
+    }
   });
 
   return unsubscribe;
@@ -358,7 +354,6 @@ export const setupForegroundNotificationHandler = (
  */
 export const setupBackgroundNotificationHandler = () => {
   messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-    console.log('📩 Background notification received:', remoteMessage);
     // You can perform background tasks here if needed
   });
 };
@@ -375,14 +370,12 @@ export const setupNotificationOpenedHandler = (
     .getInitialNotification()
     .then((remoteMessage) => {
       if (remoteMessage) {
-        console.log('📩 App opened from quit state via notification:', remoteMessage);
         onNotificationOpened(remoteMessage);
       }
     });
 
   // Handle notification when app is opened from background
   const unsubscribe = messaging().onNotificationOpenedApp((remoteMessage) => {
-    console.log('📩 App opened from background via notification:', remoteMessage);
     onNotificationOpened(remoteMessage);
   });
 
@@ -391,26 +384,47 @@ export const setupNotificationOpenedHandler = (
 
 /**
  * Cleanup FCM token on logout
- * Removes token from backend and clears local storage
+ * Keeps token in backend and local storage for seamless re-login
+ * Token is only removed if user explicitly denies permission or device is unauthorized
  * @param userEmail - User's email address
  */
 export const cleanupFCMOnLogout = async (userEmail: string): Promise<void> => {
   try {
-    console.log('🧹 Cleaning up FCM token on logout');
+    
+    // SMART LOGOUT STRATEGY:
+    // ✅ Keep token in backend - device is still authorized
+    // ✅ Keep fcm_last_token - for smart comparison on next login
+    // ✅ Keep fcm_token_registered - so we can skip registration on next login
+    // ✅ Only clear pending registration (no longer needed)
+    
+    // Only clear pending registration
+    await AsyncStorage.removeItem('pending_fcm_registration');
+    
+  } catch (error) {
+    console.error('Error during FCM cleanup:', error);
+  }
+};
+
+/**
+ * Complete FCM token removal (for unauthorized access or device binding failure)
+ * Removes token from backend AND clears all local storage
+ * Use this when user should NOT be able to receive notifications (device unauthorized)
+ * @param userEmail - User's email address
+ */
+export const forceRemoveFCMToken = async (userEmail: string): Promise<void> => {
+  try {
     
     // Remove token from backend
     await removeFCMToken(userEmail);
     
-    // Clear all FCM-related storage
+    // Clear ALL FCM-related storage
     await AsyncStorage.multiRemove([
       'pending_fcm_registration',
       'fcm_token_registered',
       'fcm_last_token',
     ]);
-    
-    console.log('✅ FCM cleanup completed');
   } catch (error) {
-    console.error('Error during FCM cleanup:', error);
+    console.error('Error during forced FCM removal:', error);
   }
 };
 
@@ -424,7 +438,6 @@ export const setupPermissionMonitoring = (userEmail: string): (() => void) => {
   const handleAppStateChange = async (nextAppState: AppStateStatus) => {
     if (nextAppState === 'active') {
       // When app comes to foreground, check for permission changes
-      console.log('🔍 App active - checking for permission changes');
       await monitorPermissionChanges(userEmail);
     }
   };
@@ -443,42 +456,36 @@ export const setupPermissionMonitoring = (userEmail: string): (() => void) => {
   };
 };
 
-/**
- * Debug function to check FCM token status
- * Logs all relevant information for troubleshooting
- * @param userEmail - User's email address
- */
-export const debugFCMStatus = async (userEmail: string): Promise<void> => {
-  console.log('🔍 ===== FCM DEBUG STATUS =====');
-  
+// Debug function to check FCM token status
+// Logs all relevant information for troubleshooting
+const debugFCMStatus = async (userEmail: string): Promise<void> => {
   try {
     // Check permission
     const hasPermission = await checkNotificationPermission();
     console.log('📱 Permission Status:', hasPermission ? '✅ GRANTED' : '❌ DENIED');
-    
     // Check AsyncStorage
     const pendingEmail = await AsyncStorage.getItem('pending_fcm_registration');
     const wasRegistered = await AsyncStorage.getItem('fcm_token_registered');
     const lastToken = await AsyncStorage.getItem('fcm_last_token');
-    
+
+    console.log('🔍 ===== FCM DEBUG STATUS =====');
+    console.log('📱 Permission Status:', hasPermission ? '✅ GRANTED' : '❌ DENIED');
     console.log('💾 AsyncStorage Status:');
     console.log('  - pending_fcm_registration:', pendingEmail || 'Not set');
     console.log('  - fcm_token_registered:', wasRegistered || 'Not set');
     console.log('  - fcm_last_token:', lastToken ? lastToken.substring(0, 20) + '...' : 'Not set');
-    
+
     // Try to get current token
     if (hasPermission) {
       try {
         const currentToken = await messaging().getToken();
-        console.log('🔑 Current FCM Token:', currentToken ? currentToken.substring(0, 20) + '...' : 'Not available');
-        console.log('🔄 Token Changed:', currentToken !== lastToken ? 'YES' : 'NO');
       } catch (error) {
         console.log('❌ Error getting current token:', error);
       }
     } else {
       console.log('⚠️ Cannot get current token - permission denied');
     }
-    
+
     console.log('👤 Current User Email:', userEmail);
     console.log('🔍 ===== END DEBUG =====');
   } catch (error) {

@@ -27,7 +27,7 @@ type RootStackParamList = {
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
-const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
+const API_BASE_URL = 'http://10.182.66.80:5000';
 
 // Define props interface for the component
 interface AttendanceDashboardProps {
@@ -50,9 +50,11 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [classes, setClasses] = useState<ClassAssignment[]>([]);
+  const [totalCompletedSessions, setTotalCompletedSessions] = useState<number>(0);
+  const [overallAvg, setOverallAvg] = useState<number>(0);
 
-  console.log(userEmail, user);
-  const facultyId = "F005";
+  // Extract faculty ID from email
+  const facultyId = "F001";
 
   // Fetch dashboard data function
   const fetchDashboardData = async () => {
@@ -69,8 +71,19 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
 
       const data = await response.json();
       
-      // Assuming the API returns an array of classes
-      setClasses(data.classes || data || []);
+      // Check if the request was successful
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to fetch dashboard data');
+      }
+      
+      // Set classes data from backend
+      setClasses(data.classes || []);
+      
+      // Extract statistics from backend response
+      if (data.stats) {
+        setTotalCompletedSessions(data.stats.totalCompletedSessions || 0);
+        setOverallAvg(data.stats.overallAttendanceAvg || 0);
+      }
       
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -85,24 +98,24 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
       // Fallback to sample data if API fails
       const sampleClasses: ClassAssignment[] = [
         {
-          id: '1',
+          assignmentId: 1,
           subjectCode: 'OS2025',
           subjectName: 'Operating Systems',
           section: 'D',
-          totalClasses: 20,
-          attendancePercentage: 80,
-          lastClass: '18/09/2025',
+          completedSessions: 20,
+          classAttendanceAvg: 80,
+          lastClassDate: '2025-09-18',
           department: 'CSE',
           year: 'E3'
         },
         {
-          id: '2',
+          assignmentId: 2,
           subjectCode: 'OSLAB2025',
           subjectName: 'Operating Systems Lab',
           section: 'D',
-          totalClasses: 20,
-          attendancePercentage: 85,
-          lastClass: '20/09/2025',
+          completedSessions: 20,
+          classAttendanceAvg: 85,
+          lastClassDate: '2025-09-20',
           department: 'CSE',
           year: 'E3'
         },
@@ -132,25 +145,25 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
     >
       <View style={styles.classHeader}>
         <View>
-          <Text style={styles.section}>{item.year} {item.department} (Section - {item.section})</Text>
+          <Text style={styles.section}>{item.yearBatch} {item.department} (Section - {item.section})</Text>
           <Text style={styles.subjectCode}>{item.subjectCode} - {item.subjectName}</Text>
         </View>
         <View style={[
           styles.attendanceBadge,
-          { backgroundColor: item.attendancePercentage >= 75 ? '#28a745' : '#ffc107' }
+          { backgroundColor: item.classAttendanceAvg >= 75 ? '#28a745' : '#ffc107' }
         ]}>
-          <Text style={styles.attendancePercent}>{item.attendancePercentage}%</Text>
+          <Text style={styles.attendancePercent}>{item.classAttendanceAvg}%</Text>
         </View>
       </View>
       
       <View style={styles.classStats}>
         <View style={styles.statItem}>
           <Icon name="class" size={fontSize(16)} color="#600202" />
-          <Text style={styles.statText}>Total: {item.totalClasses}</Text>
+          <Text style={styles.statText}>Sessions: {item.completedSessions}</Text>
         </View>
         <View style={styles.statItem}>
           <Icon name="calendar-today" size={fontSize(16)} color="#600202" />
-          <Text style={styles.statText}>Last: {item.lastClass}</Text>
+          <Text style={styles.statText}>Last: {item.lastClassDate ? new Date(item.lastClassDate).toLocaleDateString('en-GB') : 'N/A'}</Text>
         </View>
       </View>
 
@@ -201,13 +214,13 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
           <Text style={styles.statLabel}>Active Classes</Text>
         </View>
         <View style={styles.statCard}>
-          <Icon name="people" size={fontSize(24)} color="#600202" />
-          <Text style={styles.statNumber}>67</Text>
-          <Text style={styles.statLabel}>Avg. Attendance</Text>
+          <Icon name="assignment-turned-in" size={fontSize(24)} color="#600202" />
+          <Text style={styles.statNumber}>{totalCompletedSessions}</Text>
+          <Text style={styles.statLabel}>Total Sessions</Text>
         </View>
         <View style={styles.statCard}>
           <Icon name="trending-up" size={fontSize(24)} color="#600202" />
-          <Text style={styles.statNumber}>80%</Text>
+          <Text style={styles.statNumber}>{overallAvg}%</Text>
           <Text style={styles.statLabel}>Overall Avg.</Text>
         </View>
       </View>
@@ -237,7 +250,7 @@ const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
             <FlatList
               data={classes}
               renderItem={renderClassCard}
-              keyExtractor={item => item.id}
+              keyExtractor={item => item.assignmentId.toString()}
               scrollEnabled={false}
             />
           )}

@@ -44,7 +44,7 @@ const ScheduleManagement = () => {
                 setSchedulesFile(pickerResult);
             }
         } catch (error) {
-            console.log('File selection cancelled or failed:', error);
+            Alert.alert('File Selection Error', 'Could not select file. Please try again.');
         }
     };
 

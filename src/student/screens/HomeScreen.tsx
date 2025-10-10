@@ -263,7 +263,7 @@ const ClassScheduleCard = ({
     }
 
     // Completed without attendance but OTP available
-    if (expired && item.status && item.otp && !attendanceMarked) {
+    if (!expired && item.status && item.otp && !attendanceMarked) {
       return {
         status: 'completed',
         badge: { text: 'OTP Available', color: '#2196F3', bgColor: '#E3F2FD' },

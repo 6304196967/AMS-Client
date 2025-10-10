@@ -3,8 +3,7 @@ import { Platform, PermissionsAndroid, AppState, AppStateStatus } from 'react-na
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Notifier, NotifierComponents } from 'react-native-notifier';
 
-const API_BASE_URL = 'http://192.168.241.104:5000';
-// const API_BASE_URL = 'http://10.182.66.80:5000';
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
 /**
  * Check if notification permission is currently granted

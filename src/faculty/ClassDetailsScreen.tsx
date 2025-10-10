@@ -27,7 +27,7 @@ type RootStackParamList = {
 type ClassDetailsRouteProp = RouteProp<RootStackParamList, 'ClassDetails'>;
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
-const API_BASE_URL = 'http://10.182.66.80:5000';
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
 const ClassDetailsScreen = () => {
   const navigation = useNavigation<NavigationProp>();

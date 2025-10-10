@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
+
 const HomeScreen = () => {
     return (
         <View style={styles.container}>

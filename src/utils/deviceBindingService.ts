@@ -31,7 +31,7 @@ import DeviceInfo from 'react-native-device-info';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-const API_BASE_URL = 'http://10.182.66.80:5000';
+const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
 /**
  * Extract Student ID from Email

@@ -55,12 +55,23 @@ react {
 
     /* Autolinking */
     autolinkLibrariesWithApp()
+    
+    /* App Size Optimization - Bundle Size Reduction */
+    bundleCommand = "bundle"
+    extraPackagerArgs = ["--reset-cache"]
 }
 
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
-def enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
+
+/**
+ * Enable APK splitting by CPU architecture to reduce APK size
+ * This will create separate APKs for different architectures (arm64, arm32, x86, x86_64)
+ * Users will only download the APK for their device's architecture
+ */
+def enableSeparateBuildPerCPUArchitecture = true
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -87,6 +98,22 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        
+        // App Size Optimization: Enable multi-dex if needed
+        multiDexEnabled true
+        
+        // App Size Optimization: Vector drawable support
+        vectorDrawables.useSupportLibrary = true
+    }
+    
+    // App Size Optimization: Create separate APKs per CPU architecture
+    splits {
+        abi {
+            reset()
+            enable enableSeparateBuildPerCPUArchitecture
+            universalApk false  // Set to true to also generate a universal APK
+            include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+        }
     }
     signingConfigs {
         debug {
@@ -113,9 +140,38 @@ android {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.debug
+            
+            // App Size Optimization: Enable code shrinking and obfuscation
             minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            
+            // App Size Optimization: Enable resource shrinking
+            shrinkResources enableProguardInReleaseBuilds
+            
+            // ProGuard configuration files
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            
+            // App Size Optimization: Disable debugging and logging
+            buildConfigField "boolean", "IS_DEBUG", "false"
         }
+    }
+    
+    // App Size Optimization: Configure packaging options
+    packagingOptions {
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        
+        // Exclude unnecessary files
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/*.kotlin_module'
     }
 }
 

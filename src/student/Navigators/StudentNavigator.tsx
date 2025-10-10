@@ -227,16 +227,6 @@ const Tabs: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn, setUser })
         />
       )}
     </Tab.Screen>
-
-    <Tab.Screen 
-     name="DeviceInfo"
-     component={DeviceInfoScreen}
-     options={{
-       tabBarIcon: ({ color, size }) => (
-         <Icon name="cellphone-information" size={size} color={color} />
-       ),
-     }}
-   />
   </Tab.Navigator>
   
   {/* Global Logout Modal */}

@@ -1092,8 +1092,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={["#FFF"]}
-              tintColor="#FFF"
+              colors={["#600202", "#900a02", "#ff6b6b"]}
+              tintColor="#600202"
               title="Refreshing..."
               titleColor="#FFF"
             />

@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  StyleSheet,
   View,
   Text,
   FlatList,
   TouchableOpacity,
   StatusBar,
+  StyleSheet,
   TextInput,
   Modal,
   Alert,
@@ -126,7 +126,6 @@ const ClassScheduleCard = ({
 
   const subjectColor = getSubjectColor(item.subject);
   
-  // IMPROVED DATE PARSING
   const parseDateTime = (dateStr: string, timeStr: string) => {
     try {
       if (!dateStr || !timeStr) return new Date();
@@ -148,7 +147,6 @@ const ClassScheduleCard = ({
     }
   };
 
-  // IMPROVED TIME CHECKS
   const isUpcoming = () => {
     if (!item.date || !item.start_time) return false;
     
@@ -186,7 +184,6 @@ const ClassScheduleCard = ({
     return currentDateTime > classEndWithBuffer;
   };
 
-  // CORRECTED ATTENDANCE MARKING CHECK
   const isAttendanceMarked = () => {
     if (item.attendance_status !== undefined) {
       return item.attendance_status === true;
@@ -199,7 +196,6 @@ const ClassScheduleCard = ({
     return false;
   };
 
-  // CORRECTED CAN MARK ATTENDANCE CHECK
   const canMarkAttendance = () => {
     if (!item.otp || item.status !== true) return false;
     
@@ -213,30 +209,16 @@ const ClassScheduleCard = ({
     return ongoing || (!expired && item.status && item.otp);
   };
 
-  // Check if schedule is violated
   const isScheduleViolated = violatedSchedules.has(item.id.toString());
-  
   const attendanceMarked = isAttendanceMarked();
   const canMark = canMarkAttendance();
 
-  // CORRECTED PRIORITY LOGIC
   const getClassStatus = () => {
     const upcoming = isUpcoming();
     const ongoing = isOngoing();
     const expired = isExpired();
 
-    // PRIORITY 1: Attendance already marked (highest priority)
-    if (attendanceMarked) {
-      return {
-        status: 'completed',
-        badge: { text: 'Attendance Marked', color: '#4ECDC4', bgColor: '#E8F5E9' },
-        message: '✓ Attendance marked successfully',
-        showMarkAttendance: false,
-        showWaitingForOTP: false
-      };
-    }
-
-    // PRIORITY 2: Class is ongoing with OTP available
+    // Ongoing classes with OTP available
     if (ongoing && item.status && item.otp) {
       return {
         status: 'ongoing',
@@ -247,8 +229,8 @@ const ClassScheduleCard = ({
       };
     }
 
-    // PRIORITY 3: Class is ongoing but waiting for OTP
-    if (ongoing && !item.otp) {
+    // Ongoing but waiting for OTP
+    if (ongoing && !item.otp && !item.status) {
       return {
         status: 'ongoing',
         badge: { text: 'Ongoing', color: '#FF9F43', bgColor: '#FFF3E0' },
@@ -258,7 +240,29 @@ const ClassScheduleCard = ({
       };
     }
 
-    // PRIORITY 4: Class completed with OTP available (can mark attendance later)
+    // Upcoming classes
+    if (upcoming) {
+      return {
+        status: 'upcoming',
+        badge: { text: 'Upcoming', color: '#15d2f8ff', bgColor: '#e1fffeff' },
+        message: 'Class is scheduled - Not started yet',
+        showMarkAttendance: false,
+        showWaitingForOTP: false
+      };
+    }
+
+    // Completed with attendance marked
+    if (attendanceMarked) {
+      return {
+        status: 'completed',
+        badge: { text: 'Attendance Marked', color: '#4ECDC4', bgColor: '#E8F5E9' },
+        message: '✓ Attendance marked successfully',
+        showMarkAttendance: false,
+        showWaitingForOTP: false
+      };
+    }
+
+    // Completed without attendance but OTP available
     if (expired && item.status && item.otp && !attendanceMarked) {
       return {
         status: 'completed',
@@ -269,23 +273,23 @@ const ClassScheduleCard = ({
       };
     }
 
-    // PRIORITY 5: Class completed without OTP
-    if (expired && (!item.status || !item.otp) && !attendanceMarked) {
+    // Cancelled/Expired classes
+    if (expired && !item.status) {
       return {
         status: 'expired',
-        badge: { text: 'Absent', color: '#FF6B6B', bgColor: '#FFEBEE' },
-        message: 'Class completed - Attendance not marked',
+        badge: { text: 'Cancelled', color: '#FF6B6B', bgColor: '#FFEBEE' },
+        message: 'Class Cancelled...',
         showMarkAttendance: false,
         showWaitingForOTP: false
       };
     }
 
-    // PRIORITY 6: Upcoming class
-    if (upcoming) {
+    // Absent case
+    if (!attendanceMarked && item.status && !attendanceMarked) {
       return {
-        status: 'upcoming',
-        badge: { text: 'Upcoming', color: '#15d2f8ff', bgColor: '#e1fffeff' },
-        message: 'Class is scheduled - Not started yet',
+        status: 'completed',
+        badge: { text: 'Absent', color: '#ffffff', bgColor: '#e35656ff' },
+        message: 'You are absent',
         showMarkAttendance: false,
         showWaitingForOTP: false
       };
@@ -306,7 +310,6 @@ const ClassScheduleCard = ({
 
   return (
     <View style={styles.card}>
-      {/* Status badge - top right corner */}
       {classStatus.badge.text ? (
         <View style={[styles.statusBadgeTopRight, { backgroundColor: classStatus.badge.bgColor }]}>
           <Text style={[styles.statusBadgeText, { color: classStatus.badge.color }]}>
@@ -315,7 +318,6 @@ const ClassScheduleCard = ({
         </View>
       ) : null}
       
-      {/* Subject Header with colored badge */}
       <View style={styles.subjectCircle}>
         <View style={[styles.subjectBadge, { backgroundColor: subjectColor.bg }]}>
           <Text style={[styles.subjectInitial, { color: subjectColor.text }]} numberOfLines={1} adjustsFontSizeToFit>
@@ -329,7 +331,6 @@ const ClassScheduleCard = ({
               {item.subject}
             </Text>
             
-            {/* Edit/Delete buttons next to subject name for CR users with upcoming classes */}
             {isCR && upcoming && (
               <View style={{ flexDirection: 'row', gap: 8, flexShrink: 0, marginTop: spacing(15) }}>
                 <TouchableOpacity
@@ -355,11 +356,8 @@ const ClassScheduleCard = ({
         </View>
       </View>
 
-      {/* Class Details */}
       <View style={styles.cardDetails}>
-        {/* Timing and Venue - improved layout for small screens */}
         <View style={{ marginBottom: SPACING.md }}>
-          {/* Time */}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.sm }}>
             <Icon name="clock-outline" size={fontSize(20)} color="#1976D2" style={{ marginRight: SPACING.sm }} />
             <Text 
@@ -370,7 +368,6 @@ const ClassScheduleCard = ({
               {item.time}
             </Text>
           </View>
-          {/* Location */}
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Icon name="map-marker" size={fontSize(20)} color="#E65100" style={{ marginRight: SPACING.sm }} />
             <Text 
@@ -383,7 +380,6 @@ const ClassScheduleCard = ({
           </View>
         </View>
         
-        {/* Status Messages based on priority logic */}
         {classStatus.message && (
           <View style={[
             styles.infoContainer,
@@ -409,9 +405,7 @@ const ClassScheduleCard = ({
         )}
       </View>
 
-      {/* CORRECTED ACTION BUTTONS SECTION */}
       <View style={styles.actionButtons}>
-        {/* Show security violation message if schedule is violated */}
         {isScheduleViolated && !attendanceMarked && (
           <TouchableOpacity style={[styles.attendanceButtonDisabled, { backgroundColor: '#FFEBEE' }]} disabled>
             <Icon name="shield-alert-outline" size={fontSize(18)} color="#D32F2F" />
@@ -419,7 +413,6 @@ const ClassScheduleCard = ({
           </TouchableOpacity>
         )}
 
-        {/* Show Mark Attendance button when conditions are met */}
         {!isScheduleViolated && canMark && (
           <TouchableOpacity
             style={styles.attendanceButton}
@@ -433,7 +426,6 @@ const ClassScheduleCard = ({
           </TouchableOpacity>
         )}
 
-        {/* Upcoming Placeholder */}
         {!isScheduleViolated && upcoming && !isCR && (
           <View style={styles.upcomingPlaceholder}>
             <Icon name="calendar-clock" size={fontSize(16)} color="#9E9E9E" />
@@ -472,11 +464,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
   const [editVenue, setEditVenue] = useState('');
   const [editLoading, setEditLoading] = useState(false);
   
-  // Dropdown visibility states
   const [showSubjectDropdown, setShowSubjectDropdown] = useState(false);
   const [showTimeSlotDropdown, setShowTimeSlotDropdown] = useState(false);
 
-  // Get all time slots (for scheduleClass function)
   const getAllTimeSlots = () => {
     return [
       { label: '8:30 - 9:30', start: '08:30', end: '09:30', type: '1-hour' },
@@ -492,7 +482,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
     ];
   };
 
-  // Filtered time slots based on subject type
   const getFilteredTimeSlots = (subjectType: string) => {
     const allSlots = getAllTimeSlots();
 
@@ -503,10 +492,120 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
     }
   };
 
-  // Reset time slot when subject changes
   useEffect(() => {
     setSelectedTimeSlot('');
   }, [selectedSubject]);
+
+  // Function to get status priority for sorting
+  const getStatusPriority = (item: ScheduleItem): number => {
+    const parseDateTime = (dateStr: string, timeStr: string) => {
+      try {
+        if (!dateStr || !timeStr) return new Date();
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        const localDate = new Date(year, month - 1, day, hours, minutes, 0);
+        return isNaN(localDate.getTime()) ? new Date() : localDate;
+      } catch (error) {
+        console.error('Error parsing date:', error);
+        return new Date();
+      }
+    };
+
+    const isUpcoming = () => {
+      if (!item.date || !item.start_time) return false;
+      const classStartDateTime = parseDateTime(item.date, item.start_time);
+      const currentDateTime = new Date();
+      return currentDateTime < classStartDateTime;
+    };
+
+    const isOngoing = () => {
+      if (!item.date || !item.start_time || !item.end_time) return false;
+      const classStartDateTime = parseDateTime(item.date, item.start_time);
+      const classEndDateTime = parseDateTime(item.date, item.end_time);
+      const currentDateTime = new Date();
+      const bufferMs = 30 * 60 * 1000;
+      const classEndWithBuffer = new Date(classEndDateTime.getTime() + bufferMs);
+      return currentDateTime >= classStartDateTime && currentDateTime <= classEndWithBuffer;
+    };
+
+    const isExpired = () => {
+      if (!item.date || !item.end_time) return false;
+      const classEndDateTime = parseDateTime(item.date, item.end_time);
+      const currentDateTime = new Date();
+      const bufferMs = 30 * 60 * 1000;
+      const classEndWithBuffer = new Date(classEndDateTime.getTime() + bufferMs);
+      return currentDateTime > classEndWithBuffer;
+    };
+
+    const isAttendanceMarked = () => {
+      if (item.attendance_status !== undefined) return item.attendance_status === true;
+      if (item.attendance_marked !== undefined) return item.attendance_marked === true;
+      return false;
+    };
+
+    const attendanceMarked = isAttendanceMarked();
+    const upcoming = isUpcoming();
+    const ongoing = isOngoing();
+    const expired = isExpired();
+
+    // Priority 1: Ongoing classes (highest priority)
+    if (ongoing) {
+      return 1;
+    }
+    
+    // Priority 2: Upcoming classes
+    if (upcoming) {
+      return 2;
+    }
+    
+    // Priority 3: Completed classes (attendance marked)
+    if (attendanceMarked) {
+      return 3;
+    }
+    
+    // Priority 4: Expired/Cancelled classes
+    if (expired && !item.status) {
+      return 4;
+    }
+    
+    // Priority 5: Other completed classes without attendance marked
+    if (expired && item.status && item.otp && !attendanceMarked) {
+      return 3;
+    }
+
+    // Default: Unknown status (lowest priority)
+    return 5;
+  };
+
+  // Function to sort schedules by status priority and then by time
+  const sortSchedules = (schedules: ScheduleItem[]): ScheduleItem[] => {
+    return [...schedules].sort((a, b) => {
+      // First, sort by status priority
+      const priorityA = getStatusPriority(a);
+      const priorityB = getStatusPriority(b);
+      
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      
+      // If same priority, sort by start time (earlier first)
+      try {
+        const parseTime = (item: ScheduleItem) => {
+          if (!item.date || !item.start_time) return new Date();
+          const [year, month, day] = item.date.split('-').map(Number);
+          const [hours, minutes] = item.start_time.split(':').map(Number);
+          return new Date(year, month - 1, day, hours, minutes, 0);
+        };
+        
+        const timeA = parseTime(a);
+        const timeB = parseTime(b);
+        
+        return timeA.getTime() - timeB.getTime();
+      } catch (error) {
+        return 0;
+      }
+    });
+  };
 
   const checkIfCR = async () => {
     try {
@@ -569,9 +668,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
       
       const data = await response.json();
       
-      
       const transformedTodaySchedule = data.today_schedule?.map((item: any) => {
-        
         return {
           id: item.id,
           subject: item.subject,
@@ -606,13 +703,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
         date: item.date,
       })) || [];
       
+      // Sort the schedules
+      const sortedTodaySchedule = sortSchedules(transformedTodaySchedule);
+      const sortedTomorrowSchedule = sortSchedules(transformedTomorrowSchedule);
       
-      setSchedule(transformedTodaySchedule);
-      setTomorrowSchedule(transformedTomorrowSchedule);
+      setSchedule(sortedTodaySchedule);
+      setTomorrowSchedule(sortedTomorrowSchedule);
       
       await AsyncStorage.setItem(`schedule_${user.email}`, JSON.stringify({
-        today: transformedTodaySchedule,
-        tomorrow: transformedTomorrowSchedule
+        today: sortedTodaySchedule,
+        tomorrow: sortedTomorrowSchedule
       }));
       
     } catch (error) {
@@ -621,8 +721,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
         const storedSchedule = await AsyncStorage.getItem(`schedule_${user.email}`);
         if (storedSchedule) {
           const parsed = JSON.parse(storedSchedule);
-          setSchedule(parsed.today || []);
-          setTomorrowSchedule(parsed.tomorrow || []);
+          // Sort stored schedules as well
+          const sortedToday = sortSchedules(parsed.today || []);
+          const sortedTomorrow = sortSchedules(parsed.tomorrow || []);
+          setSchedule(sortedToday);
+          setTomorrowSchedule(sortedTomorrow);
         } else {
           setSchedule([]);
           setTomorrowSchedule([]);
@@ -832,6 +935,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
         return;
       }
       
+      
     } else {
       otpExpiryTime = Date.now() + 30000;
       console.warn('OTP creation timestamp not provided by backend, using fallback');
@@ -846,7 +950,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
   };
   
   const getCurrentSchedule = () => {
-    return selectedDate === 'today' ? schedule : tomorrowSchedule;
+    const current = selectedDate === 'today' ? schedule : tomorrowSchedule;
+    // Re-sort to ensure latest status is reflected
+    return sortSchedules(current);
   };
 
   const getScheduleTitle = () => {

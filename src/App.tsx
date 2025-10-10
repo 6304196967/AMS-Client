@@ -115,7 +115,7 @@ const App: React.FC = () => {
 
     const email = user.email;
 
-    if (email === "r210016@rguktrkv.a.in") {
+    if (email === "r210016@rguktrkv.ac.in") {
       return (
         <AdminNavigator
           user={user}
@@ -125,7 +125,19 @@ const App: React.FC = () => {
       );
     }
 
-    if (email.endsWith("rguktrkv.ac.in")) {
+    if (email === "r210387@rguktrkv.ac.in") {
+      return (
+        <FacultyNavigator
+          user={user}
+          setIsLoggedIn={setIsLoggedIn}
+          setUser={setUser}
+        />
+      );
+    }
+    
+    const isStudentEmail = /^r(20|21|22|23|24|25)\d+@rguktrkv\.ac\.in$/.test(email);
+    
+    if (isStudentEmail) {
       return (
         <StudentNavigator
           user={user}
@@ -134,15 +146,8 @@ const App: React.FC = () => {
         />
       );
     }
-    else if(email== "r210387@rguktrkv.ac.in" || "r210016@rguktrkv.ac.in"){
-      return(
-        <FacultyNavigator
-        user={user}
-        setIsLoggedIn={setIsLoggedIn}
-        setUser={setUser}
-      />
-      );
-    }
+    
+    
 
     return (
       <LandingPage

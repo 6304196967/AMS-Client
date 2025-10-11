@@ -426,14 +426,7 @@ const ClassScheduleCard = ({
           </TouchableOpacity>
         )}
 
-        {!isScheduleViolated && upcoming && !isCR && (
-          <View style={styles.upcomingPlaceholder}>
-            <Icon name="calendar-clock" size={fontSize(16)} color="#9E9E9E" />
-            <Text style={styles.upcomingPlaceholderText}>
-              Class scheduled
-            </Text>
-          </View>
-        )}
+        
       </View>
     </View>
   );

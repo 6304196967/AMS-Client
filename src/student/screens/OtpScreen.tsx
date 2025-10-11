@@ -14,7 +14,7 @@ const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
   const { scheduleId, classEndTime, userEmail, otpExpiryTime } = route.params;
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
-  const [timer, setTimer] = useState(30);
+  const [timer, setTimer] = useState(35);
   const [isVerifying, setIsVerifying] = useState(false);
   const inputsRef = useRef<(TextInput | null)[]>([]);
   
@@ -28,7 +28,7 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
   const [hasLeftScreen, setHasLeftScreen] = useState(false);
   const [securityViolation, setSecurityViolation] = useState<string | null>(null);
   const startTimeRef = useRef<number>(Date.now());
-  const otpExpiryTimeRef = useRef<number>(otpExpiryTime || Date.now() + 30000); // Fixed 30s expiry
+  const otpExpiryTimeRef = useRef<number>(otpExpiryTime || Date.now() + 35000); // Fixed 35s expiry
   const backgroundTimeRef = useRef<number | null>(null);
   const leftScreenCount = useRef(0);
   const [showWarning, setShowWarning] = useState(false);
@@ -270,7 +270,7 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
     return () => clearInterval(securityCheckInterval);
   }, [hasLeftScreen]);
 
-  // ===== ENHANCED TIMER: 30-second countdown with backend expiry =====
+  // ===== ENHANCED TIMER: 35-second countdown with backend expiry =====
   useEffect(() => {
     if (hasLeftScreen || isWaitingForExpiry) {
       return;
@@ -295,9 +295,15 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
       return;
     }
 
-    // Set initial timer to actual remaining time
-    setTimer(remainingSec);
+    // Set initial timer to minimum of 35 seconds or actual remaining time
+    const initialTimer = Math.min(35, remainingSec);
+    setTimer(initialTimer);
     startTimeRef.current = now;
+    
+    // Update the expiry time reference if we're giving them 35 seconds
+    if (initialTimer === 35 && remainingSec > 35) {
+      otpExpiryTimeRef.current = now + 35000;
+    }
 
     const interval = setInterval(() => {
       const currentNow = Date.now();
@@ -460,14 +466,6 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      {/* Security Status Banner */}
-      <View style={styles.securityBanner}>
-        <Text style={styles.securityBannerText}>🔒 SECURE MODE ACTIVE</Text>
-        <Text style={styles.securitySubtext}>
-          {Platform.OS === 'android' ? 'Screenshots blocked • ' : 'Privacy mode • '}
-          Screen recording blocked
-        </Text>
-      </View>
 
       <Text style={styles.title}>Enter OTP</Text>
       <Text style={styles.subtitle}>Enter the 6-character OTP from teacher's screen</Text>
@@ -545,18 +543,6 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
           )}
         </View>
       )}
-
-      {/* Security Instructions */}
-      <View style={styles.instructionsContainer}>
-        <Text style={styles.instructionTitle}>⚠️ DO NOT:</Text>
-        <Text style={styles.instructionText}>• Switch apps or minimize</Text>
-        <Text style={styles.instructionText}>• Answer calls or notifications</Text>
-        <Text style={styles.instructionText}>• Take screenshots</Text>
-        <Text style={styles.instructionText}>• Share screen or use WhatsApp</Text>
-        <Text style={styles.instructionWarning}>
-          Any violation = Attendance verification failed!
-        </Text>
-      </View>
 
       {/* Professional Violation Modal */}
       <Modal

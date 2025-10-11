@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import LandingPage from "./LandingPage";
 import AdminNavigator from "./Navigators/AdminNavigator";
 import StudentNavigator from "./student/Navigators/StudentNavigator";
@@ -115,7 +116,7 @@ const App: React.FC = () => {
 
     const email = user.email;
 
-    if (email === "r210016@rguktrkv.ac.in") {
+    if (email === "r21006@rguktrkv.ac.in") {
       return (
         <AdminNavigator
           user={user}
@@ -125,7 +126,7 @@ const App: React.FC = () => {
       );
     }
 
-    if (email === "r210387@rguktrkv.ac.in") {
+    if (email === "r210016@rguktrkv.ac.in") {
       return (
         <FacultyNavigator
           user={user}
@@ -158,16 +159,18 @@ const App: React.FC = () => {
   };
 
   return (
-    <NotifierWrapper>
-      <NavigationContainer ref={navigationRef}>
-        {isLoggedIn ? renderPortal() : (
-          <LandingPage
-            setIsLoggedIn={setIsLoggedIn}
-            setUser={setUser}
-          />
-        )}
-      </NavigationContainer>
-    </NotifierWrapper>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NotifierWrapper>
+        <NavigationContainer ref={navigationRef}>
+          {isLoggedIn ? renderPortal() : (
+            <LandingPage
+              setIsLoggedIn={setIsLoggedIn}
+              setUser={setUser}
+            />
+          )}
+        </NavigationContainer>
+      </NotifierWrapper>
+    </GestureHandlerRootView>
   );
 };
 

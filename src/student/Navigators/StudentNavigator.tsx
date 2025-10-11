@@ -282,7 +282,7 @@ const StudentNavigator: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn
       name="Otp" 
       component={OtpScreen}
       options={{
-        headerShown: true,
+        headerShown: false,
         headerTitle: () => <HeaderLogo />,
         headerStyle: {
           backgroundColor: '#900a02', 
@@ -294,7 +294,7 @@ const StudentNavigator: React.FC<StudentNavigatorProps> = ({ user, setIsLoggedIn
       name="Biometric" 
       component={BiometricScreen}
       options={{
-        headerShown: true,
+        headerShown: false,
         headerTitle: () => <HeaderLogo />,
         headerStyle: {
           backgroundColor: '#900a02', 

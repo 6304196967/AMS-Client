@@ -157,28 +157,28 @@ const getModerateScale = (size: number, factor: number = 0.5): number => {
   return result;
 };
 
-// Common spacing values - calculated directly
+// Common spacing values - calculated directly with optimized spacing
 export const SPACING = {
-  xs: getModerateScale(4, 0.4),
-  sm: getModerateScale(8, 0.4),
-  md: getModerateScale(12, 0.4),
-  lg: getModerateScale(16, 0.4),
-  xl: getModerateScale(20, 0.4),
-  xxl: getModerateScale(24, 0.4),
-  xxxl: getModerateScale(32, 0.4),
+  xs: getModerateScale(3, 0.4),   // Reduced from 4
+  sm: getModerateScale(6, 0.4),   // Reduced from 8
+  md: getModerateScale(10, 0.4),  // Reduced from 12
+  lg: getModerateScale(14, 0.4),  // Reduced from 16
+  xl: getModerateScale(18, 0.4),  // Reduced from 20
+  xxl: getModerateScale(22, 0.4), // Reduced from 24
+  xxxl: getModerateScale(28, 0.4), // Reduced from 32
 };
 
 
-// Common font sizes - calculated directly
+// Common font sizes - calculated directly with reduced base sizes for better UI
 export const FONT_SIZES = {
-  xs: getModerateScale(10, 0.3),
-  sm: getModerateScale(12, 0.3),
-  md: getModerateScale(14, 0.3),
-  lg: getModerateScale(16, 0.3),
-  xl: getModerateScale(18, 0.3),
-  xxl: getModerateScale(20, 0.3),
-  xxxl: getModerateScale(24, 0.3),
-  heading: getModerateScale(28, 0.3),
-  title: getModerateScale(32, 0.3),
-  display: getModerateScale(42, 0.3),
+  xs: getModerateScale(9, 0.3),    // Reduced from 10
+  sm: getModerateScale(11, 0.3),   // Reduced from 12
+  md: getModerateScale(13, 0.3),   // Reduced from 14
+  lg: getModerateScale(15, 0.3),   // Reduced from 16
+  xl: getModerateScale(17, 0.3),   // Reduced from 18
+  xxl: getModerateScale(19, 0.3),  // Reduced from 20
+  xxxl: getModerateScale(22, 0.3), // Reduced from 24
+  heading: getModerateScale(26, 0.3), // Reduced from 28
+  title: getModerateScale(28, 0.3),   // Reduced from 32
+  display: getModerateScale(36, 0.3), // Reduced from 42
 };

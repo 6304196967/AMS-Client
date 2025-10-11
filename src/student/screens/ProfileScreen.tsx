@@ -11,7 +11,8 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
-  Platform,
+  Dimensions,
+  StatusBar,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -19,8 +20,11 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 import { cleanupFCMOnLogout } from '../../utils/notificationService';
 
-// Configuration
 const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const IS_SMALL_DEVICE = SCREEN_WIDTH < 375;
+const IS_LARGE_DEVICE = SCREEN_WIDTH > 414;
 
 type ProfileScreenProps = {
   user: { name: string; email: string; role?: string; id?: string; phone?: string };
@@ -33,11 +37,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   setIsLoggedIn, 
   setUser
 }) => {
-  // 🔥 State for Logout Modal
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [logoutInput, setLogoutInput] = useState("");
-  
-  // State for student details
   const [studentDetails, setStudentDetails] = useState<{
     year: string;
     department: string;
@@ -46,7 +47,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [loading, setLoading] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  // Fetch student details from backend
   useEffect(() => {
     const fetchStudentDetails = async () => {
       try {
@@ -71,7 +71,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       }
     };
 
-    // Load profile image from AsyncStorage
     const loadProfileImage = async () => {
       try {
         const savedImage = await AsyncStorage.getItem(`profileImage_${user.email}`);
@@ -87,7 +86,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     loadProfileImage();
   }, [user.email]);
 
-  // Handle image upload
   const handleImageUpload = async () => {
     try {
       const result = await launchImageLibrary({
@@ -97,9 +95,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         maxHeight: 500,
       });
 
-      if (result.didCancel) {
-        return;
-      }
+      if (result.didCancel) return;
 
       if (result.errorMessage) {
         Alert.alert('Error', result.errorMessage);
@@ -109,12 +105,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       if (result.assets && result.assets[0].uri) {
         const imageUri = result.assets[0].uri;
         setProfileImage(imageUri);
-        
-        // Save to AsyncStorage
         await AsyncStorage.setItem(`profileImage_${user.email}`, imageUri);
         Alert.alert('Success', 'Profile picture updated successfully!');
       }
-      
     } catch (error) {
       console.error('Error uploading image:', error);
       Alert.alert('Error', 'Failed to upload image');
@@ -123,12 +116,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   const handleLogout = async () => {
     if (logoutInput.trim() === "I want to logout") {
-      // Cleanup FCM token before logout
       try {
         await cleanupFCMOnLogout(user.email);
       } catch (error) {
         console.error('Error during FCM cleanup:', error);
-        // Continue with logout even if cleanup fails
       }
       
       await AsyncStorage.clear();
@@ -141,191 +132,418 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     }
   };
 
+  // Responsive calculations
+  const avatarSize = IS_SMALL_DEVICE ? SCREEN_WIDTH * 0.28 : SCREEN_WIDTH * 0.32;
+const headerHeight = IS_SMALL_DEVICE ? SCREEN_HEIGHT * 0.30 : SCREEN_HEIGHT * 0.35;
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: spacing(40) }}>
-      {/* Header with avatar */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleImageUpload} style={styles.avatarContainer}>
-          <Image
-            source={profileImage ? { uri: profileImage } : require('../../../assets/images/rgukt_w.png')}
-            style={styles.avatar}
-          />
-          <View style={styles.cameraIconContainer}>
-            <Icon name="camera" size={fontSize(20)} color="#FFF" />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#800000" />
+      
+      <ScrollView 
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Header Section */}
+        <View style={[styles.header, { height: headerHeight }]}>
+          <View style={styles.avatarSection}>
+            <TouchableOpacity onPress={handleImageUpload} style={styles.avatarTouchable}>
+              <Image
+                source={profileImage ? { uri: profileImage } : require('../../../assets/images/rgukt_w.png')}
+                style={[styles.avatar, { width: avatarSize, height: avatarSize }]}
+              />
+              <View style={styles.cameraIcon}>
+                <Icon name="camera-plus" size={16} color="#FFF" />
+              </View>
+            </TouchableOpacity>
           </View>
-        </TouchableOpacity>
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.role}>{user.role || "Student"}</Text>
-      </View>
 
-      {/* Profile Info Card */}
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2E3B55" />
-          <Text style={styles.loadingText}>Loading profile...</Text>
+          <View style={styles.userInfo}>
+            <Text style={styles.userName} numberOfLines={2}>{user.name}</Text>
+            <View style={styles.roleBadge}>
+              <Icon name="account" size={14} color="#F8E0E0" />
+              <Text style={styles.userRole}>{user.role || "Student"}</Text>
+            </View>
+          </View>
         </View>
-      ) : (
-        <View style={styles.card}>
-          <InfoRow icon="card-account-details" label="ID Number" value={user.email.replace('@rguktrkv.ac.in', '').toUpperCase() || "N/A"} />
-          <InfoRow icon="email" label="Email" value={user.email} />
-          <InfoRow icon="school" label="Year" value={studentDetails?.year || "N/A"} />
-          <InfoRow icon="book-open-variant" label="Department" value={studentDetails?.department || "N/A"} />
-          <InfoRow icon="google-classroom" label="Section" value={studentDetails?.section || "N/A"} />
+
+        {/* Main Content */}
+        <View style={styles.content}>
+          {loading ? (
+            <View style={styles.loader}>
+              <ActivityIndicator size="large" color="#800000" />
+              <Text style={styles.loadingText}>Loading profile...</Text>
+            </View>
+          ) : (
+            <>
+              {/* Quick Stats */}
+              <View style={styles.statsGrid}>
+                <View style={[styles.statCard, styles.statCard1]}>
+                  <Icon name="school" size={22} color="#2E7D32" />
+                  <Text style={styles.statLabel}>Year</Text>
+                  <Text style={[styles.statValue, styles.statValue1]}>
+                    {studentDetails?.year || "N/A"}
+                  </Text>
+                </View>
+
+                <View style={[styles.statCard, styles.statCard2]}>
+                  <Icon name="book-open-page-variant" size={22} color="#800000" />
+                  <Text style={styles.statLabel}>Department</Text>
+                  <Text style={[styles.statValue, styles.statValue2]} numberOfLines={1}>
+                    {studentDetails?.department || "N/A"}
+                  </Text>
+                </View>
+
+                <View style={[styles.statCard, styles.statCard3]}>
+                  <Icon name="google-classroom" size={22} color="#EF6C00" />
+                  <Text style={styles.statLabel}>Section</Text>
+                  <Text style={[styles.statValue, styles.statValue3]}>
+                    {studentDetails?.section || "N/A"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Personal Info */}
+              <View style={styles.infoCard}>
+                <Text style={styles.cardTitle}>Personal Information</Text>
+                
+                <InfoRow 
+                  icon="card-account-details" 
+                  label="Student ID" 
+                  value={user.email.replace('@rguktrkv.ac.in', '').toUpperCase() || "N/A"}
+                />
+                <InfoRow 
+                  icon="email" 
+                  label="Email Address" 
+                  value={user.email}
+                  isLast={true}
+                />
+              </View>
+
+              {/* Logout Button */}
+              <TouchableOpacity 
+                style={styles.logoutBtn}
+                onPress={() => setLogoutModalVisible(true)}
+              >
+                <Icon name="logout" size={20} color="#FFF" />
+                <Text style={styles.logoutBtnText}>Logout</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
-      )}
+      </ScrollView>
 
-      {/* Logout Button */}
-      <TouchableOpacity style={styles.logoutButton} onPress={() => setLogoutModalVisible(true)}>
-        <Icon name="logout" size={fontSize(22)} color="#FFF" />
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
-
-      {/* Logout Confirmation Modal */}
+      {/* Logout Modal */}
       <Modal 
         visible={logoutModalVisible} 
         transparent 
-        animationType="slide"
-        onRequestClose={() => {
-          setLogoutModalVisible(false);
-          setLogoutInput("");
-        }}
+        animationType="fade"
+        onRequestClose={() => setLogoutModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIcon}>
+              <Icon name="logout" size={40} color="#800000" />
+            </View>
+            
             <Text style={styles.modalTitle}>Confirm Logout</Text>
-            <Text style={{ marginBottom: spacing(10) }}>
-              Please type <Text style={{ fontWeight: "bold" }}>"I want to logout"</Text> to confirm.
+            <Text style={styles.modalText}>
+              Type <Text style={styles.highlight}>"I want to logout"</Text> to confirm
             </Text>
+            
             <TextInput
               placeholder="Type here..."
               value={logoutInput}
               onChangeText={setLogoutInput}
-              style={styles.input}
+              style={styles.modalInput}
+              placeholderTextColor="#999"
             />
-            <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: spacing(10) }}>
-            <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: "red" }]}
-                onPress={() => {
-                  setLogoutModalVisible(false);
-                  setLogoutInput("");
-                }}
+            
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.cancelBtn]}
+                onPress={() => setLogoutModalVisible(false)}
               >
-                <Text style={{ color: "#FFF", fontWeight: "bold" }}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButton} onPress={handleLogout}>
-                <Text style={{ color: "#FFF", fontWeight: "bold" }}>Confirm</Text>
+                <Text style={styles.modalBtnText}>Cancel</Text>
               </TouchableOpacity>
               
+              <TouchableOpacity 
+                style={[styles.modalBtn, styles.confirmBtn]} 
+                onPress={handleLogout}
+              >
+                <Text style={styles.modalBtnText}>Logout</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 };
 
-const InfoRow = ({ icon, label, value }: { icon: string; label: string; value: string }) => (
-  <View style={styles.infoRow}>
-    <Icon name={icon} size={fontSize(22)} color="#2E3B55" style={{ marginRight: SPACING.md }} />
-    <View>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+const InfoRow = ({ icon, label, value, isLast = false }: any) => (
+  <View style={[styles.infoRow, !isLast && styles.infoRowBorder]}>
+    <Icon name={icon} size={20} color="#800000" style={styles.rowIcon} />
+    <View style={styles.rowText}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue} numberOfLines={2}>{value}</Text>
     </View>
   </View>
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F9FAFB" },
-  header: {
-    alignItems: "center",
-    paddingVertical: spacing(30),
-    backgroundColor: "#2E3B55",
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+  container: { 
+    flex: 1, 
+    backgroundColor: "#F8F9FA" 
   },
-  avatarContainer: {
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  header: {
+    backgroundColor: '#800000',
+    paddingHorizontal: SPACING.lg,
+    paddingTop: spacing(50),
+    alignItems: 'center',
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+  },
+  avatarSection: {
+    alignItems: 'center',
+    marginBottom: spacing(12),
+  },
+  avatarTouchable: {
     position: 'relative',
-    marginBottom: spacing(15),
   },
   avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#DDD",
-    borderWidth: 3,
-    borderColor: "#FFF",
+    borderRadius: 70,
+    backgroundColor: "#F8E0E0",
+    borderWidth: 4,
+    borderColor: '#FFF',
   },
-  cameraIconContainer: {
+  cameraIcon: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#2E3B55',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    bottom: 5,
+    right: 5,
+    backgroundColor: '#800000',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#FFF',
   },
-  loadingContainer: {
-    marginHorizontal: SPACING.xl,
-    marginTop: spacing(25),
-    padding: spacing(40),
+  userInfo: {
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  userName: { 
+    fontSize: fontSize(20), 
+    fontWeight: "700", 
+    color: "#FFF", 
+    textAlign: 'center',
+    marginBottom: spacing(6),
+  },
+  roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: spacing(12),
+    paddingVertical: spacing(4),
+    borderRadius: 12,
+  },
+  userRole: { 
+    fontSize: FONT_SIZES.sm, 
+    color: "#F8E0E0", 
+    marginLeft: spacing(4),
+  },
+  content: {
+    paddingHorizontal: SPACING.lg,
+    paddingTop: spacing(20),
+    paddingBottom: spacing(30),
+  },
+  loader: {
+    paddingVertical: spacing(60),
+    alignItems: 'center',
   },
   loadingText: {
-    marginTop: spacing(10),
+    marginTop: spacing(12),
     fontSize: FONT_SIZES.md,
     color: '#666',
   },
-  name: { fontSize: fontSize(22), fontWeight: "bold", color: "#FFF" },
-  role: { fontSize: FONT_SIZES.lg, color: "#CCC", marginTop: SPACING.xs },
-  card: {
-    backgroundColor: "#FFF",
-    marginHorizontal: SPACING.xl,
-    marginTop: spacing(25),
-    padding: SPACING.xl,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 4,
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: spacing(20),
+    gap: spacing(8),
   },
-  infoRow: { flexDirection: "row", alignItems: "center", marginBottom: spacing(18) },
-  infoLabel: { fontSize: fontSize(13), color: "#666" },
-  infoValue: { fontSize: FONT_SIZES.lg, fontWeight: "600", color: "#111" },
-  logoutButton: {
-    marginTop: spacing(40),
-    marginHorizontal: SPACING.xl,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#B71C1C",
-    paddingVertical: spacing(14),
+  statCard: {
+    flex: 1,
+    padding: spacing(12),
     borderRadius: 12,
+    alignItems: 'center',
+    minHeight: IS_SMALL_DEVICE ? 80 : 90,
+  },
+  statCard1: { backgroundColor: '#E8F5E9' },
+  statCard2: { backgroundColor: '#F8E0E0' },
+  statCard3: { backgroundColor: '#FFF3E0' },
+  statLabel: {
+    fontSize: FONT_SIZES.xs,
+    color: '#666',
+    marginTop: spacing(6),
+    textAlign: 'center',
+  },
+  statValue: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '700',
+    marginTop: spacing(2),
+  },
+  statValue1: { color: '#2E7D32' },
+  statValue2: { color: '#800000' },
+  statValue3: { color: '#EF6C00' },
+  infoCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: spacing(16),
+    marginBottom: spacing(20),
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
-  logoutText: { color: "#FFF", fontWeight: "bold", fontSize: FONT_SIZES.lg, marginLeft: SPACING.sm },
+  cardTitle: {
+    fontSize: FONT_SIZES.lg,
+    fontWeight: '700',
+    color: '#800000',
+    marginBottom: spacing(16),
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing(12),
+    minHeight: 50,
+  },
+  infoRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  rowIcon: {
+    marginRight: spacing(12),
+    width: 24,
+  },
+  rowText: {
+    flex: 1,
+  },
+  rowLabel: {
+    fontSize: FONT_SIZES.xs,
+    color: '#666',
+    marginBottom: 2,
+  },
+  rowValue: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
+    color: '#1A1A1A',
+  },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#800000',
+    paddingVertical: spacing(14),
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: "#800000",
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    minHeight: 50,
+  },
+  logoutBtnText: { 
+    color: "#FFF", 
+    fontWeight: "700", 
+    fontSize: FONT_SIZES.md, 
+    marginLeft: spacing(8),
+  },
 
-  // 🔥 Extra modal styles (kept minimal so styles remain intact)
+  // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
+    padding: SPACING.lg,
   },
-  modalContent: { width: "85%", backgroundColor: "#FFF", borderRadius: 12, padding: SPACING.xl },
-  modalTitle: { fontSize: FONT_SIZES.xxl, fontWeight: "bold", marginBottom: spacing(15), textAlign: "center" },
-  input: {
+  modalCard: { 
+    width: "100%", 
+    maxWidth: 350,
+    backgroundColor: "#FFF", 
+    borderRadius: 20, 
+    padding: spacing(24),
+    elevation: 8,
+  },
+  modalIcon: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#F8E0E0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: spacing(16),
+  },
+  modalTitle: { 
+    fontSize: FONT_SIZES.lg, 
+    fontWeight: "700", 
+    marginBottom: spacing(8), 
+    textAlign: "center",
+    color: "#800000",
+  },
+  modalText: {
+    marginBottom: spacing(16),
+    fontSize: FONT_SIZES.md,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  highlight: {
+    fontWeight: "700",
+    color: '#800000',
+  },
+  modalInput: {
     borderWidth: 1,
-    borderColor: "#CCC",
-    borderRadius: 8,
-    padding: spacing(10),
-    marginBottom: spacing(10),
+    borderColor: "#DDD",
+    borderRadius: 10,
+    padding: spacing(12),
+    marginBottom: spacing(20),
+    fontSize: FONT_SIZES.md,
+    backgroundColor: "#F9F9F9",
   },
-  modalButton: { backgroundColor: "#28a745", paddingVertical: spacing(10), paddingHorizontal: SPACING.xl, borderRadius: 8 },
+  modalActions: { 
+    flexDirection: "row", 
+    gap: spacing(12),
+  },
+  modalBtn: { 
+    flex: 1,
+    paddingVertical: spacing(12),
+    borderRadius: 10,
+    alignItems: 'center',
+    minHeight: 44,
+  },
+  cancelBtn: { 
+    backgroundColor: "#757575" 
+  },
+  confirmBtn: { 
+    backgroundColor: "#800000" 
+  },
+  modalBtnText: { 
+    color: "#FFF", 
+    fontWeight: "600",
+    fontSize: FONT_SIZES.md,
+  },
 });
 
 export default ProfileScreen;

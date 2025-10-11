@@ -375,7 +375,7 @@ const ClassScheduleCard = ({
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {item.location}
+              {item.location || "Venue not specified"}
             </Text>
           </View>
         </View>
@@ -1070,7 +1070,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
           <Text style={styles.emptyText}>No classes scheduled.</Text>
           <TouchableOpacity onPress={onRefresh} style={styles.refreshButton}>
             <Icon name="refresh" size={fontSize(20)} color="#600202" />
-            <Text style={styles.refreshText}>Pull down to refresh</Text>
+            <Text style={styles.refreshText}>Click to refresh</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -1222,7 +1222,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
                 <TextInput
                   placeholder="Enter venue (e.g., GF1-CSE)"
                   placeholderTextColor="#999"
-                  value={venue}
+                  value={venue} 
                   onChangeText={setVenue}
                   style={styles.input}
                 />

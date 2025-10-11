@@ -970,7 +970,7 @@ const getScheduleTitle = () => {
                     <Text style={styles.emptyText}>No classes scheduled.</Text>
                     <TouchableOpacity onPress={onRefresh} style={styles.refreshButton}>
                         <Icon name="refresh" size={fontSize(20)} color="#600202" />
-                        <Text style={styles.refreshText}>Pull down to refresh</Text>
+                        <Text style={styles.refreshText}>Click to refresh</Text>
                     </TouchableOpacity>
                 </View>
             ) : (

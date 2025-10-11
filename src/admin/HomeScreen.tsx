@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { Text } from '../components';
 
 const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 

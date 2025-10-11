@@ -1,6 +1,7 @@
 // student/screens/BiometricScreen.tsx
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, StyleSheet, Alert, ActivityIndicator, BackHandler } from "react-native";
+import { View, StyleSheet, Alert, ActivityIndicator, BackHandler } from 'react-native';
+import { Text } from '../../components';
 import ReactNativeBiometrics, { BiometryTypes } from "react-native-biometrics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StackParamList } from "../Navigators/StudentNavigator";

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, PixelRatio, ScrollView } from 'react-native';
+import { View, StyleSheet, Dimensions, PixelRatio, ScrollView } from 'react-native';
+import { Text } from '../../components';
 import { DEVICE, FONT_SIZES, SPACING } from '../../utils/responsive';
 
 const DeviceInfoScreen = () => {

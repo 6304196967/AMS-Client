@@ -58,7 +58,10 @@ react {
     
     /* App Size Optimization - Bundle Size Reduction */
     bundleCommand = "bundle"
-    extraPackagerArgs = ["--reset-cache"]
+    // IMPORTANT: Don't use --reset-cache on every build!
+    // It causes issues with Google Sign-In and data loading on reinstalls
+    // To reset cache manually when needed: npm start -- --reset-cache
+    extraPackagerArgs = []
 }
 
 /**
@@ -96,8 +99,8 @@ android {
         applicationId "com.amsrkv"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 2  // IMPORTANT: Increment this for each new build!
+        versionName "1.0.1"  // Update version name for user-facing version
         
         // App Size Optimization: Enable multi-dex if needed
         multiDexEnabled true

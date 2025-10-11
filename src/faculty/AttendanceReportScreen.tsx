@@ -1,16 +1,12 @@
 // src/faculty/screens/AttendanceReportScreen.tsx
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
+import { View, StyleSheet,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Share,
-  TextInput,
-} from 'react-native';
+  Share } from 'react-native';
+import { Text, TextInput } from '../components';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import RNFS from 'react-native-fs';

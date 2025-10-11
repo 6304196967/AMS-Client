@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
-import {
-  Modal,
+import { Modal,
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Alert,
   ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+  Platform } from 'react-native';
+import { Text, TextInput } from '../../components';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { sendNotificationToClass } from '../../utils/notificationService';

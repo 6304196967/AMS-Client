@@ -1,16 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
+import { View, StyleSheet,
   FlatList,
   Platform,
   ActivityIndicator,
   TouchableOpacity,
   ScrollView,
   RefreshControl,
-  Alert,
-} from "react-native";
+  Alert } from 'react-native';
+import { Text } from '../../components';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from "react-native-linear-gradient";
@@ -221,21 +218,27 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({ user }) => {
       {!loading && dataForDate.length > 0 && (
         <View style={styles.statsContainer}>
           <View style={[styles.statCard, { backgroundColor: '#f0f9ff' }]}>
-            <Icon name="book-outline" size={fontSize(20)} color="#0369a1" />
+            <View style={styles.statIconContainer}>
+              <Icon name="book-outline" size={fontSize(24)} color="#0369a1" />
+            </View>
             <View style={styles.statContent}>
               <Text style={[styles.statNumber, { color: '#0369a1' }]}>{totalClasses}</Text>
               <Text style={[styles.statLabel, { color: '#0369a1' }]}>Total</Text>
             </View>
           </View>
           <View style={[styles.statCard, { backgroundColor: '#f0fdf4' }]}>
-            <Icon name="check-circle-outline" size={fontSize(20)} color="#15803d" />
+            <View style={styles.statIconContainer}>
+              <Icon name="check-circle-outline" size={fontSize(24)} color="#15803d" />
+            </View>
             <View style={styles.statContent}>
               <Text style={[styles.statNumber, { color: '#15803d' }]}>{presentCount}</Text>
               <Text style={[styles.statLabel, { color: '#15803d' }]}>Present</Text>
             </View>
           </View>
           <View style={[styles.statCard, { backgroundColor: '#fef2f2' }]}>
-            <Icon name="close-circle-outline" size={fontSize(20)} color="#dc2626" />
+            <View style={styles.statIconContainer}>
+              <Icon name="close-circle-outline" size={fontSize(24)} color="#dc2626" />
+            </View>
             <View style={styles.statContent}>
               <Text style={[styles.statNumber, { color: '#dc2626' }]}>{absentCount}</Text>
               <Text style={[styles.statLabel, { color: '#dc2626' }]}>Absent</Text>
@@ -384,36 +387,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: SPACING.xxl,
     paddingHorizontal: SPACING.xs,
+    gap: spacing(10),
   },
   statCard: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
-    padding: SPACING.lg,
-    borderRadius: 12,
-    marginHorizontal: SPACING.xs,
+    justifyContent: 'center',
+    padding: SPACING.md,
+    borderRadius: 16,
     shadowColor: '#64748b',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+    minHeight: spacing(95),
+  },
+  statIconContainer: {
+    marginBottom: spacing(4),
   },
   statContent: {
-    marginLeft: SPACING.md,
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   statNumber: {
-    fontSize: FONT_SIZES.xxl,
-    fontWeight: '700',
+    fontSize: fontSize(28),
+    fontWeight: '800',
     marginBottom: spacing(2),
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
   },
   statLabel: {
-    fontSize: fontSize(11),
+    fontSize: fontSize(12),
     fontWeight: '600',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    opacity: 0.8,
+    letterSpacing: 0.8,
+    opacity: 0.9,
   },
   listContainer: {
     flex: 1,

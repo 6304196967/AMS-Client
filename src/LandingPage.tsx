@@ -1,13 +1,13 @@
 import React from "react";
 import {
   StyleSheet,
-  Text,
   View,
   TouchableOpacity,
   StatusBar,
   Image,
   Alert,
 } from "react-native";
+import { Text } from './components'; // Custom Text with font scaling disabled
 import LinearGradient from "react-native-linear-gradient";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import AsyncStorage from "@react-native-async-storage/async-storage";

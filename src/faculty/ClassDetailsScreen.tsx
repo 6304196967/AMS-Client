@@ -1,18 +1,14 @@
 // src/faculty/screens/ClassDetailsScreen.tsx
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
+import { View, StyleSheet,
   ScrollView,
   TouchableOpacity,
   Modal,
   FlatList,
-  TextInput,
   Alert,
   ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+  RefreshControl } from 'react-native';
+import { Text, TextInput } from '../components';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -303,11 +299,6 @@ const ClassDetailsScreen = () => {
           styles.statusBadge,
           { backgroundColor: item.status ? '#28a745' : '#dc3545' }
         ]}>
-          <Icon 
-            name={item.status ? 'check' : 'close'} 
-            size={fontSize(14)} 
-            color="#FFF" 
-          />
           <Text style={styles.statusText}>
             {item.status ? 'Present' : 'Absent'}
           </Text>
@@ -835,7 +826,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   periodText: {
-    fontSize: FONT_SIZES.lg,
+    fontSize: FONT_SIZES.md,
     fontWeight: '600',
     color: '#600202',
     marginHorizontal: SPACING.sm,

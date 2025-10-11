@@ -1,18 +1,13 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
+import { View, StyleSheet, 
   ScrollView, 
   TouchableOpacity, 
   FlatList,
   Alert,
-  Modal,
-  TextInput,
-  KeyboardAvoidingView,
+  Modal, KeyboardAvoidingView,
   Platform,
-  ActivityIndicator
-} from 'react-native';
+  ActivityIndicator } from 'react-native';
+import { Text, TextInput } from '../components';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { pick, types} from '@react-native-documents/picker';
 

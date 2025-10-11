@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
+import { View, StyleSheet, 
   ScrollView, 
   ActivityIndicator,
-  RefreshControl 
-} from "react-native";
+  RefreshControl } from 'react-native';
+import { Text } from '../../components';
 import LinearGradient from "react-native-linear-gradient";
 import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 

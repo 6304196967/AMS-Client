@@ -1,18 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
+import { View, FlatList,
   TouchableOpacity,
   StatusBar,
-  StyleSheet,
-  TextInput,
-  Modal,
+  StyleSheet, Modal,
   Alert,
   ActivityIndicator,
   RefreshControl,
-  ScrollView,
-} from 'react-native';
+  ScrollView } from 'react-native';
+import { Text, TextInput } from '../../components';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -1223,6 +1218,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
 
               <View style={styles.modalFooter}>
                 <TouchableOpacity 
+                  style={[styles.modalButton, { backgroundColor: '#757575' }]} 
+                  onPress={() => {
+                    setModalVisible(false);
+                    resetModal();
+                  }}
+                >
+                  <Text style={{ color: '#FFF', fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
                   style={[styles.modalButton, schedulingLoading && styles.disabledButton]} 
                   onPress={scheduleClass}
                   disabled={schedulingLoading}
@@ -1232,15 +1236,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
                   ) : (
                     <Text style={{ color: '#FFF', fontWeight: '600', fontSize: fontSize(15) }}>Schedule Class</Text>
                   )}
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.modalButton, { backgroundColor: '#757575' }]} 
-                  onPress={() => {
-                    setModalVisible(false);
-                    resetModal();
-                  }}
-                >
-                  <Text style={{ color: '#FFF', fontWeight: '600' }}>Cancel</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1295,6 +1290,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
 
               <View style={styles.modalFooter}>
                 <TouchableOpacity 
+                  style={[styles.modalButton, { backgroundColor: '#757575' }]} 
+                  onPress={() => {
+                    setEditModalVisible(false);
+                    resetEditModal();
+                  }}
+                >
+                  <Text style={{ color: '#FFF', fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
                   style={[styles.modalButton, editLoading && styles.disabledButton]} 
                   onPress={updateClass}
                   disabled={editLoading}
@@ -1304,15 +1308,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
                   ) : (
                     <Text style={{ color: '#FFF', fontWeight: '600', fontSize: fontSize(15) }}>Update Venue</Text>
                   )}
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.modalButton, { backgroundColor: '#757575' }]} 
-                  onPress={() => {
-                    setEditModalVisible(false);
-                    resetEditModal();
-                  }}
-                >
-                  <Text style={{ color: '#FFF', fontWeight: '600' }}>Cancel</Text>
                 </TouchableOpacity>
               </View>
             </View>

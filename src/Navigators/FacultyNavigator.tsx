@@ -1,6 +1,7 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { View, Text, Image, StyleSheet } from "react-native";
+import { View, Image, StyleSheet } from 'react-native';
+import { Text } from '../components';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { FONT_SIZES, SPACING } from '../utils/responsive';
 

@@ -1,19 +1,15 @@
 // src/faculty/screens/AttendanceDashboard.tsx
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
+import { View, StyleSheet,
   ScrollView,
   TouchableOpacity,
   Modal,
-  TextInput,
   FlatList,
   StatusBar,
   Alert,
   RefreshControl,
-  ActivityIndicator,
-} from 'react-native';
+  ActivityIndicator } from 'react-native';
+import { Text, TextInput } from '../components';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';

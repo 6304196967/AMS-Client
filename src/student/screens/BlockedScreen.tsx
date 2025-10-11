@@ -1,6 +1,7 @@
 // student/screens/BlockedScreen.tsx
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, BackHandler } from "react-native";
+import { View, StyleSheet, BackHandler } from 'react-native';
+import { Text } from '../../components';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 

@@ -1,19 +1,15 @@
 // student/screens/ProfileScreen.tsx
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
+import { View, StyleSheet,
   Image,
   TouchableOpacity,
   ScrollView,
   Modal,
-  TextInput,
   Alert,
   ActivityIndicator,
   Dimensions,
-  StatusBar,
-} from "react-native";
+  StatusBar } from 'react-native';
+import { Text, TextInput } from '../../components';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -38,7 +34,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   setUser
 }) => {
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
-  const [logoutInput, setLogoutInput] = useState("");
   const [studentDetails, setStudentDetails] = useState<{
     year: string;
     department: string;
@@ -115,21 +110,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   };
 
   const handleLogout = async () => {
-    if (logoutInput.trim() === "I want to logout") {
-      try {
-        await cleanupFCMOnLogout(user.email);
-      } catch (error) {
-        console.error('Error during FCM cleanup:', error);
-      }
-      
-      await AsyncStorage.clear();
-      setIsLoggedIn(false);
-      setUser(null);
-      setLogoutModalVisible(false);
-      setLogoutInput("");
-    } else {
-      Alert.alert("Error", "You must type exactly: I want to logout");
+    try {
+      await cleanupFCMOnLogout(user.email);
+    } catch (error) {
+      console.error('Error during FCM cleanup:', error);
     }
+    await AsyncStorage.clear();
+    setIsLoggedIn(false);
+    setUser(null);
+    setLogoutModalVisible(false);
   };
 
   // Responsive calculations
@@ -246,20 +235,10 @@ const headerHeight = IS_SMALL_DEVICE ? SCREEN_HEIGHT * 0.30 : SCREEN_HEIGHT * 0.
             <View style={styles.modalIcon}>
               <Icon name="logout" size={40} color="#800000" />
             </View>
-            
             <Text style={styles.modalTitle}>Confirm Logout</Text>
             <Text style={styles.modalText}>
-              Type <Text style={styles.highlight}>"I want to logout"</Text> to confirm
+              Are you sure you want to logout?
             </Text>
-            
-            <TextInput
-              placeholder="Type here..."
-              value={logoutInput}
-              onChangeText={setLogoutInput}
-              style={styles.modalInput}
-              placeholderTextColor="#999"
-            />
-            
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={[styles.modalBtn, styles.cancelBtn]}
@@ -267,12 +246,11 @@ const headerHeight = IS_SMALL_DEVICE ? SCREEN_HEIGHT * 0.30 : SCREEN_HEIGHT * 0.
               >
                 <Text style={styles.modalBtnText}>Cancel</Text>
               </TouchableOpacity>
-              
               <TouchableOpacity 
                 style={[styles.modalBtn, styles.confirmBtn]} 
                 onPress={handleLogout}
               >
-                <Text style={styles.modalBtnText}>Logout</Text>
+                <Text style={styles.modalBtnText}>OK</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -387,9 +365,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minHeight: IS_SMALL_DEVICE ? 80 : 90,
   },
-  statCard1: { backgroundColor: '#E8F5E9' },
-  statCard2: { backgroundColor: '#F8E0E0' },
-  statCard3: { backgroundColor: '#FFF3E0' },
+  statCard1: { backgroundColor: '#ebe7e7ff' },
+  statCard2: { backgroundColor: '#ebe7e7ff' },
+  statCard3: { backgroundColor: '#ebe7e7ff' },
   statLabel: {
     fontSize: FONT_SIZES.xs,
     color: '#666',

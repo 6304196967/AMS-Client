@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
+import { View, StyleSheet,
     TouchableOpacity,
     Alert,
     ActivityIndicator,
     ScrollView,
-    Switch,
-} from 'react-native';
+    Switch } from 'react-native';
+import { Text } from '../components';
 import { pick, types } from '@react-native-documents/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Picker } from '@react-native-picker/picker';

@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { 
-  View, 
-  Text, 
+  View,
   StyleSheet, 
   ScrollView, 
   TouchableOpacity, 
   FlatList,
   Alert,
   Modal,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator
+  ActivityIndicator 
 } from 'react-native';
+import { Text, TextInput } from '../components';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {CR} from '../services/Interfaces';
 import { spacing, fontSize, FONT_SIZES, SPACING } from '../utils/responsive';

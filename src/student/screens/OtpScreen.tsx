@@ -1,6 +1,7 @@
 // student/screens/OtpScreen.tsx
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, StyleSheet, TextInput, BackHandler, ActivityIndicator, AppState, AppStateStatus, Platform, Modal, TouchableOpacity } from "react-native";
+import { View, StyleSheet, BackHandler, ActivityIndicator, AppState, AppStateStatus, Platform, Modal, TouchableOpacity, TextInput as RNTextInput } from 'react-native';
+import { Text, TextInput } from '../../components';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StackParamList } from "../Navigators/StudentNavigator";
 import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
@@ -16,7 +17,7 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState(35);
   const [isVerifying, setIsVerifying] = useState(false);
-  const inputsRef = useRef<(TextInput | null)[]>([]);
+  const inputsRef = useRef<(RNTextInput | null)[]>([]);
   
   // New state for waiting phase after OTP entry
   const [isWaitingForExpiry, setIsWaitingForExpiry] = useState(false);

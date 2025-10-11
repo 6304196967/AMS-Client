@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Alert, View, TouchableOpacity, StyleSheet, Modal, Text } from "react-native";
+import { Alert, View, TouchableOpacity, StyleSheet, Modal } from 'react-native';
+import { Text } from '../components';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -17,13 +18,14 @@ type ProfileProps = {
 
 const Profile: React.FC<ProfileProps> = ({ user, setIsLoggedIn, setUser }) => {
   const [open, setOpen] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   // Don't render anything if user is not available
   if (!user) {
     return null;
   }
 
-  const handleLogout = async () => {
+  const handleLogoutConfirm = async () => {
     try {
       // Cleanup FCM token before logout
       try {
@@ -38,11 +40,17 @@ const Profile: React.FC<ProfileProps> = ({ user, setIsLoggedIn, setUser }) => {
       await AsyncStorage.removeItem("isLoggedIn");
       setIsLoggedIn(false);
       setUser(null); 
+      setLogoutModalVisible(false);
       setOpen(false);
     } catch (error) {
       console.error("Logout failed:", error);
       Alert.alert("Logout Error", "Failed to logout. Please try again.");
     }
+  };
+
+  const handleLogoutPress = () => {
+    setOpen(false);
+    setLogoutModalVisible(true);
   };
 
   return (
@@ -76,13 +84,47 @@ const Profile: React.FC<ProfileProps> = ({ user, setIsLoggedIn, setUser }) => {
             
             <TouchableOpacity
               style={styles.logoutItem}
-              onPress={handleLogout}
+              onPress={handleLogoutPress}
             >
               <Icon name="logout" size={fontSize(20)} color="red" />
               <Text style={styles.logoutText}>Logout</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        transparent
+        visible={logoutModalVisible}
+        animationType="fade"
+        onRequestClose={() => setLogoutModalVisible(false)}
+      >
+        <View style={styles.logoutModalOverlay}>
+          <View style={styles.logoutModalCard}>
+            <View style={styles.logoutModalIcon}>
+              <Icon name="logout" size={40} color="#800000" />
+            </View>
+            <Text style={styles.logoutModalTitle}>Confirm Logout</Text>
+            <Text style={styles.logoutModalText}>
+              Are you sure you want to logout?
+            </Text>
+            <View style={styles.logoutModalActions}>
+              <TouchableOpacity
+                style={[styles.logoutModalBtn, styles.cancelBtn]}
+                onPress={() => setLogoutModalVisible(false)}
+              >
+                <Text style={styles.logoutModalBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.logoutModalBtn, styles.confirmBtn]}
+                onPress={handleLogoutConfirm}
+              >
+                <Text style={styles.logoutModalBtnText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -109,7 +151,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 8,
     overflow: "hidden",
-    width: wp(40),
+    width: wp(60),
     elevation: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -141,6 +183,73 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.md,
     color: 'red',
     fontWeight: '500',
+  },
+  
+  // Logout Confirmation Modal Styles
+  logoutModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: spacing(20),
+  },
+  logoutModalCard: {
+    width: "100%",
+    maxWidth: 350,
+    backgroundColor: "#FFF",
+    borderRadius: 20,
+    padding: spacing(24),
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  logoutModalIcon: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#F8E0E0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: spacing(16),
+  },
+  logoutModalTitle: {
+    fontSize: FONT_SIZES.lg,
+    fontWeight: "700",
+    marginBottom: spacing(8),
+    textAlign: "center",
+    color: "#800000",
+  },
+  logoutModalText: {
+    marginBottom: spacing(20),
+    fontSize: FONT_SIZES.md,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  logoutModalActions: {
+    flexDirection: "row",
+    gap: spacing(12),
+  },
+  logoutModalBtn: {
+    flex: 1,
+    paddingVertical: spacing(12),
+    borderRadius: 10,
+    alignItems: 'center',
+    minHeight: 44,
+  },
+  cancelBtn: {
+    backgroundColor: "#757575"
+  },
+  confirmBtn: {
+    backgroundColor: "#800000"
+  },
+  logoutModalBtnText: {
+    color: "#FFF",
+    fontWeight: "600",
+    fontSize: FONT_SIZES.md,
   },
 });
 

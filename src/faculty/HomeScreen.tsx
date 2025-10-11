@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
+import { View, StyleSheet,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
   FlatList,
-  Modal,
-  TextInput,
-  KeyboardAvoidingView,
+  Modal, KeyboardAvoidingView,
   Platform,
   StatusBar,
-  RefreshControl
-} from 'react-native';
+  RefreshControl } from 'react-native';
+import { Text, TextInput } from '../components';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { spacing, fontSize, FONT_SIZES, SPACING } from '../utils/responsive';
 import LinearGradient from 'react-native-linear-gradient';

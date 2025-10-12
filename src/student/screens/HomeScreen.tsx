@@ -909,7 +909,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
     
     if (item.otp_created_at) {
       const otpCreatedTimestamp = new Date(item.otp_created_at).getTime();
-      otpExpiryTime = otpCreatedTimestamp + 30000;
+      otpExpiryTime = otpCreatedTimestamp + 40000;
       
       const now = Date.now();
       const remainingTime = Math.floor((otpExpiryTime - now) / 1000);
@@ -925,7 +925,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
       
       
     } else {
-      otpExpiryTime = Date.now() + 30000;
+      otpExpiryTime = Date.now() + 40000;
       console.warn('OTP creation timestamp not provided by backend, using fallback');
     }
     

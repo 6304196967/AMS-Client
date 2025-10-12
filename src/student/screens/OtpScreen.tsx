@@ -296,14 +296,14 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
       return;
     }
 
-    // Set initial timer to minimum of 35 seconds or actual remaining time
-    const initialTimer = Math.min(35, remainingSec);
+    // Set initial timer to minimum of 40 seconds or actual remaining time
+    const initialTimer = Math.min(40, remainingSec);
     setTimer(initialTimer);
     startTimeRef.current = now;
-    
-    // Update the expiry time reference if we're giving them 35 seconds
-    if (initialTimer === 35 && remainingSec > 35) {
-      otpExpiryTimeRef.current = now + 35000;
+
+    // Update the expiry time reference if we're giving them 40 seconds
+    if (initialTimer === 40 && remainingSec > 40) {
+      otpExpiryTimeRef.current = now + 40000;
     }
 
     const interval = setInterval(() => {

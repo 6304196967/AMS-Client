@@ -6,7 +6,8 @@ import { View, StyleSheet,
   Alert,
   Modal, KeyboardAvoidingView,
   Platform,
-  ActivityIndicator } from 'react-native';
+  ActivityIndicator,
+  RefreshControl } from 'react-native';
 import { Text, TextInput } from '../components';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { pick, types} from '@react-native-documents/picker';
@@ -44,6 +45,7 @@ const FacultyManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   
   const [newFaculty, setNewFaculty] = useState<Faculty>({
     id: "",
@@ -95,6 +97,16 @@ const FacultyManagement = () => {
       console.error("Error fetching faculty list:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handle pull to refresh
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchFacultyListFromBackend();
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -292,6 +304,8 @@ const handleAddFaculty = async () => {
         type: file.type,
       });
 
+      setIsUploading(true);
+
       // Send the request to your backend
       const response = await fetch(`${API_BASE_URL}/faculties/upload_faculty`, {
         method: 'POST',
@@ -311,6 +325,8 @@ const handleAddFaculty = async () => {
       // The catch block now only handles genuine errors (e.g., permissions, network issues)
       console.error('An unexpected error occurred:', error);
       Alert.alert('Error', 'An unexpected error occurred during the upload.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -530,6 +546,14 @@ const handleAddFaculty = async () => {
           //Here item => item.assignmnet_id must be string so i converted it to string
           keyExtractor={item => String(item.assignment_id)}
           contentContainerStyle={styles.listContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#600202']}
+              tintColor="#600202"
+            />
+          }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Icon name="people-outline" size={fontSize(60)} color="#f5f5f5" />
@@ -695,11 +719,9 @@ const handleAddFaculty = async () => {
               </Text>
               
               {isUploading && (
-                <View style={styles.progressContainer}>
-                  <Text style={styles.progressText}>Uploading... {uploadProgress}%</Text>
-                  <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${uploadProgress}%` }]} />
-                  </View>
+                <View style={styles.uploadLoadingContainer}>
+                  <ActivityIndicator size="large" color="#600202" />
+                  <Text style={styles.loadingText}>Uploading...</Text>
                 </View>
               )}
 
@@ -1124,28 +1146,16 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
     lineHeight: 20,
   },
-  progressContainer: {
-    width: '100%',
-    marginBottom: SPACING.xl,
-  },
-  progressText: {
-    fontSize: FONT_SIZES.md,
-    color: '#600202',
-    marginBottom: spacing(5),
-  },
-  progressBar: {
-    height: 6,
-    backgroundColor: '#e9ecef',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#28a745',
+  uploadLoadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: SPACING.lg,
   },
   loadingText: {
-    color: '#f5f5f5',
+    fontSize: FONT_SIZES.md,
+    color: '#600202',
     marginTop: spacing(10),
+    fontWeight: '500',
   },
     // Add new styles for the modal upload button
   uploadModalButton: {

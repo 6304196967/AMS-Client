@@ -13,7 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AttendanceData, AttendanceSession, StudentAttendance } from 'src/services/Interfaces';
-import { spacing, fontSize, FONT_SIZES, SPACING } from '../utils/responsive';
+import { spacing, fontSize, FONT_SIZES, SPACING, formatTimeRange } from '../utils/responsive';
 
 type RootStackParamList = {
   ClassDetails: { classData: any };
@@ -356,7 +356,7 @@ const ClassDetailsScreen = () => {
       }}
     >
       <View style={styles.periodInfo}>
-        <Text style={styles.periodTime}>{item.start_time} - {item.end_time}</Text>
+        <Text style={styles.periodTime}>{formatTimeRange(item.start_time, item.end_time)}</Text>
         <Text style={styles.periodTopic}>{item.topic || 'No topic specified'}</Text>
         <Text style={styles.periodVenue}>Venue: {item.venue || 'Not specified'}</Text>
       </View>
@@ -438,7 +438,7 @@ const ClassDetailsScreen = () => {
           >
             <Icon name="access-time" size={fontSize(20)} color="#600202" />
             <Text style={styles.periodText}>
-              {currentPeriod ? `${currentPeriod.start_time} - ${currentPeriod.end_time}` : 'No Sessions'}
+              {currentPeriod ? formatTimeRange(currentPeriod.start_time, currentPeriod.end_time) : 'No Sessions'}
             </Text>
             <Icon name="arrow-drop-down" size={fontSize(20)} color="#600202" />
           </TouchableOpacity>
@@ -475,7 +475,7 @@ const ClassDetailsScreen = () => {
             {/* Period Details */}
             <View style={styles.periodDetails}>
               <View style={styles.periodHeader}>
-                <Text style={styles.periodDetailTitle}>{currentPeriod.start_time} - {currentPeriod.end_time}</Text>
+                <Text style={styles.periodDetailTitle}>{formatTimeRange(currentPeriod.start_time, currentPeriod.end_time)}</Text>
               </View>
               <Text style={styles.topicLabel}>Topic Discussed</Text>
               <Text style={styles.topicText}>{currentPeriod.topic || 'No topic specified'}</Text>
@@ -826,7 +826,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   periodText: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     fontWeight: '600',
     color: '#600202',
     marginHorizontal: SPACING.sm,
@@ -889,7 +889,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   periodDetailTitle: {
-    fontSize: FONT_SIZES.xl,
+    fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
     color: '#600202',
   },
@@ -1246,7 +1246,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   periodTime: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.sm,
     color: '#666',
     marginBottom: spacing(2),
   },

@@ -9,7 +9,8 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator 
+  ActivityIndicator,
+  RefreshControl 
 } from 'react-native';
 import { Text, TextInput } from '../components';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -39,6 +40,7 @@ const CrManagement = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Fetch CR list on component mount
   React.useEffect(() => {
@@ -72,6 +74,16 @@ const CrManagement = () => {
       console.error("Error fetching CR list:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handle pull to refresh
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchCRListFromBackend();
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -358,6 +370,14 @@ const CrManagement = () => {
           renderItem={renderCRItem}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.listContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#600202']}
+              tintColor="#600202"
+            />
+          }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Icon name="people-outline" size={fontSize(60)} color="#f5f5f5" />

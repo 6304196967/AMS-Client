@@ -1,5 +1,6 @@
 package com.amsrkv
 
+import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import com.facebook.react.ReactActivity
@@ -23,15 +24,31 @@ class MainActivity : ReactActivity() {
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 
   /**
-   * Add FLAG_SECURE to prevent screenshots and screen recordings at OS level
-   * This provides an additional security layer for sensitive screens
+   * Disable multi-window mode to prevent split-screen and other window behaviors
+   * Also prevent screenshots, screen recording, and screen sharing
    */
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    // Prevent screenshots and screen recording at system level
+    
+    // Prevent screenshots, screen recording, and screen sharing
+    // FLAG_SECURE makes the window content protected from screenshots and screen recording
     window.setFlags(
       WindowManager.LayoutParams.FLAG_SECURE,
       WindowManager.LayoutParams.FLAG_SECURE
     )
+    
+    // Disable multi-window mode on Android N (API 24) and above
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+      // This will be handled by manifest resizeableActivity="false"
+      // but we can add runtime checks here if needed
+    }
+  }
+
+  /**
+   * Disable entering picture-in-picture mode
+   */
+  override fun onUserLeaveHint() {
+    // Don't call super to prevent default PiP behavior
+    // super.onUserLeaveHint() - commented out to disable PiP
   }
 }

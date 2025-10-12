@@ -53,6 +53,14 @@ const Profile: React.FC<ProfileProps> = ({ user, setIsLoggedIn, setUser }) => {
     setLogoutModalVisible(true);
   };
 
+  // Calculate dynamic width based on name length
+  const getDropdownWidth = () => {
+    const nameLength = user?.name?.length || 4;
+    // Base width: 50% for short names, up to 65% for very long names
+    const dynamicWidth = Math.min(Math.max(50, 50 + nameLength * 1.5), 65);
+    return wp(dynamicWidth);
+  };
+
   return (
     <View style={{ marginRight: spacing(10) }}>
       <TouchableOpacity
@@ -74,7 +82,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setIsLoggedIn, setUser }) => {
           activeOpacity={1}
           onPress={() => setOpen(false)}
         >
-          <View style={styles.dropdown}>
+          <View style={[styles.dropdown, { width: getDropdownWidth() }]}>
             <View style={styles.userInfo}>
               <Icon name="person" size={fontSize(20)} color="#600202" />
               <Text style={styles.usernameDropdown}>
@@ -151,7 +159,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 8,
     overflow: "hidden",
-    width: wp(60),
+    minWidth: wp(50),
+    maxWidth: wp(85),
     elevation: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },

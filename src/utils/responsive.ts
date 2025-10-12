@@ -182,3 +182,35 @@ export const FONT_SIZES = {
   title: getModerateScale(28, 0.3),   // Reduced from 32
   display: getModerateScale(36, 0.3), // Reduced from 42
 };
+
+/**
+ * Convert 24-hour time format to 12-hour format with AM/PM
+ * @param time24 - Time string in 24-hour format (e.g., "13:40", "09:30")
+ * @returns Time string in 12-hour format (e.g., "1:40 PM", "9:30 AM")
+ */
+export const convertTo12Hour = (time24: string): string => {
+  if (!time24) return '';
+  
+  const [hours24, minutes] = time24.split(':');
+  const hours = parseInt(hours24, 10);
+  
+  if (isNaN(hours) || hours < 0 || hours > 23) {
+    return time24; // Return original if invalid
+  }
+  
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const hours12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  
+  return `${hours12}:${minutes} ${period}`;
+};
+
+/**
+ * Convert time range from 24-hour to 12-hour format
+ * @param startTime - Start time in 24-hour format (e.g., "13:40")
+ * @param endTime - End time in 24-hour format (e.g., "14:40")
+ * @returns Formatted time range (e.g., "01:40 PM - 02:40 PM")
+ */
+export const formatTimeRange = (startTime: string, endTime: string): string => {
+  if (!startTime || !endTime) return '';
+  return `${convertTo12Hour(startTime)} - ${convertTo12Hour(endTime)}`;
+};

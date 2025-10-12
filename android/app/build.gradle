@@ -99,8 +99,8 @@ android {
         applicationId "com.amsrkv"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3  // IMPORTANT: Increment this for each new build!
-        versionName "1.0.2"  // Update version name for user-facing version
+        versionCode 4  // IMPORTANT: Increment this for each new build!
+        versionName "1.0.3"  // Update version name for user-facing version
         
         // App Size Optimization: Enable multi-dex if needed
         multiDexEnabled true

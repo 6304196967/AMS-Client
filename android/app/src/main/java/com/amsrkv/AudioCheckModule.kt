@@ -158,4 +158,42 @@ class AudioCheckModule(reactContext: ReactApplicationContext) : ReactContextBase
             promise.reject("ERROR", "Failed to check accessibility services: ${e.message}")
         }
     }
+
+    @ReactMethod
+    fun isInMultiWindowMode(promise: Promise) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                val activity = currentActivity
+                if (activity != null) {
+                    val isMultiWindow = activity.isInMultiWindowMode
+                    promise.resolve(isMultiWindow)
+                    return
+                }
+            }
+            promise.resolve(false)
+        } catch (e: Exception) {
+            promise.reject("ERROR", "Failed to check multi-window mode: ${e.message}")
+        }
+    }
+
+    @ReactMethod
+    fun checkActiveOverlayApps(promise: Promise) {
+        try {
+            val context = reactApplicationContext
+            
+            // Check if overlay permission is granted
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val hasOverlayPermission = Settings.canDrawOverlays(context)
+                
+                if (hasOverlayPermission) {
+                    promise.resolve(true)
+                    return
+                }
+            }
+            
+            promise.resolve(false)
+        } catch (e: Exception) {
+            promise.reject("ERROR", "Failed to check active overlays: ${e.message}")
+        }
+    }
 }

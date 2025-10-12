@@ -1,11 +1,12 @@
 // student/screens/BiometricScreen.tsx
 import React, { useEffect, useState, useRef } from "react";
-import { View, StyleSheet, Alert, ActivityIndicator, BackHandler } from 'react-native';
+import { View, StyleSheet, Alert, ActivityIndicator, BackHandler, DeviceEventEmitter, NativeEventEmitter, NativeModules, AppState } from 'react-native';
 import { Text } from '../../components';
 import ReactNativeBiometrics, { BiometryTypes } from "react-native-biometrics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StackParamList } from "../Navigators/StudentNavigator";
 import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
+import AudioCheckModule from '../../modules/AudioCheckModule';
 
 const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
@@ -18,6 +19,54 @@ const BiometricScreen: React.FC<Props> = ({ navigation, route }) => {
   const [statusMessage, setStatusMessage] = useState<string>("Verifying...");
   const authCompletedRef = useRef<boolean>(false);
   const authAttemptedRef = useRef<boolean>(false);
+  const securityCheckIntervalRef = useRef<any>(null);
+  const [hasSecurityIssue, setHasSecurityIssue] = useState<boolean>(false);
+
+  // Security check function
+  const checkSecurityIssues = async () => {
+    try {
+      // Check for overlays
+      const hasOverlay = await AudioCheckModule.checkActiveOverlayApps();
+      
+      // Check for multi-window mode
+      const isMultiWindow = await AudioCheckModule.isInMultiWindowMode();
+      
+      if (hasOverlay || isMultiWindow) {
+        setHasSecurityIssue(true);
+        
+        if (!authCompletedRef.current) {
+          authCompletedRef.current = true;
+          
+          let message = '';
+          if (hasOverlay && isMultiWindow) {
+            message = 'Overlay apps and split-screen mode detected! Please close all overlay apps and exit split-screen mode.';
+          } else if (hasOverlay) {
+            message = 'Overlay/Popup apps detected! Please close WhatsApp chat heads, Messenger bubbles, and any floating apps.';
+          } else {
+            message = 'Split-screen/Multi-window mode detected! Please exit split-screen mode.';
+          }
+          
+          Alert.alert(
+            "⚠️ Security Warning",
+            message + " Attendance marking is blocked for security reasons.",
+            [
+              {
+                text: "OK",
+                onPress: () => {
+                  navigation.navigate('Tabs' as never);
+                }
+              }
+            ],
+            { cancelable: false }
+          );
+        }
+      } else {
+        setHasSecurityIssue(false);
+      }
+    } catch (error) {
+      console.error('Security check error:', error);
+    }
+  };
 
   const markAttendanceOnServer = async (studentEmail: string, sessionId: string) => {
     try {
@@ -187,6 +236,58 @@ const BiometricScreen: React.FC<Props> = ({ navigation, route }) => {
       }
     }
   };
+
+  // Security monitoring - check for overlays and multi-window mode
+  useEffect(() => {
+    // Initial security check
+    checkSecurityIssues();
+
+    // Set up periodic security checks (every 2 seconds)
+    securityCheckIntervalRef.current = setInterval(() => {
+      checkSecurityIssues();
+    }, 2000);
+
+    // Listen for native events from MainActivity
+    const overlayListener = DeviceEventEmitter.addListener('onOverlayDetected', (data) => {
+      if (data.detected && !authCompletedRef.current) {
+        authCompletedRef.current = true;
+        Alert.alert(
+          "⚠️ Security Alert",
+          "Overlay apps detected! Please close all overlay/popup apps like WhatsApp chat heads, Messenger bubbles, etc.",
+          [{ text: "OK", onPress: () => navigation.navigate('Tabs' as never) }],
+          { cancelable: false }
+        );
+      }
+    });
+
+    const multiWindowListener = DeviceEventEmitter.addListener('onMultiWindowDetected', (data) => {
+      if (data.detected && !authCompletedRef.current) {
+        authCompletedRef.current = true;
+        Alert.alert(
+          "⚠️ Security Alert",
+          "Split-screen/Multi-window mode detected! Please exit split-screen mode.",
+          [{ text: "OK", onPress: () => navigation.navigate('Tabs' as never) }],
+          { cancelable: false }
+        );
+      }
+    });
+
+    const focusLostListener = DeviceEventEmitter.addListener('onWindowFocusLost', (data) => {
+      if (data.detected && !authCompletedRef.current) {
+        console.warn('⚠️ Window focus lost - possible overlay or popup');
+      }
+    });
+
+    // Clean up
+    return () => {
+      if (securityCheckIntervalRef.current) {
+        clearInterval(securityCheckIntervalRef.current);
+      }
+      overlayListener.remove();
+      multiWindowListener.remove();
+      focusLostListener.remove();
+    };
+  }, []);
 
   // Handle back button and navigation away
   useEffect(() => {

@@ -1,6 +1,6 @@
 // student/screens/OtpScreen.tsx
 import React, { useEffect, useState, useRef } from "react";
-import { View, StyleSheet, BackHandler, ActivityIndicator, AppState, AppStateStatus, Platform, Modal, TouchableOpacity, TextInput as RNTextInput } from 'react-native';
+import { View, StyleSheet, BackHandler, ActivityIndicator, AppState, AppStateStatus, Platform, Modal, TouchableOpacity, TextInput as RNTextInput, DeviceEventEmitter } from 'react-native';
 import { Text, TextInput } from '../../components';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StackParamList } from "../Navigators/StudentNavigator";
@@ -94,14 +94,18 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
           isScreenMirroring,
           hasOverlay,
           isRooted,
-          hasAccessibility
+          hasAccessibility,
+          isMultiWindow,
+          hasActiveOverlay
         ] = await Promise.all([
           AudioCheckModule.isCallActive(),
           AudioCheckModule.isMicrophoneInUse(),
           AudioCheckModule.isScreenMirroring(),
           AudioCheckModule.hasOverlayPermission(),
           AudioCheckModule.isDeviceRooted(),
-          AudioCheckModule.isAccessibilityServiceEnabled()
+          AudioCheckModule.isAccessibilityServiceEnabled(),
+          AudioCheckModule.isInMultiWindowMode(),
+          AudioCheckModule.checkActiveOverlayApps()
         ]);
         
         
@@ -135,9 +139,24 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
           return;
         }
 
-        // Warn about overlay permission (don't block, just log)
-        if (hasOverlay) {
-          console.warn('⚠️ Overlay permission detected - potential security risk');
+        // Check for multi-window/split-screen mode
+        if (isMultiWindow) {
+          setSecurityViolation('Split-screen/Multi-window mode detected - Please exit and try again');
+          setHasLeftScreen(true);
+          setShowViolationModal(true);
+          markScheduleAsViolated();
+          setTimeout(() => navigateBackToHome(), 3000);
+          return;
+        }
+
+        // Check for active overlay apps (WhatsApp chat heads, Messenger bubbles, etc.)
+        if (hasActiveOverlay || hasOverlay) {
+          setSecurityViolation('Overlay/Popup apps detected - Please close WhatsApp chat heads, Messenger bubbles, and all floating apps');
+          setHasLeftScreen(true);
+          setShowViolationModal(true);
+          markScheduleAsViolated();
+          setTimeout(() => navigateBackToHome(), 3000);
+          return;
         }
 
         // Warn about accessibility services (don't block, just log)
@@ -165,6 +184,36 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
 
     performSecurityChecks();
   }, [navigation]);
+
+  // ===== CONTINUOUS OVERLAY & MULTI-WINDOW MONITORING =====
+  useEffect(() => {
+    const checkInterval = setInterval(async () => {
+      if (hasLeftScreen) return; // Already violated, skip checks
+      
+      try {
+        const isMultiWindow = await AudioCheckModule.isInMultiWindowMode();
+        const hasActiveOverlay = await AudioCheckModule.checkActiveOverlayApps();
+        
+        if (isMultiWindow) {
+          setSecurityViolation('Split-screen/Multi-window mode detected');
+          setHasLeftScreen(true);
+          setShowViolationModal(true);
+          markScheduleAsViolated();
+          setTimeout(() => navigateBackToHome(), 3000);
+        } else if (hasActiveOverlay) {
+          setSecurityViolation('Overlay/Popup apps detected - Close WhatsApp chat heads, Messenger bubbles, etc.');
+          setHasLeftScreen(true);
+          setShowViolationModal(true);
+          markScheduleAsViolated();
+          setTimeout(() => navigateBackToHome(), 3000);
+        }
+      } catch (error) {
+        console.error('Continuous security check error:', error);
+      }
+    }, 2000); // Check every 2 seconds
+
+    return () => clearInterval(checkInterval);
+  }, [hasLeftScreen]);
 
   // ===== ULTRA STRICT SECURITY: Monitor App State =====
   useEffect(() => {
@@ -218,6 +267,41 @@ const OtpScreen: React.FC<Props> = ({ navigation, route }) => {
     });
     return () => backHandler.remove();
   }, []);
+
+  // ===== LISTEN FOR NATIVE SECURITY EVENTS =====
+  useEffect(() => {
+    const overlayListener = DeviceEventEmitter.addListener('onOverlayDetected', (data) => {
+      if (data.detected && !hasLeftScreen) {
+        setSecurityViolation('Overlay apps detected - Close all popup/floating apps');
+        setHasLeftScreen(true);
+        setShowViolationModal(true);
+        markScheduleAsViolated();
+        setTimeout(() => navigateBackToHome(), 3000);
+      }
+    });
+
+    const multiWindowListener = DeviceEventEmitter.addListener('onMultiWindowDetected', (data) => {
+      if (data.detected && !hasLeftScreen) {
+        setSecurityViolation('Split-screen mode detected - Exit split-screen');
+        setHasLeftScreen(true);
+        setShowViolationModal(true);
+        markScheduleAsViolated();
+        setTimeout(() => navigateBackToHome(), 3000);
+      }
+    });
+
+    const focusLostListener = DeviceEventEmitter.addListener('onWindowFocusLost', (data) => {
+      if (data.detected && !hasLeftScreen) {
+        console.warn('⚠️ Window focus lost - possible overlay or popup');
+      }
+    });
+
+    return () => {
+      overlayListener.remove();
+      multiWindowListener.remove();
+      focusLostListener.remove();
+    };
+  }, [hasLeftScreen]);
 
   // ===== PERIODIC SECURITY MONITORING =====
   useEffect(() => {

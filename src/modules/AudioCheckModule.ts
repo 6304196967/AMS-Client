@@ -8,6 +8,8 @@ interface AudioCheckModuleType {
   hasOverlayPermission(): Promise<boolean>;
   isDeviceRooted(): Promise<boolean>;
   isAccessibilityServiceEnabled(): Promise<boolean>;
+  isInMultiWindowMode(): Promise<boolean>;
+  checkActiveOverlayApps(): Promise<boolean>;
 }
 
 const { AudioCheckModule } = NativeModules;

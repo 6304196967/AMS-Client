@@ -163,9 +163,9 @@ class AudioCheckModule(reactContext: ReactApplicationContext) : ReactContextBase
     fun isInMultiWindowMode(promise: Promise) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                val activity = currentActivity
+                val activity = reactApplicationContext.currentActivity
                 if (activity != null) {
-                    val isMultiWindow = activity.isInMultiWindowMode
+                    val isMultiWindow = activity.isInMultiWindowMode()
                     promise.resolve(isMultiWindow)
                     return
                 }

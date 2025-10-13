@@ -33,12 +33,9 @@ const App: React.FC = () => {
       try {
         // Check app version to detect updates/reinstalls
         const lastAppVersion = await AsyncStorage.getItem('app_version');
-        const currentAppVersion = '1.0.1'; // Must match versionName in build.gradle
+        const currentAppVersion = '1.0.5'; // Must match versionName in build.gradle
         
         if (lastAppVersion !== currentAppVersion) {
-          console.log(`⚠️ App version changed: ${lastAppVersion} → ${currentAppVersion}`);
-          console.log('🧹 Clearing potentially corrupted cached data...');
-          
           // Clear FCM token data that might be corrupted after reinstall
           await AsyncStorage.multiRemove([
             'fcm_token_registered',
@@ -48,7 +45,6 @@ const App: React.FC = () => {
           
           // Save new version
           await AsyncStorage.setItem('app_version', currentAppVersion);
-          console.log('✅ App version updated, cache cleared');
         }
         
         const storedUser = await AsyncStorage.getItem("user");
@@ -68,12 +64,11 @@ const App: React.FC = () => {
 
   // Setup notification handlers when app loads
   useEffect(() => {
-    // Handle foreground notifications with beautiful in-app banner
+    // Handle foreground notifications
     const unsubscribeForeground = setupForegroundNotificationHandler();
 
     // Handle notification when app is opened from notification
     const unsubscribeOpened = setupNotificationOpenedHandler((notification) => {
-      console.log('🔔 App opened from notification:', notification);
       
       // Navigate to home screen based on user type
       if (navigationRef.current && user) {
@@ -97,11 +92,8 @@ const App: React.FC = () => {
         // Note: This navigates to the first tab in each navigator
         try {
           navigationRef.current.navigate(homeRoute);
-          console.log(`✅ Navigated to ${homeRoute} screen`);
         } catch (error) {
           console.error('❌ Navigation error:', error);
-          // Fallback: Just open the app, let user see their current screen
-          console.log('ℹ️ App opened, showing current screen');
         }
       }
     });

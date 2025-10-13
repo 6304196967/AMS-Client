@@ -1,12 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, FlatList,
-  TouchableOpacity,
-  StatusBar,
-  StyleSheet, Modal,
-  Alert,
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView } from 'react-native';
+import { View, FlatList, TouchableOpacity, StatusBar, StyleSheet, Modal, Alert, ActivityIndicator, RefreshControl, ScrollView } from 'react-native';
 import { Text, TextInput } from '../../components';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -19,7 +12,7 @@ import { spacing, fontSize, FONT_SIZES, SPACING } from '../../utils/responsive';
 
 const API_BASE_URL = 'https://ams-server-4eol.onrender.com';
 
-// Type for schedule
+// Types
 type ScheduleItem = {
   id: string;
   subject: string;
@@ -38,7 +31,6 @@ type ScheduleItem = {
   date?: string;
 };
 
-// Props for HomeScreen
 type HomeScreenProps = {
   user: { name: string; email: string };
   setIsLoggedIn: (value: boolean) => void;
@@ -46,13 +38,223 @@ type HomeScreenProps = {
   navigation: NativeStackNavigationProp<StackParamList>;
 };
 
-// Subject type
 type Subject = {
   subject_code: string;
   subject_name: string;
   subject_type: string;
 };
 
+type ClassStatus = {
+  status: string;
+  badge: { text: string; color: string; bgColor: string };
+  message: string;
+  showMarkAttendance: boolean;
+  showWaitingForOTP: boolean;
+};
+
+// Shared Utility Functions
+const parseDateTime = (dateStr: string, timeStr: string): Date => {
+  try {
+    if (!dateStr || !timeStr) return new Date();
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    const localDate = new Date(year, month - 1, day, hours, minutes, 0);
+    return isNaN(localDate.getTime()) ? new Date() : localDate;
+  } catch (error) {
+    console.error('Error parsing date:', error);
+    return new Date();
+  }
+};
+
+const isUpcoming = (item: ScheduleItem): boolean => {
+  if (!item.date || !item.start_time) return false;
+  const classStartDateTime = parseDateTime(item.date, item.start_time);
+  const currentDateTime = new Date();
+  return currentDateTime < classStartDateTime;
+};
+
+const isOngoing = (item: ScheduleItem): boolean => {
+  if (!item.date || !item.start_time || !item.end_time) return false;
+  const classStartDateTime = parseDateTime(item.date, item.start_time);
+  const classEndDateTime = parseDateTime(item.date, item.end_time);
+  const currentDateTime = new Date();
+  const bufferMs = 30 * 60 * 1000;
+  const classEndWithBuffer = new Date(classEndDateTime.getTime() + bufferMs);
+  return currentDateTime >= classStartDateTime && currentDateTime <= classEndWithBuffer;
+};
+
+const isExpired = (item: ScheduleItem): boolean => {
+  if (!item.date || !item.end_time) return false;
+  const classEndDateTime = parseDateTime(item.date, item.end_time);
+  const currentDateTime = new Date();
+  const bufferMs = 30 * 60 * 1000;
+  const classEndWithBuffer = new Date(classEndDateTime.getTime() + bufferMs);
+  return currentDateTime > classEndWithBuffer;
+};
+
+const isAttendanceMarked = (item: ScheduleItem): boolean => {
+  if (item.attendance_status !== undefined) return item.attendance_status === true;
+  if (item.attendance_marked !== undefined) return item.attendance_marked === true;
+  return false;
+};
+
+const getClassStatus = (item: ScheduleItem, violatedSchedules: Set<string>, markedAbsentByTimer: boolean = false, canMarkButton: boolean = false): ClassStatus => {
+  const attendanceMarked = isAttendanceMarked(item);
+  const isScheduleViolated = violatedSchedules.has(item.id.toString());
+
+  if (isScheduleViolated) {
+    return {
+      status: 'security_violation',
+      badge: { text: 'Absent', color: '#ffffff', bgColor: '#e35656ff' },
+      message: 'Absent due to security violation',
+      showMarkAttendance: false,
+      showWaitingForOTP: false
+    };
+  }
+
+  if (attendanceMarked) {
+    return {
+      status: 'attendance_marked',
+      badge: { text: 'Attendance Marked', color: '#4ECDC4', bgColor: '#E8F5E9' },
+      message: '✓ Attendance marked successfully',
+      showMarkAttendance: false,
+      showWaitingForOTP: false
+    };
+  }
+
+  if (markedAbsentByTimer) {
+    return {
+      status: 'absent_time_expired',
+      badge: { text: 'Absent', color: '#ffffff', bgColor: '#e35656ff' },
+      message: 'You are marked absent (time expired)',
+      showMarkAttendance: false,
+      showWaitingForOTP: false
+    };
+  }
+
+  if (isOngoing(item) && item.otp) {
+    return {
+      status: 'ongoing_with_otp',
+      badge: { text: 'Ongoing', color: '#FF9F43', bgColor: '#FFF3E0' },
+      message: canMarkButton 
+        ? 'Class in progress - Mark attendance within 20 seconds' 
+        : 'Class in progress - Time expired',
+      showMarkAttendance: canMarkButton,
+      showWaitingForOTP: false
+    };
+  }
+
+  if (isOngoing(item) && !item.otp) {
+    return {
+      status: 'ongoing_waiting_otp',
+      badge: { text: 'Ongoing', color: '#FF9F43', bgColor: '#FFF3E0' },
+      message: 'Class in progress - Waiting for OTP',
+      showMarkAttendance: false,
+      showWaitingForOTP: true
+    };
+  }
+
+  if (isUpcoming(item)) {
+    return {
+      status: 'upcoming',
+      badge: { text: 'Upcoming', color: '#15d2f8ff', bgColor: '#e1fffeff' },
+      message: 'Class is scheduled - Not started yet',
+      showMarkAttendance: false,
+      showWaitingForOTP: false
+    };
+  }
+
+  if (isExpired(item)) {
+    if (!item.status) {
+      return {
+        status: 'cancelled',
+        badge: { text: 'Cancelled', color: '#FF6B6B', bgColor: '#FFEBEE' },
+        message: 'Class was cancelled',
+        showMarkAttendance: false,
+        showWaitingForOTP: false
+      };
+    }
+    
+    if (!attendanceMarked) {
+      return {
+        status: 'absent',
+        badge: { text: 'Absent', color: '#ffffff', bgColor: '#e35656ff' },
+        message: 'You are marked absent',
+        showMarkAttendance: false,
+        showWaitingForOTP: false
+      };
+    }
+  }
+
+  return {
+    status: 'unknown',
+    badge: { text: 'Scheduled', color: '#9E9E9E', bgColor: '#F5F5F5' },
+    message: 'Class is scheduled',
+    showMarkAttendance: false,
+    showWaitingForOTP: false
+  };
+};
+
+const getPriorityFromStatus = (status: string): number => {
+  const priorityMap: { [key: string]: number } = {
+    'ongoing_with_otp': 1,
+    'ongoing_waiting_otp': 2,
+    'upcoming': 3,
+    'attendance_marked': 4,
+    'cancelled': 5,
+    'absent': 6,
+    'absent_time_expired': 7,
+    'security_violation': 8,
+    'unknown': 9
+  };
+  return priorityMap[status] || 9;
+};
+
+// Update the sortSchedules function
+const sortSchedules = async (schedules: ScheduleItem[], violatedSchedules: Set<string>): Promise<ScheduleItem[]> => {
+  // Pre-load all absent statuses
+  const absentStatuses = new Map<string, boolean>();
+  
+  try {
+    const allKeys = await AsyncStorage.getAllKeys();
+    const absentKeys = allKeys.filter(key => key.startsWith('absent_'));
+    
+    for (const key of absentKeys) {
+      const scheduleId = key.replace('absent_', '');
+      const value = await AsyncStorage.getItem(key);
+      absentStatuses.set(scheduleId, value === 'true');
+    }
+  } catch (error) {
+    console.error('Error loading absent statuses for sorting:', error);
+  }
+  
+  return [...schedules].sort((a, b) => {
+    const markedAbsentA = absentStatuses.get(a.id) || false;
+    const markedAbsentB = absentStatuses.get(b.id) || false;
+    
+    const statusA = getClassStatus(a, violatedSchedules, markedAbsentA, false);
+    const statusB = getClassStatus(b, violatedSchedules, markedAbsentB, false);
+    const priorityA = getPriorityFromStatus(statusA.status);
+    const priorityB = getPriorityFromStatus(statusB.status);
+
+    console.log(`Comparing "${a.subject}" (status: ${statusA.status}, priority: ${priorityA}) with "${b.subject}" (status: ${statusB.status}, priority: ${priorityB})`);
+    
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB;
+    }
+    
+    try {
+      const timeA = parseDateTime(a.date || '', a.start_time || '');
+      const timeB = parseDateTime(b.date || '', b.start_time || '');
+      return timeA.getTime() - timeB.getTime();
+    } catch (error) {
+      console.error('Error parsing time for sorting:', error);
+      return 0;
+    }
+  });
+};
+
+// ClassScheduleCard Component (same as before)
 const ClassScheduleCard = ({
   item,
   onDelete,
@@ -60,6 +262,9 @@ const ClassScheduleCard = ({
   isCR,
   onMarkAttendance,
   violatedSchedules,
+  onAutoRefresh,
+  userEmail,
+  onMarkAbsent,
 }: {
   item: ScheduleItem;
   onDelete?: (id: string) => void;
@@ -67,9 +272,78 @@ const ClassScheduleCard = ({
   isCR: boolean;
   onMarkAttendance: (classEndTime: number, item: ScheduleItem) => void;
   violatedSchedules: Set<string>;
+  onAutoRefresh: () => void;
+  userEmail: string;
+  onMarkAbsent: (scheduleId: string) => void;
 }) => {
+  const [canMarkButton, setCanMarkButton] = useState(true);
+  const [markedAbsentByTimer, setMarkedAbsentByTimer] = useState(false);
+  
+  useEffect(() => {
+    const loadMarkedAbsent = async () => {
+      try {
+        const storedValue = await AsyncStorage.getItem(`absent_${item.id}`);
+        if (storedValue === 'true') {
+          setMarkedAbsentByTimer(true);
+          setCanMarkButton(false);
+        }
+      } catch (error) {
+        console.error('Error loading absent status:', error);
+      }
+    };
+    loadMarkedAbsent();
+  }, [item.id]);
+
+  useEffect(() => {
+    const saveMarkedAbsent = async () => {
+      try {
+        await AsyncStorage.setItem(`absent_${item.id}`, markedAbsentByTimer.toString());
+      } catch (error) {
+        console.error('Error saving absent status:', error);
+      }
+    };
+    if (markedAbsentByTimer) saveMarkedAbsent();
+  }, [markedAbsentByTimer, item.id]);
+  
+  useEffect(() => {
+    if (markedAbsentByTimer) {
+      setCanMarkButton(false);
+      return;
+    }
+    
+    if (!item.otp) {
+      setCanMarkButton(false);
+      return;
+    }
+    
+    if (!item.otp_created_at || isAttendanceMarked(item)) {
+      setCanMarkButton(false);
+      return;
+    }
+    
+    const otpCreated = new Date(item.otp_created_at).getTime();
+    const now = Date.now();
+    const timeSinceOtp = now - otpCreated;
+    
+    if (timeSinceOtp >= 20000) {
+      setCanMarkButton(false);
+      setMarkedAbsentByTimer(true);
+      onMarkAbsent(item.id);
+      return;
+    }
+    
+    setCanMarkButton(true);
+    const timeout = setTimeout(() => {
+      setCanMarkButton(false);
+      setMarkedAbsentByTimer(true);
+      onMarkAbsent(item.id);
+    }, 20000 - timeSinceOtp);
+    
+    return () => clearTimeout(timeout);
+  }, [item.otp_created_at, item.otp, item.id, onMarkAbsent, markedAbsentByTimer]);
+
   const getSubjectColor = (subject: string) => {
-    const colors = {
+    const colors: { [key: string]: { bg: string; text: string } } = {
       'Data Structures': { bg: '#1976D2', text: '#FFF' },
       'Algorithms': { bg: '#1565C0', text: '#FFF' },
       'Database': { bg: '#0277BD', text: '#FFF' },
@@ -82,236 +356,30 @@ const ClassScheduleCard = ({
       'SE': { bg: '#0097A7', text: '#FFF' },
       'Java': { bg: '#6A1B9A', text: '#FFF' },
       'Python': { bg: '#7B1FA2', text: '#FFF' },
-      'C': { bg: '#4A148C', text: '#FFF' },
-      'C++': { bg: '#6200EA', text: '#FFF' },
-      'Web Development': { bg: '#5E35B1', text: '#FFF' },
-      'Mathematics': { bg: '#00796B', text: '#FFF' },
-      'Maths': { bg: '#00796B', text: '#FFF' },
-      'Discrete Mathematics': { bg: '#00897B', text: '#FFF' },
-      'Linear Algebra': { bg: '#00695C', text: '#FFF' },
-      'Probability': { bg: '#009688', text: '#FFF' },
-      'Digital Logic': { bg: '#E65100', text: '#FFF' },
-      'COA': { bg: '#EF6C00', text: '#FFF' },
-      'Computer Organization': { bg: '#EF6C00', text: '#FFF' },
-      'Microprocessors': { bg: '#F57C00', text: '#FFF' },
-      'Theory of Computation': { bg: '#512DA8', text: '#FFF' },
-      'TOC': { bg: '#512DA8', text: '#FFF' },
-      'Compiler Design': { bg: '#4527A0', text: '#FFF' },
-      'Machine Learning': { bg: '#C2185B', text: '#FFF' },
-      'ML': { bg: '#C2185B', text: '#FFF' },
-      'AI': { bg: '#AD1457', text: '#FFF' },
-      'Artificial Intelligence': { bg: '#AD1457', text: '#FFF' },
-      'Data Mining': { bg: '#880E4F', text: '#FFF' },
-      'Electronics': { bg: '#388E3C', text: '#FFF' },
-      'Digital Electronics': { bg: '#2E7D32', text: '#FFF' },
-      'Signals': { bg: '#43A047', text: '#FFF' },
-      'Management': { bg: '#303F9F', text: '#FFF' },
-      'Economics': { bg: '#3949AB', text: '#FFF' },
-      'Communication': { bg: '#3F51B5', text: '#FFF' },
       'default': { bg: '#546E7A', text: '#FFF' }
     };
 
     for (const [key, color] of Object.entries(colors)) {
-      if (subject.toLowerCase().includes(key.toLowerCase())) {
-        return color;
-      }
+      if (subject.toLowerCase().includes(key.toLowerCase())) return color;
     }
     return colors.default;
   };
 
+  const classStatus = getClassStatus(item, violatedSchedules, markedAbsentByTimer, canMarkButton);
   const subjectColor = getSubjectColor(item.subject);
-  
-  const parseDateTime = (dateStr: string, timeStr: string) => {
-    try {
-      if (!dateStr || !timeStr) return new Date();
-      
-      const [year, month, day] = dateStr.split('-').map(Number);
-      const [hours, minutes] = timeStr.split(':').map(Number);
-      
-      const localDate = new Date(year, month - 1, day, hours, minutes, 0);
-      
-      if (isNaN(localDate.getTime())) {
-        console.error('Invalid date created');
-        return new Date();
-      }
-      
-      return localDate;
-    } catch (error) {
-      console.error('Error parsing date:', error);
-      return new Date();
-    }
-  };
-
-  const isUpcoming = () => {
-    if (!item.date || !item.start_time) return false;
-    
-    const classStartDateTime = parseDateTime(item.date, item.start_time);
-    const currentDateTime = new Date();
-    
-    return currentDateTime < classStartDateTime;
-  };
-
-  const isOngoing = () => {
-    if (!item.date || !item.start_time || !item.end_time) return false;
-    
-    const classStartDateTime = parseDateTime(item.date, item.start_time);
-    const classEndDateTime = parseDateTime(item.date, item.end_time);
-    const currentDateTime = new Date();
-    
-    const bufferMs = 30 * 60 * 1000;
-    const classEndWithBuffer = new Date(classEndDateTime.getTime() + bufferMs);
-    
-    return (
-      currentDateTime >= classStartDateTime && 
-      currentDateTime <= classEndWithBuffer
-    );
-  };
-
-  const isExpired = () => {
-    if (!item.date || !item.end_time) return false;
-    
-    const classEndDateTime = parseDateTime(item.date, item.end_time);
-    const currentDateTime = new Date();
-    
-    const bufferMs = 30 * 60 * 1000;
-    const classEndWithBuffer = new Date(classEndDateTime.getTime() + bufferMs);
-    
-    return currentDateTime > classEndWithBuffer;
-  };
-
-  const isAttendanceMarked = () => {
-    if (item.attendance_status !== undefined) {
-      return item.attendance_status === true;
-    }
-    
-    if (item.attendance_marked !== undefined) {
-      return item.attendance_marked === true;
-    }
-    
-    return false;
-  };
-
-  const canMarkAttendance = () => {
-    if (!item.otp || item.status !== true) return false;
-    
-    if (isAttendanceMarked()) return false;
-    
-    if (violatedSchedules.has(item.id.toString())) return false;
-    
-    const ongoing = isOngoing();
-    const expired = isExpired();
-    
-    return ongoing || (!expired && item.status && item.otp);
-  };
-
+  const upcoming = isUpcoming(item);
   const isScheduleViolated = violatedSchedules.has(item.id.toString());
-  const attendanceMarked = isAttendanceMarked();
-  const canMark = canMarkAttendance();
-
-  const getClassStatus = () => {
-    const upcoming = isUpcoming();
-    const ongoing = isOngoing();
-    const expired = isExpired();
-
-    // Ongoing classes with OTP available
-    if (ongoing && item.status && item.otp) {
-      return {
-        status: 'ongoing',
-        badge: { text: 'Ongoing - OTP Ready', color: '#4ECDC4', bgColor: '#E8F5E9' },
-        message: 'Class in progress - OTP available for attendance',
-        showMarkAttendance: true,
-        showWaitingForOTP: false
-      };
-    }
-
-    // Ongoing but waiting for OTP
-    if (ongoing && !item.otp && !item.status) {
-      return {
-        status: 'ongoing',
-        badge: { text: 'Ongoing', color: '#FF9F43', bgColor: '#FFF3E0' },
-        message: 'Class in progress - Waiting for faculty to generate OTP',
-        showMarkAttendance: false,
-        showWaitingForOTP: true
-      };
-    }
-
-    // Upcoming classes
-    if (upcoming) {
-      return {
-        status: 'upcoming',
-        badge: { text: 'Upcoming', color: '#15d2f8ff', bgColor: '#e1fffeff' },
-        message: 'Class is scheduled - Not started yet',
-        showMarkAttendance: false,
-        showWaitingForOTP: false
-      };
-    }
-
-    // Completed with attendance marked
-    if (attendanceMarked) {
-      return {
-        status: 'completed',
-        badge: { text: 'Attendance Marked', color: '#4ECDC4', bgColor: '#E8F5E9' },
-        message: '✓ Attendance marked successfully',
-        showMarkAttendance: false,
-        showWaitingForOTP: false
-      };
-    }
-
-    // Completed without attendance but OTP available
-    if (!expired && item.status && item.otp && !attendanceMarked) {
-      return {
-        status: 'completed',
-        badge: { text: 'OTP Available', color: '#2196F3', bgColor: '#E3F2FD' },
-        message: 'Class completed - OTP available for attendance',
-        showMarkAttendance: true,
-        showWaitingForOTP: false
-      };
-    }
-
-    // Cancelled/Expired classes
-    if (expired && !item.status) {
-      return {
-        status: 'expired',
-        badge: { text: 'Cancelled', color: '#FF6B6B', bgColor: '#FFEBEE' },
-        message: 'Class Cancelled...',
-        showMarkAttendance: false,
-        showWaitingForOTP: false
-      };
-    }
-
-    // Absent case
-    if (!attendanceMarked && item.status && !attendanceMarked) {
-      return {
-        status: 'completed',
-        badge: { text: 'Absent', color: '#ffffff', bgColor: '#e35656ff' },
-        message: 'You are absent',
-        showMarkAttendance: false,
-        showWaitingForOTP: false
-      };
-    }
-
-    // Default case
-    return {
-      status: 'unknown',
-      badge: { text: 'Scheduled', color: '#9E9E9E', bgColor: '#F5F5F5' },
-      message: 'Class is scheduled',
-      showMarkAttendance: false,
-      showWaitingForOTP: false
-    };
-  };
-
-  const classStatus = getClassStatus();
-  const upcoming = isUpcoming();
+  const canMark = classStatus.showMarkAttendance;
 
   return (
     <View style={styles.card}>
-      {classStatus.badge.text ? (
+      {classStatus.badge.text && (
         <View style={[styles.statusBadgeTopRight, { backgroundColor: classStatus.badge.bgColor }]}>
           <Text style={[styles.statusBadgeText, { color: classStatus.badge.color }]}>
             {classStatus.badge.text}
           </Text>
         </View>
-      ) : null}
+      )}
       
       <View style={styles.subjectCircle}>
         <View style={[styles.subjectBadge, { backgroundColor: subjectColor.bg }]}>
@@ -328,21 +396,15 @@ const ClassScheduleCard = ({
             
             {isCR && upcoming && (
               <View style={{ flexDirection: 'row', gap: 8, flexShrink: 0, marginTop: spacing(15) }}>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() => onEdit && onEdit(item)}
-                >
+                <TouchableOpacity style={styles.editButton} onPress={() => onEdit && onEdit(item)}>
                   <Icon name="pencil-outline" size={fontSize(16)} color="#FFF" />
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() =>
-                    Alert.alert("Delete Class", "Are you sure you want to delete this class?", [
-                      { text: "Cancel", style: "cancel" },
-                      { text: "Delete", style: "destructive", onPress: () => onDelete && onDelete(item.id) },
-                    ])
-                  }
-                >
+                <TouchableOpacity style={styles.deleteButton} onPress={() =>
+                  Alert.alert("Delete Class", "Are you sure you want to delete this class?", [
+                    { text: "Cancel", style: "cancel" },
+                    { text: "Delete", style: "destructive", onPress: () => onDelete && onDelete(item.id) },
+                  ])
+                }>
                   <Icon name="delete-outline" size={fontSize(16)} color="#FFF" />
                 </TouchableOpacity>
               </View>
@@ -355,39 +417,26 @@ const ClassScheduleCard = ({
         <View style={{ marginBottom: SPACING.md }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.sm }}>
             <Icon name="clock-outline" size={fontSize(20)} color="#1976D2" style={{ marginRight: SPACING.sm }} />
-            <Text 
-              style={[styles.detailText, { fontSize: FONT_SIZES.lg, fontWeight: '600' }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
+            <Text style={[styles.detailText, { fontSize: FONT_SIZES.lg, fontWeight: '600' }]} numberOfLines={1} ellipsizeMode="tail">
               {item.time}
             </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Icon name="map-marker" size={fontSize(20)} color="#E65100" style={{ marginRight: SPACING.sm }} />
-            <Text 
-              style={[styles.detailText, { fontSize: FONT_SIZES.lg, fontWeight: '600', flex: 1 }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
+            <Text style={[styles.detailText, { fontSize: FONT_SIZES.lg, fontWeight: '600', flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">
               {item.location || "Venue not specified"}
             </Text>
           </View>
         </View>
         
         {classStatus.message && (
-          <View style={[
-            styles.infoContainer,
-            { backgroundColor: classStatus.badge.bgColor }
-          ]}>
+          <View style={[styles.infoContainer, { backgroundColor: classStatus.badge.bgColor }]}>
             <Icon 
               name={
-                classStatus.status === 'completed' && attendanceMarked ? "check-circle" :
-                classStatus.status === 'completed' && classStatus.showMarkAttendance ? "lock-open-outline" :
-                classStatus.status === 'completed' ? "close-circle-outline" :
-                classStatus.status === 'ongoing' && classStatus.showMarkAttendance ? "play-circle-outline" :
-                classStatus.status === 'ongoing' ? "clock-alert-outline" :
-                classStatus.status === 'expired' ? "close-circle-outline" :
+                classStatus.status === 'attendance_marked' ? "check-circle" :
+                classStatus.status === 'ongoing_with_otp' ? "play-circle-outline" :
+                classStatus.status === 'ongoing_waiting_otp' ? "clock-alert-outline" :
+                classStatus.status === 'cancelled' ? "close-circle-outline" :
                 "calendar-clock"
               } 
               size={fontSize(16)} 
@@ -401,7 +450,7 @@ const ClassScheduleCard = ({
       </View>
 
       <View style={styles.actionButtons}>
-        {isScheduleViolated && !attendanceMarked && (
+        {isScheduleViolated && !isAttendanceMarked(item) && (
           <TouchableOpacity style={[styles.attendanceButtonDisabled, { backgroundColor: '#FFEBEE' }]} disabled>
             <Icon name="shield-alert-outline" size={fontSize(18)} color="#D32F2F" />
             <Text style={[styles.buttonTextDisabled, { marginLeft: spacing(6), color: '#D32F2F' }]}>Security Violation</Text>
@@ -409,24 +458,20 @@ const ClassScheduleCard = ({
         )}
 
         {!isScheduleViolated && canMark && (
-          <TouchableOpacity
-            style={styles.attendanceButton}
-            onPress={() => {
-              const classEndTime = Date.now() + 60 * 60 * 1000;
-              onMarkAttendance(classEndTime, item);
-            }}
-          >
+          <TouchableOpacity style={styles.attendanceButton} onPress={() => {
+            const classEndTime = Date.now() + 60 * 60 * 1000;
+            onMarkAttendance(classEndTime, item);
+          }}>
             <Icon name="check-circle-outline" size={fontSize(20)} color="#FFF" />
             <Text style={[styles.buttonText, { marginLeft: SPACING.sm }]}>Mark Attendance</Text>
           </TouchableOpacity>
         )}
-
-        
       </View>
     </View>
   );
 };
 
+// HomeScreen Component
 const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, navigation }) => {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [tomorrowSchedule, setTomorrowSchedule] = useState<ScheduleItem[]>([]);
@@ -472,7 +517,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
 
   const getFilteredTimeSlots = (subjectType: string) => {
     const allSlots = getAllTimeSlots();
-
     if (subjectType.toLowerCase().includes('lab')) {
       return allSlots.filter(slot => slot.type === '3-hour');
     } else {
@@ -480,134 +524,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
     }
   };
 
-  useEffect(() => {
-    setSelectedTimeSlot('');
-  }, [selectedSubject]);
-
-  // Function to get status priority for sorting
-  const getStatusPriority = (item: ScheduleItem): number => {
-    const parseDateTime = (dateStr: string, timeStr: string) => {
-      try {
-        if (!dateStr || !timeStr) return new Date();
-        const [year, month, day] = dateStr.split('-').map(Number);
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        const localDate = new Date(year, month - 1, day, hours, minutes, 0);
-        return isNaN(localDate.getTime()) ? new Date() : localDate;
-      } catch (error) {
-        console.error('Error parsing date:', error);
-        return new Date();
-      }
-    };
-
-    const isUpcoming = () => {
-      if (!item.date || !item.start_time) return false;
-      const classStartDateTime = parseDateTime(item.date, item.start_time);
-      const currentDateTime = new Date();
-      return currentDateTime < classStartDateTime;
-    };
-
-    const isOngoing = () => {
-      if (!item.date || !item.start_time || !item.end_time) return false;
-      const classStartDateTime = parseDateTime(item.date, item.start_time);
-      const classEndDateTime = parseDateTime(item.date, item.end_time);
-      const currentDateTime = new Date();
-      const bufferMs = 30 * 60 * 1000;
-      const classEndWithBuffer = new Date(classEndDateTime.getTime() + bufferMs);
-      return currentDateTime >= classStartDateTime && currentDateTime <= classEndWithBuffer;
-    };
-
-    const isExpired = () => {
-      if (!item.date || !item.end_time) return false;
-      const classEndDateTime = parseDateTime(item.date, item.end_time);
-      const currentDateTime = new Date();
-      const bufferMs = 30 * 60 * 1000;
-      const classEndWithBuffer = new Date(classEndDateTime.getTime() + bufferMs);
-      return currentDateTime > classEndWithBuffer;
-    };
-
-    const isAttendanceMarked = () => {
-      if (item.attendance_status !== undefined) return item.attendance_status === true;
-      if (item.attendance_marked !== undefined) return item.attendance_marked === true;
-      return false;
-    };
-
-    const attendanceMarked = isAttendanceMarked();
-    const upcoming = isUpcoming();
-    const ongoing = isOngoing();
-    const expired = isExpired();
-
-    // Priority 1: Ongoing classes (highest priority)
-    if (ongoing) {
-      return 1;
+  const generateColorForSubject = (subjectCode: string) => {
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF', '#5F27CD', '#00D2D3', '#FF9F43', '#10AC84', '#EE5A24'];
+    let hash = 0;
+    for (let i = 0; i < subjectCode.length; i++) {
+      hash = subjectCode.charCodeAt(i) + ((hash << 5) - hash);
     }
-    
-    // Priority 2: Upcoming classes
-    if (upcoming) {
-      return 2;
-    }
-    
-    // Priority 3: Completed classes (attendance marked)
-    if (attendanceMarked) {
-      return 3;
-    }
-    
-    // Priority 4: Expired/Cancelled classes
-    if (expired && !item.status) {
-      return 4;
-    }
-    
-    // Priority 5: Other completed classes without attendance marked
-    if (expired && item.status && item.otp && !attendanceMarked) {
-      return 3;
-    }
-
-    // Default: Unknown status (lowest priority)
-    return 5;
-  };
-
-  // Function to sort schedules by status priority and then by time
-  const sortSchedules = (schedules: ScheduleItem[]): ScheduleItem[] => {
-    return [...schedules].sort((a, b) => {
-      // First, sort by status priority
-      const priorityA = getStatusPriority(a);
-      const priorityB = getStatusPriority(b);
-      
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB;
-      }
-      
-      // If same priority, sort by start time (earlier first)
-      try {
-        const parseTime = (item: ScheduleItem) => {
-          if (!item.date || !item.start_time) return new Date();
-          const [year, month, day] = item.date.split('-').map(Number);
-          const [hours, minutes] = item.start_time.split(':').map(Number);
-          return new Date(year, month - 1, day, hours, minutes, 0);
-        };
-        
-        const timeA = parseTime(a);
-        const timeB = parseTime(b);
-        
-        return timeA.getTime() - timeB.getTime();
-      } catch (error) {
-        return 0;
-      }
-    });
+    return colors[Math.abs(hash) % colors.length];
   };
 
   const checkIfCR = async () => {
     try {
       setCrLoading(true);
       const response = await fetch(`${API_BASE_URL}/api/student/check-cr?email=${encodeURIComponent(user.email)}`);
-      if (!response.ok) {
-        throw new Error('Failed to check CR status');
-      }
+      if (!response.ok) throw new Error('Failed to check CR status');
       const data = await response.json();
       setIsCR(data.is_cr);
-      
-      if (data.is_cr) {
-        await Promise.all([fetchCRInfo(), fetchSubjects()]);
-      }
+      if (data.is_cr) await Promise.all([fetchCRInfo(), fetchSubjects()]);
     } catch (error) {
       console.error("Failed to check CR status:", error);
       setIsCR(false);
@@ -650,30 +583,26 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}/api/student/schedule?email=${encodeURIComponent(user.email)}`);
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch schedule');
-      }
+      if (!response.ok) throw new Error('Failed to fetch schedule');
       
       const data = await response.json();
       
-      const transformedTodaySchedule = data.today_schedule?.map((item: any) => {
-        return {
-          id: item.id,
-          subject: item.subject,
-          time: item.time,
-          location: item.location,
-          status: item.status,
-          subject_mnemonic: item.subject_mnemonic,
-          otp: item.otp,
-          otp_created_at: item.otp_created_at,
-          attendance_marked: item.attendance_marked,
-          attendance_status: item.attendance_status,
-          color: generateColorForSubject(item.subject_code || item.subject),
-          start_time: item.start_time,
-          end_time: item.end_time,
-          date: item.date,
-        };
-      }) || [];
+      const transformedTodaySchedule = data.today_schedule?.map((item: any) => ({
+        id: item.id,
+        subject: item.subject,
+        time: item.time,
+        location: item.location,
+        status: item.status,
+        subject_mnemonic: item.subject_mnemonic,
+        otp: item.otp,
+        otp_created_at: item.otp_created_at,
+        attendance_marked: item.attendance_marked,
+        attendance_status: item.attendance_status,
+        color: generateColorForSubject(item.subject_code || item.subject),
+        start_time: item.start_time,
+        end_time: item.end_time,
+        date: item.date,
+      })) || [];
       
       const transformedTomorrowSchedule = data.tomorrow_schedule?.map((item: any) => ({
         id: item.id,
@@ -691,56 +620,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
         date: item.date,
       })) || [];
       
-      // Sort the schedules
-      const sortedTodaySchedule = sortSchedules(transformedTodaySchedule);
-      const sortedTomorrowSchedule = sortSchedules(transformedTomorrowSchedule);
+      // Use async sorting and await the results
+      const [sortedTodaySchedule, sortedTomorrowSchedule] = await Promise.all([
+        sortSchedules(transformedTodaySchedule, violatedSchedules),
+        sortSchedules(transformedTomorrowSchedule, violatedSchedules)
+      ]);
       
       setSchedule(sortedTodaySchedule);
       setTomorrowSchedule(sortedTomorrowSchedule);
       
-      await AsyncStorage.setItem(`schedule_${user.email}`, JSON.stringify({
-        today: sortedTodaySchedule,
-        tomorrow: sortedTomorrowSchedule
-      }));
-      
     } catch (error) {
       console.error("Failed to fetch schedule from API:", error);
-      try {
-        const storedSchedule = await AsyncStorage.getItem(`schedule_${user.email}`);
-        if (storedSchedule) {
-          const parsed = JSON.parse(storedSchedule);
-          // Sort stored schedules as well
-          const sortedToday = sortSchedules(parsed.today || []);
-          const sortedTomorrow = sortSchedules(parsed.tomorrow || []);
-          setSchedule(sortedToday);
-          setTomorrowSchedule(sortedTomorrow);
-        } else {
-          setSchedule([]);
-          setTomorrowSchedule([]);
-        }
-      } catch (storageError) {
-        console.error("Failed to fetch schedule from storage:", storageError);
-        setSchedule([]);
-        setTomorrowSchedule([]);
-      }
+      // Simply set empty arrays on error - no fallback to AsyncStorage
+      setSchedule([]);
+      setTomorrowSchedule([]);
     } finally {
       setLoading(false);
     }
-  };
-
-  const generateColorForSubject = (subjectCode: string) => {
-    const colors = [
-      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', 
-      '#FECA57', '#FF9FF3', '#54A0FF', '#5F27CD',
-      '#00D2D3', '#FF9F43', '#10AC84', '#EE5A24'
-    ];
-    
-    let hash = 0;
-    for (let i = 0; i < subjectCode.length; i++) {
-      hash = subjectCode.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    
-    return colors[Math.abs(hash) % colors.length];
   };
 
   const getSchedulingDate = () => {
@@ -753,6 +649,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
       return tomorrow.toISOString().split('T')[0];
     }
   };
+
+  const handleMarkAbsent = useCallback((scheduleId: string) => {
+    setSchedule(prevSchedule => 
+      prevSchedule.map(item => 
+        item.id === scheduleId 
+          ? { ...item, attendance_status: false, attendance_marked: true }
+          : item
+      )
+    );
+    setTomorrowSchedule(prevSchedule => 
+      prevSchedule.map(item => 
+        item.id === scheduleId 
+          ? { ...item, attendance_status: false, attendance_marked: true }
+          : item
+      )
+    );
+  }, []);
 
   const scheduleClass = async () => {
     if (!selectedSubject || !selectedTimeSlot || !venue) {
@@ -922,8 +835,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
         );
         return;
       }
-      
-      
     } else {
       otpExpiryTime = Date.now() + 40000;
       console.warn('OTP creation timestamp not provided by backend, using fallback');
@@ -939,15 +850,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
   
   const getCurrentSchedule = () => {
     const current = selectedDate === 'today' ? schedule : tomorrowSchedule;
-    // Re-sort to ensure latest status is reflected
-    return sortSchedules(current);
+    // For real-time display, we'll use the already sorted schedules from state
+    return current;
   };
 
   const getScheduleTitle = () => {
     return selectedDate === 'today' ? "Today's Schedule" : "Tomorrow's Schedule";
   };
 
-  // Check for violated schedules in AsyncStorage
   const checkViolatedSchedules = async () => {
     try {
       const allKeys = await AsyncStorage.getAllKeys();
@@ -964,7 +874,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
     fetchSchedule();
   }, []);
 
-  // Auto-refresh when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       fetchSchedule();
@@ -978,6 +887,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
       setSchedulingDate(date);
     }
   }, [selectedDate, modalVisible]);
+
+  useEffect(() => {
+    setSelectedTimeSlot('');
+  }, [selectedSubject]);
 
   if (crLoading) {
     return (
@@ -1072,6 +985,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
               isCR={isCR}
               onMarkAttendance={handleMarkAttendance}
               violatedSchedules={violatedSchedules}
+              onAutoRefresh={onRefresh}
+              userEmail={user.email}
+              onMarkAbsent={handleMarkAbsent}
             />
           )}
           keyExtractor={(item) => item.id}
@@ -1326,6 +1242,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
   );
 };
 
+// Styles remain exactly the same as in your original code
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 

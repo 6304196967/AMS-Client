@@ -184,7 +184,7 @@ const ClassScheduleCard = ({
     const classStartDateTime = parseDateTime(scheduleDateStr, item.start_time);
     const classEndDateTime = parseDateTime(scheduleDateStr, item.end_time);
     
-    const bufferMs = 3000 * 60 * 1000;
+    const bufferMs = 30 * 60 * 1000;
     const classEndWithBuffer = new Date(classEndDateTime.getTime() + bufferMs);
     
     return (
@@ -205,7 +205,7 @@ const ClassScheduleCard = ({
     if (isSameDate(currentDateTime, scheduleDate)) {
       const scheduleDateStr = formatDateForComparison(scheduleDate);
       const classEndDateTime = parseDateTime(scheduleDateStr, item.end_time);
-      const bufferMs = 3000 * 60 * 1000;
+      const bufferMs = 30 * 60 * 1000;
       const classEndWithBuffer = new Date(classEndDateTime.getTime() + bufferMs);
       
       return currentDateTime > classEndWithBuffer;
@@ -590,7 +590,7 @@ const onRefresh = async () => {
                 const currentTime = new Date();
                 const startTime = parseDateTime(item.start_time);
                 const endTime = parseDateTime(item.end_time);
-                const bufferMs = 3000 * 60 * 1000;
+                const bufferMs = 30 * 60 * 1000;
                 const endTimeWithBuffer = new Date(endTime.getTime() + bufferMs);
 
                 // Priority 1: Ongoing classes (highest priority)

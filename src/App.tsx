@@ -33,7 +33,7 @@ const App: React.FC = () => {
       try {
         // Check app version to detect updates/reinstalls
         const lastAppVersion = await AsyncStorage.getItem('app_version');
-        const currentAppVersion = '1.0.5'; // Must match versionName in build.gradle
+        const currentAppVersion = '1.0.6'; // Must match versionName in build.gradle
         
         if (lastAppVersion !== currentAppVersion) {
           // Clear FCM token data that might be corrupted after reinstall

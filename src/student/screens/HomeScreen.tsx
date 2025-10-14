@@ -581,8 +581,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, setIsLoggedIn, setUser, n
   const fetchSchedule = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/student/schedule?email=${encodeURIComponent(user.email)}`);
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${year}-${month}-${day}`;
       
+      const response = await fetch(`${API_BASE_URL}/api/student/schedule?email=${encodeURIComponent(user.email)}&date=${todayStr}`);
+
       if (!response.ok) throw new Error('Failed to fetch schedule');
       
       const data = await response.json();

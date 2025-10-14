@@ -254,7 +254,7 @@ const sortSchedules = async (schedules: ScheduleItem[], violatedSchedules: Set<s
   });
 };
 
-// ClassScheduleCard Component (same as before)
+// ClassScheduleCard Component with Fixed AsyncStorage Sync
 const ClassScheduleCard = ({
   item,
   onDelete,
@@ -279,32 +279,51 @@ const ClassScheduleCard = ({
   const [canMarkButton, setCanMarkButton] = useState(true);
   const [markedAbsentByTimer, setMarkedAbsentByTimer] = useState(false);
   
-  useEffect(() => {
-    const loadMarkedAbsent = async () => {
-      try {
-        const storedValue = await AsyncStorage.getItem(`absent_${item.id}`);
-        if (storedValue === 'true') {
-          setMarkedAbsentByTimer(true);
-          setCanMarkButton(false);
-        }
-      } catch (error) {
-        console.error('Error loading absent status:', error);
-      }
-    };
-    loadMarkedAbsent();
-  }, [item.id]);
-
+  // Save to AsyncStorage whenever markedAbsentByTimer changes
   useEffect(() => {
     const saveMarkedAbsent = async () => {
       try {
+        console.log(`Saving absent status for schedule ID ${item.id}: ${markedAbsentByTimer}`);
         await AsyncStorage.setItem(`absent_${item.id}`, markedAbsentByTimer.toString());
       } catch (error) {
         console.error('Error saving absent status:', error);
       }
     };
-    if (markedAbsentByTimer) saveMarkedAbsent();
+    
+    saveMarkedAbsent();
   }, [markedAbsentByTimer, item.id]);
-  
+
+  // Load from AsyncStorage on component mount
+  useEffect(() => {
+    const loadMarkedAbsent = async () => {
+      try {
+        const storedValue = await AsyncStorage.getItem(`absent_${item.id}`);
+        console.log(`Loaded absent status for schedule ID ${item.id}: ${storedValue}`);
+        if (storedValue === 'true') {
+          setMarkedAbsentByTimer(true);
+          setCanMarkButton(false);
+        } else {
+          setMarkedAbsentByTimer(false);
+        }
+      } catch (error) {
+        console.error('Error loading absent status:', error);
+        setMarkedAbsentByTimer(false);
+      }
+    };
+    
+    loadMarkedAbsent();
+  }, [item.id]);
+
+  // Optional: Add cleanup to ensure data is saved on unmount
+  useEffect(() => {
+    return () => {
+      // This ensures the latest state is saved when component unmounts
+      AsyncStorage.setItem(`absent_${item.id}`, markedAbsentByTimer.toString())
+        .catch(error => console.error('Error in cleanup save:', error));
+    };
+  }, [item.id, markedAbsentByTimer]);
+
+  // OTP expiration logic
   useEffect(() => {
     if (markedAbsentByTimer) {
       setCanMarkButton(false);
@@ -326,6 +345,7 @@ const ClassScheduleCard = ({
     const timeSinceOtp = now - otpCreated;
     
     if (timeSinceOtp >= 20000) {
+      console.log(`OTP expired for schedule ${item.id}, marking absent`);
       setCanMarkButton(false);
       setMarkedAbsentByTimer(true);
       onMarkAbsent(item.id);
@@ -334,6 +354,7 @@ const ClassScheduleCard = ({
     
     setCanMarkButton(true);
     const timeout = setTimeout(() => {
+      console.log(`OTP timeout reached for schedule ${item.id}, marking absent`);
       setCanMarkButton(false);
       setMarkedAbsentByTimer(true);
       onMarkAbsent(item.id);
@@ -366,6 +387,8 @@ const ClassScheduleCard = ({
   };
 
   const classStatus = getClassStatus(item, violatedSchedules, markedAbsentByTimer, canMarkButton);
+  console.log(`Class "${item.subject}" status: ${classStatus.status}, markedAbsentByTimer: ${markedAbsentByTimer}, canMarkButton: ${canMarkButton}`);
+  console.log(item.time);
   const subjectColor = getSubjectColor(item.subject);
   const upcoming = isUpcoming(item);
   const isScheduleViolated = violatedSchedules.has(item.id.toString());

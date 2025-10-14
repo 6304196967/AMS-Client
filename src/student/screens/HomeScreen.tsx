@@ -137,7 +137,7 @@ const getClassStatus = (item: ScheduleItem, violatedSchedules: Set<string>, mark
       status: 'ongoing_with_otp',
       badge: { text: 'Ongoing', color: '#FF9F43', bgColor: '#FFF3E0' },
       message: canMarkButton 
-        ? 'Class in progress - Mark attendance within 20 seconds' 
+        ? 'Class in progress - Mark attendance within time' 
         : 'Class in progress - Time expired',
       showMarkAttendance: canMarkButton,
       showWaitingForOTP: false
